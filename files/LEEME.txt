@@ -1,0 +1,13 @@
+Coloca aquí tu llamada al rezo con el nombre exacto:
+
+    adhan.mp3
+
+La app la reproduce cuando salta la notificación. Si el archivo no existe
+(o el navegador bloquea la reproducción automática), notifications.js genera
+dos notas suaves con Web Audio, así que el aviso nunca se queda mudo.
+
+Usa una grabación de la que tengas derechos de uso; no se incluye ninguna
+por motivos de licencia. Recomendado: mp3 mono, 96-128 kbps, menos de 2 MB,
+para que quepa bien en la caché del service worker.
+
+Si prefieres otro nombre o formato, cambia ADHAN_URL en js/config.js.

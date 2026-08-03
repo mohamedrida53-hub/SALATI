@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sakina · Oración, Qibla y Corán</title>
+<meta name="description" content="Horarios de oración, brújula de la Qibla y lectura del Corán.">
+<meta name="theme-color" content="#070a09">
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" href="./favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Sakina">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="preconnect" href="https://api.aladhan.com" crossorigin>
+<link rel="preconnect" href="https://api.quran.com" crossorigin>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="js/vendor/leaflet.css">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- ============ Cabecera ============ -->
+<header class="topbar">
+  <div class="topbar__brand">
+    <svg class="khatam" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-khatam"></use></svg>
+    <span>Sakina</span>
+  </div>
+  <div class="topbar__tools">
+    <button id="btn-location" class="chip" type="button">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-pin"></use></svg>
+      <span id="location-label" data-i18n="app.locSearching">Buscando ubicación…</span>
+    </button>
+
+    <div class="lang" id="lang-picker">
+      <button id="lang-btn" class="chip chip--lang" type="button"
+              aria-haspopup="listbox" aria-expanded="false" aria-controls="lang-list"></button>
+      <ul id="lang-list" class="lang__list" role="listbox" data-i18n-aria="app.langLabel" hidden></ul>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+
+  <!-- ============ 1. Horarios de oración ============ -->
+  <section id="panel-prayer" class="panel" role="tabpanel" aria-labelledby="tab-prayer" tabindex="-1">
+
+    <div id="prayer-state" class="state" hidden></div>
+
+    <article class="hero" id="hero" hidden>
+      <p class="eyebrow" id="hijri-date"></p>
+      <div class="hero__dial">
+        <svg class="arc" viewBox="0 0 200 200" aria-hidden="true">
+          <circle class="arc__track" cx="100" cy="100" r="88"></circle>
+          <circle class="arc__fill" id="arc-fill" cx="100" cy="100" r="88"></circle>
+        </svg>
+        <div class="hero__inner">
+          <p class="hero__label" data-i18n="prayer.next">Próximo rezo</p>
+          <h1 class="hero__name" id="next-name">—</h1>
+          <p class="hero__time" id="next-time"></p>
+          <p class="hero__count" id="countdown" aria-live="off">--:--:--</p>
+        </div>
+      </div>
+      <p class="hero__foot" id="gregorian-date"></p>
+    </article>
+
+    <ol class="times" id="times-list" data-i18n-aria="prayer.timesLabel"></ol>
+
+    <div class="settings">
+      <div class="settings__row">
+        <label class="field">
+          <span data-i18n="prayer.method">Método de cálculo</span>
+          <select id="method-select"></select>
+        </label>
+      </div>
+
+      <div class="settings__row">
+        <span class="settings__text">
+          <b data-i18n="prayer.adhanTitle">Aviso del adhan</b>
+          <span id="notify-hint" data-i18n="prayer.adhanHint">Notificación y sonido a la hora de cada rezo.</span>
+        </span>
+        <label class="switch">
+          <input id="notify-toggle" type="checkbox" data-i18n-aria="prayer.adhanAria">
+          <span aria-hidden="true"></span>
+        </label>
+      </div>
+
+      <div class="settings__row">
+        <span class="settings__text">
+          <b data-i18n="prayer.testTitle">Probar el sonido</b>
+          <span data-i18n="prayer.testHint">Comprueba el volumen antes de confiar en el aviso.</span>
+        </span>
+        <button id="btn-test-adhan" class="btn btn--ghost" type="button" data-i18n="prayer.testBtn">Escuchar</button>
+      </div>
+
+      <div class="settings__row" id="install-row" hidden>
+        <span class="settings__text">
+          <b data-i18n="prayer.installTitle">Instalar Sakina</b>
+          <span data-i18n="prayer.installHint">Se abre a pantalla completa y funciona sin conexión.</span>
+        </span>
+        <button id="btn-install" class="btn" type="button" data-i18n="prayer.installBtn">Instalar</button>
+      </div>
+
+      <div class="settings__row">
+        <p class="note" id="meta-note"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 2. Brújula de la Qibla ============ -->
+  <section id="panel-qibla" class="panel" role="tabpanel" aria-labelledby="tab-qibla" tabindex="-1" hidden>
+    <div id="qibla-state" class="state" hidden></div>
+
+    <div class="qibla" id="qibla-wrap" hidden>
+      <div
+       class="compass" id="compass">
+        <div class="compass__ring" id="compass-ring">
+          <svg viewBox="0 0 240 240" aria-hidden="true">
+            <circle class="compass__edge" cx="120" cy="120" r="112"></circle>
+            <g class="compass__ticks" id="compass-ticks"></g>
+            <text class="compass__card" x="120" y="30">N</text>
+            <text class="compass__card" x="214" y="126">E</text>
+            <text class="compass__card" x="120" y="222">S</text>
+            <text class="compass__card" x="26" y="126">O</text>
+          </svg>
+          <div class="compass__qibla" id="qibla-marker">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-kaaba"></use></svg>
+          </div>
+        </div>
+        <div class="compass__hub">
+          <p class="compass__deg" id="qibla-deg">—</p>
+          <p class="compass__dir" id="qibla-dir"></p>
+          <span class="level" id="level" hidden title="Nivel: centra el punto para que el móvil esté plano">
+            <span class="level__dot" id="level-dot"></span>
+          </span>
+        </div>
+      </div>
+
+      <p class="qibla__hint" id="qibla-hint"></p>
+      <button id="btn-compass" class="btn" type="button" data-i18n="qibla.enable" hidden>Activar brújula</button>
+
+      <dl class="facts">
+        <div>
+          <dt><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-kaaba"></use></svg><span data-i18n="qibla.factBearing">Dirección de la Qibla</span></dt>
+          <dd id="fact-bearing">—</dd>
+        </div>
+        <div>
+          <dt><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-ruler"></use></svg><span data-i18n="qibla.factDistance">Distancia</span></dt>
+          <dd id="fact-distance">—</dd>
+        </div>
+        <div>
+          <dt><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-pin"></use></svg><span data-i18n="qibla.factPlace">Tu ubicación</span></dt>
+          <dd id="fact-place">—</dd>
+        </div>
+      </dl>
+    </div>
+  </section>
+
+  <!-- ============ 2b. Mezquitas cercanas ============ -->
+  <section id="panel-mosques" class="panel" role="tabpanel" aria-labelledby="tab-mosques" tabindex="-1" hidden>
+    <div id="mosques-state" class="state" hidden></div>
+
+    <div class="mosques" id="mosques-wrap" hidden>
+      <div class="mosques__bar">
+        <label class="field field--inline">
+          <span class="sr-only" data-i18n="mosques.radius">Radio de búsqueda</span>
+          <select id="radius-select" data-i18n-aria="mosques.radius"></select>
+        </label>
+        <button id="btn-recenter" class="icon-btn" type="button" data-i18n-aria="mosques.recenter" data-i18n-title="mosques.recenter">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-crosshair"></use></svg>
+        </button>
+      </div>
+
+      <div id="map" class="map"></div>
+
+      <p class="mosques__summary" id="mosque-summary" aria-live="polite"></p>
+      <ul class="mosques__list" id="mosque-list" data-i18n-aria="mosques.listLabel"></ul>
+    </div>
+  </section>
+
+  <!-- ============ 3. Corán ============ -->
+  <section id="panel-quran" class="panel" role="tabpanel" aria-labelledby="tab-quran" tabindex="-1" hidden>
+
+    <div id="quran-index">
+      <div class="searchbar">
+        <input id="surah-search" type="search" placeholder="Buscar sura por nombre o número" autocomplete="off" enterkeyhint="search">
+      </div>
+      <div id="chapters-state" class="state" hidden></div>
+      <ol class="surahs" id="surah-list" aria-label="Suras del Corán"></ol>
+    </div>
+
+    <div id="quran-reader" hidden>
+      <div class="reader__bar">
+        <button id="btn-back" class="btn btn--ghost" type="button">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-back"></use></svg> Suras
+        </button>
+        <label class="field field--inline">
+          <span class="sr-only">Traducción</span>
+          <select id="translation-select"></select>
+        </label>
+      </div>
+      <header class="reader__head">
+        <p class="eyebrow" id="reader-eyebrow"></p>
+        <h2 class="reader__ar" id="reader-arabic"></h2>
+        <p class="reader__meta" id="reader-meta"></p>
+        <p class="bismillah" id="bismillah" hidden>بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ</p>
+      </header>
+      <div id="verses-state" class="state" hidden></div>
+      <ol class="verses" id="verse-list"></ol>
+    </div>
+  </section>
+
+  <!-- ============ 4. Tasbih ============ -->
+  <section id="panel-tasbih" class="panel" role="tabpanel" aria-labelledby="tab-tasbih" tabindex="-1" hidden>
+    <div class="tasbih">
+      <div class="tasbih__targets" id="tasbih-targets" role="group" data-i18n-aria="tasbih.targets"></div>
+
+      <button class="tasbih__pad" id="tasbih-pad" type="button">
+        <svg class="tasbih__ring" viewBox="0 0 280 280" aria-hidden="true">
+          <circle class="track" cx="140" cy="140" r="128"></circle>
+          <circle class="fill" id="tasbih-fill" cx="140" cy="140" r="128"></circle>
+        </svg>
+        <span class="tasbih__inner">
+          <strong class="tasbih__count" id="tasbih-count">0</strong>
+          <span class="tasbih__of" id="tasbih-of"></span>
+          <span class="tasbih__dhikr" id="tasbih-dhikr"></span>
+          <span class="tasbih__rounds" id="tasbih-rounds"></span>
+        </span>
+      </button>
+
+      <div class="tasbih__actions">
+        <button id="tasbih-undo" class="icon-btn" type="button" data-i18n-aria="tasbih.undoAria" data-i18n-title="tasbih.undo">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-undo"></use></svg>
+        </button>
+        <button id="tasbih-reset" class="icon-btn" type="button" data-i18n-aria="tasbih.resetAria" data-i18n-title="tasbih.reset">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-reset"></use></svg>
+        </button>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ============ Navegación ============ -->
+<nav class="tabbar" role="tablist" data-i18n-aria="app.sections">
+  <button id="tab-prayer" class="tabbar__btn" role="tab" aria-controls="panel-prayer" aria-selected="true" data-panel="prayer">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-mosque"></use></svg><span data-i18n="tab.prayer">Rezos</span>
+  </button>
+  <button id="tab-qibla" class="tabbar__btn" role="tab" aria-controls="panel-qibla" aria-selected="false" data-panel="qibla" tabindex="-1">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-compass"></use></svg><span data-i18n="tab.qibla">Qibla</span>
+  </button>
+  <button id="tab-mosques" class="tabbar__btn" role="tab" aria-controls="panel-mosques" aria-selected="false" data-panel="mosques" tabindex="-1">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-map"></use></svg><span data-i18n="tab.mosques">Mezquitas</span>
+  </button>
+  <button id="tab-quran" class="tabbar__btn" role="tab" aria-controls="panel-quran" aria-selected="false" data-panel="quran" tabindex="-1">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-book"></use></svg><span data-i18n="tab.quran">Corán</span>
+  </button>
+  <button id="tab-tasbih" class="tabbar__btn" role="tab" aria-controls="panel-tasbih" aria-selected="false" data-panel="tasbih" tabindex="-1">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-beads"></use></svg><span data-i18n="tab.tasbih">Tasbih</span>
+  </button>
+</nav>
+
+<!-- ============ Diálogo de ubicación ============ -->
+<dialog id="dlg-location" class="dialog">
+  <form id="form-location" method="dialog">
+    <h2>Elegir ubicación</h2>
+    <p class="dialog__lede">Escribe una ciudad y país, o usa el GPS del dispositivo.</p>
+    <label class="field">
+      <span>Ciudad</span>
+      <input id="city-input" name="city" type="text" placeholder="Barcelona, España" autocomplete="address-level2" required>
+    </label>
+    <p class="error" id="dlg-error" hidden></p>
+    <div class="dialog__actions">
+      <button type="button" id="btn-geo" class="btn btn--ghost">Usar mi GPS</button>
+      <button type="submit" class="btn">Buscar ciudad</button>
+    </div>
+    <button type="button" id="btn-close-dlg" class="dialog__close" aria-label="Cerrar">×</button>
+  </form>
+</dialog>
+
+<p id="toast" class="toast" role="status" aria-live="polite"></p>
+
+<!-- ============ Iconos (sprite) ============ -->
+<svg class="sprite" aria-hidden="true">
+  <symbol id="icon-khatam" viewBox="0 0 24 24"><path fill="currentColor" d="M12 1.6 15 4.6h4.4V9l3 3-3 3v4.4H15L12 22.4 9 19.4H4.6V15l-3-3 3-3V4.6H9z"/></symbol>
+  <symbol id="icon-pin" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" d="M12 21s7-6 7-11a7 7 0 1 0-14 0c0 5 7 11 7 11z"/><circle cx="12" cy="10" r="2.5" fill="none" stroke="currentColor" stroke-width="1.7"/></symbol>
+  <symbol id="icon-mosque" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" d="M4 20v-6a8 8 0 0 1 16 0v6zM12 6c0-2 3-2.5 3-4.5M3 20h18M8 20v-4a4 4 0 0 1 8 0v4"/></symbol>
+  <symbol id="icon-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.6"/><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" d="m15.5 8.5-2 5-5 2 2-5z"/></symbol>
+  <symbol id="icon-book" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" d="M4 5.5A2.5 2.5 0 0 1 6.5 3H19v15H6.5A2.5 2.5 0 0 0 4 20.5zM19 18v3H6.5"/></symbol>
+  <symbol id="icon-kaaba" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2 3 6.5v11L12 22l9-4.5v-11z" opacity=".95"/><path fill="none" stroke="#fff" stroke-width="1.2" opacity=".7" d="M3 9.5h18"/></symbol>
+  <symbol id="icon-back" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="m14 6-6 6 6 6"/></symbol>
+  <symbol id="icon-dawn" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" d="M3 18h18M6.5 18a5.5 5.5 0 0 1 11 0M12 5.5V3M5.6 8.1 4.2 6.7M18.4 8.1l1.4-1.4"/></symbol>
+  <symbol id="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="1.6"/><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.4 5.4 6.8 6.8M17.2 17.2l1.4 1.4M18.6 5.4 17.2 6.8M6.8 17.2 5.4 18.6"/></symbol>
+  <symbol id="icon-sunlow" viewBox="0 0 24 24"><circle cx="12" cy="13" r="3.6" fill="none" stroke="currentColor" stroke-width="1.6"/><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" d="M12 5.5v2M4.5 13h2M17.5 13h2M6.6 7.6 8 9M17.4 7.6 16 9M3 20h18"/></symbol>
+  <symbol id="icon-sunset" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" d="M3 19h18M7 19a5 5 0 0 1 10 0M12 4v4M12 12l-2.5-2.5M12 12l2.5-2.5"/></symbol>
+  <symbol id="icon-moon" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></symbol>
+  <symbol id="icon-beads" viewBox="0 0 24 24"><circle cx="12" cy="4.5" r="2" fill="currentColor"/><circle cx="18" cy="7.5" r="2" fill="currentColor"/><circle cx="20" cy="13.5" r="2" fill="currentColor"/><circle cx="6" cy="7.5" r="2" fill="currentColor"/><circle cx="4" cy="13.5" r="2" fill="currentColor"/><circle cx="8.5" cy="19" r="2" fill="currentColor"/><circle cx="15.5" cy="19" r="2" fill="currentColor"/></symbol>
+  <symbol id="icon-undo" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" d="M4 9h9a5 5 0 0 1 0 10H8M4 9l4-4M4 9l4 4"/></symbol>
+  <symbol id="icon-reset" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" d="M20 12a8 8 0 1 1-2.6-5.9M20 4v4h-4"/></symbol>
+  <symbol id="icon-ruler" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" d="M3 12h18M12 3v18"/></symbol>
+  <symbol id="icon-map" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3zM9 3v15M15 6v15"/></symbol>
+  <symbol id="icon-crosshair" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="2" fill="currentColor"/><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" d="M12 2v3M12 19v3M2 12h3M19 12h3"/></symbol>
+
+  <!-- Banderas del selector de idioma. Proporción 3:2 (24×16).
+       La de Arabia Saudí es una simplificación: la shahada y el sable
+       reales no se pueden trazar con fidelidad a este tamaño. -->
+  <symbol id="flag-ca" viewBox="0 0 24 16"><rect width="24" height="16" fill="#fcdd09"/><g fill="#da121a"><rect y="1.78" width="24" height="1.78"/><rect y="5.33" width="24" height="1.78"/><rect y="8.89" width="24" height="1.78"/><rect y="12.44" width="24" height="1.78"/></g></symbol>
+  <symbol id="flag-es" viewBox="0 0 24 16"><rect width="24" height="16" fill="#aa151b"/><rect y="4" width="24" height="8" fill="#f1bf00"/></symbol>
+  <symbol id="flag-gb" viewBox="0 0 24 16"><rect width="24" height="16" fill="#012169"/><path d="M0 0l24 16M24 0L0 16" stroke="#fff" stroke-width="3.2"/><path d="M0 0l24 16M24 0L0 16" stroke="#c8102e" stroke-width="1.9"/><path d="M12 0v16M0 8h24" stroke="#fff" stroke-width="5.3"/><path d="M12 0v16M0 8h24" stroke="#c8102e" stroke-width="3.2"/></symbol>
+  <symbol id="flag-sa" viewBox="0 0 24 16"><rect width="24" height="16" fill="#165d31"/><rect x="4" y="10.5" width="16" height="1.1" rx=".55" fill="#fff"/><path d="M5.1 11.05 3.4 9.9v2.3z" fill="#fff"/><path d="M5 5.6h14M6.4 4.2v2.6M9.6 4.2v2.6M12.8 4.2v2.6M16 4.2v2.6" stroke="#fff" stroke-width="1.1" stroke-linecap="round" fill="none"/></symbol>
+</svg>
+
+<script src="js/vendor/leaflet.js"></script>
+<script type="module" src="js/app.js"></script>
+</body>
+</html>

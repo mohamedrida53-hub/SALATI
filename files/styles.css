@@ -1,0 +1,1005 @@
+/* =========================================================
+   Sakina — hoja de estilos única
+   Tema: negro profundo + verde esmeralda. Sin modo claro:
+   la app se usa de noche y al amanecer, y el contraste alto
+   es lo que hace cómoda la lectura del Corán.
+   Tipografía: Amiri (display + árabe) · Cairo (interfaz y cifras)
+   ========================================================= */
+
+:root {
+  /* Fondos, del más profundo al más elevado */
+  --bg:          #070a09;
+  --bg-raised:   #0b100e;
+  --surface:     #101714;
+  --surface-2:   #161f1b;
+  --line:        #1f2b26;
+
+  /* Acento: verde esmeralda / bosque */
+  --accent:        #1f9d6b;
+  --accent-bright: #3fd69a;
+  --accent-deep:   #16764f;
+  --accent-wash:   rgb(31 157 107 / 14%);
+  --accent-edge:   rgb(63 214 154 / 28%);
+  --on-accent:     #04150f;
+
+  /* Texto de alto contraste */
+  --ink:       #f0f5f2;   /* ~18:1 sobre --bg */
+  --ink-read:  #dbe5e0;   /* cuerpos de texto largos */
+  --ink-soft:  #a3b2ac;
+  --ink-faint: #7b8a84;
+
+  /* Único tono cálido, reservado a la fecha hijri y la basmala */
+  --sand: #c7a87a;
+  --danger: #e2725b;
+
+  --r-sm: 10px;
+  --r-md: 16px;
+  --r-lg: 26px;
+  --shadow: 0 1px 0 rgb(255 255 255 / 4%) inset, 0 18px 40px -26px rgb(0 0 0 / 90%);
+
+  --f-ui: "Cairo", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --f-display: "Amiri", "Iowan Old Style", Georgia, serif;
+  --f-ar: "Amiri", "Scheherazade New", "Geeza Pro", "Traditional Arabic", serif;
+
+  --tabbar-h: 66px;
+
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; background: var(--bg); }
+
+body {
+  margin: 0;
+  padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--f-ui);
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior-y: contain;
+}
+
+.sprite { display: none; }
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+}
+
+button, select, input { font: inherit; color: inherit; }
+
+:where(button, select, input, a, [tabindex]):focus-visible {
+  outline: 2px solid var(--accent-bright);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* ---------------- Cabecera ---------------- */
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: calc(10px + env(safe-area-inset-top)) 16px 10px;
+  background: color-mix(in srgb, var(--bg-raised) 92%, transparent);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--line);
+}
+
+.topbar__brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--f-display);
+  font-size: 1.35rem;
+  letter-spacing: .04em;
+}
+
+.topbar__brand .khatam { width: 20px; height: 20px; color: var(--accent-bright); }
+
+.topbar__tools { display: flex; align-items: center; gap: 8px; min-width: 0; }
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 46vw;
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink-soft);
+  font-size: .82rem;
+  cursor: pointer;
+}
+
+.chip svg { width: 15px; height: 15px; flex: none; color: var(--accent-bright); }
+.chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chip:hover { border-color: var(--accent-edge); color: var(--ink); }
+
+/* ---------------- Selector de idioma ---------------- */
+
+.lang { position: relative; flex: none; }
+
+.chip--lang { gap: 5px; padding: 6px 9px; max-width: none; }
+.chip--lang svg { color: inherit; }
+
+.lang__flag {
+  width: 21px;
+  height: 14px;
+  flex: none;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px rgb(255 255 255 / 14%);
+}
+
+.lang__code { font-weight: 600; letter-spacing: .04em; }
+.lang__chevron { width: 13px; height: 13px; opacity: .6; transition: rotate .18s ease; }
+.lang--open .lang__chevron { rotate: 180deg; }
+
+.lang__list {
+  position: absolute;
+  top: calc(100% + 8px);
+  inset-inline-end: 0;
+  z-index: 40;
+  min-width: 176px;
+  margin: 0;
+  padding: 5px;
+  list-style: none;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--bg-raised);
+  box-shadow: var(--shadow);
+}
+
+.lang__list[hidden] { display: none; }
+
+.lang__option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: 7px;
+  color: var(--ink-soft);
+  font-size: .88rem;
+  cursor: pointer;
+}
+
+.lang__option:hover { background: var(--surface-2); color: var(--ink); }
+.lang__option:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: -2px; }
+
+.lang__option[aria-selected="true"] {
+  background: var(--accent-wash);
+  color: var(--accent-bright);
+  font-weight: 600;
+}
+
+/* El árabe necesita más cuerpo para leerse al mismo tamaño */
+.lang__option[lang="ar"] span { font-family: var(--f-ar); font-size: 1.05rem; }
+
+/* ---------------- Layout ---------------- */
+
+.panel { padding: 18px 16px 32px; max-width: 640px; margin-inline: auto; }
+.panel[hidden] { display: none; }
+
+.eyebrow {
+  margin: 0;
+  font-size: .74rem;
+  font-weight: 600;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--sand);
+}
+
+/* Fecha hijri y occidental una al lado de la otra */
+.eyebrow__sep { margin: 0 .5em; opacity: .45; }
+.eyebrow__greg { color: var(--ink-faint); font-weight: 500; }
+
+@media (max-width: 380px) {
+  .eyebrow { letter-spacing: .1em; font-size: .68rem; }
+}
+
+/* ---------------- Estados y avisos ---------------- */
+
+.state {
+  padding: 16px;
+  border: 1px dashed var(--line);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  color: var(--ink-soft);
+  font-size: .92rem;
+}
+
+.state--error { border-style: solid; border-color: color-mix(in srgb, var(--danger) 50%, transparent); }
+.state strong { display: block; margin-bottom: 4px; color: var(--ink); font-weight: 600; }
+.state .btn { margin-top: 12px; }
+
+.note { margin: 10px 0 0; color: var(--ink-faint); font-size: .78rem; }
+.error { margin: 4px 0 0; color: var(--danger); font-size: .85rem; }
+
+/* ---------------- Botones y campos ---------------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 11px 18px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 700;
+  font-size: .92rem;
+  cursor: pointer;
+}
+
+.btn:hover { background: var(--accent-bright); }
+.btn:active { translate: 0 1px; }
+.btn svg { width: 18px; height: 18px; }
+
+.btn--ghost {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.btn--ghost:hover { background: var(--accent-wash); border-color: var(--accent-edge); }
+
+/* Botón redondo solo con icono: acciones secundarias sin ruido de texto */
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink-soft);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background .15s ease, border-color .15s ease, color .15s ease;
+}
+
+.icon-btn svg { width: 22px; height: 22px; }
+.icon-btn:hover { background: var(--accent-wash); border-color: var(--accent-edge); color: var(--accent-bright); }
+.icon-btn:active { translate: 0 1px; }
+.icon-btn:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: 2px; }
+
+.field { display: block; }
+.field > span { display: block; margin-bottom: 6px; font-size: .8rem; color: var(--ink-soft); }
+.field--inline > span { margin: 0; }
+
+.field select,
+.field input,
+.searchbar input {
+  width: 100%;
+  padding: 11px 13px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.field select:hover, .searchbar input:focus { border-color: var(--accent-edge); }
+
+/* ---------------- 1 · Hero de próximo rezo ---------------- */
+
+.hero {
+  position: relative;
+  margin: 0 0 18px;
+  padding: 22px 18px 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background:
+    radial-gradient(130% 80% at 50% -10%, var(--accent-wash) 0%, transparent 62%),
+    var(--surface);
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+
+.hero[hidden] { display: none; }
+
+.hero__dial { position: relative; width: min(280px, 78vw); margin: 10px auto 6px; aspect-ratio: 1; }
+
+.arc { position: absolute; inset: 0; }
+
+.arc circle {
+  fill: none;
+  stroke-width: 3;
+  stroke-linecap: round;
+  transform: rotate(-90deg);
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.arc__track { stroke: var(--line); }
+
+.arc__fill {
+  stroke: var(--accent-bright);
+  filter: drop-shadow(0 0 6px rgb(63 214 154 / 45%));
+  transition: stroke-dashoffset .6s ease;
+}
+
+.hero__inner {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+.hero__label { margin: 0; font-size: .72rem; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-faint); }
+.hero__name { margin: 0; font-family: var(--f-display); font-size: 2.1rem; font-weight: 400; line-height: 1.1; }
+.hero__time { margin: 0; color: var(--ink-soft); font-size: .9rem; }
+
+.hero__count {
+  margin: 8px 0 0;
+  color: var(--accent-bright);
+  font-size: 1.6rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .04em;
+}
+
+.hero__foot { margin: 2px 0 0; color: var(--ink-faint); font-size: .82rem; }
+
+/* ---------------- 1 · Lista de horarios ---------------- */
+
+.times {
+  margin: 0 0 20px;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.time {
+  display: grid;
+  grid-template-columns: 34px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 16px;
+  border-top: 1px solid var(--line);
+}
+
+.time:first-child { border-top: 0; }
+.time svg { width: 22px; height: 22px; color: var(--accent); }
+.time__name { font-weight: 600; }
+.time__ar { font-family: var(--f-ar); font-size: 1rem; color: var(--ink-faint); }
+.time__clock { font-variant-numeric: tabular-nums; font-weight: 600; font-size: 1.05rem; }
+
+.time--info { color: var(--ink-soft); }
+.time--info .time__name { font-weight: 400; }
+.time--info svg { color: var(--ink-faint); }
+
+.time--past { opacity: .42; }
+
+.time--next {
+  background: var(--accent-wash);
+  box-shadow: inset 3px 0 0 var(--accent-bright);
+}
+
+.time--next .time__clock, .time--next .time__name { color: var(--ink); }
+
+.time__tag {
+  display: block;
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--accent-bright);
+}
+
+/* ---------------- 1 · Ajustes ---------------- */
+
+.settings {
+  padding: 4px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--surface);
+}
+
+.settings__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px 0;
+  border-top: 1px solid var(--line);
+}
+
+.settings__row:first-child { border-top: 0; }
+.settings__row .field { flex: 1; }
+.settings__text { flex: 1; }
+.settings__text b { display: block; font-weight: 600; }
+.settings__text span { color: var(--ink-faint); font-size: .8rem; }
+
+/* Interruptor accesible: un checkbox real con la apariencia cambiada */
+.switch { position: relative; flex: none; width: 50px; height: 28px; }
+
+.switch input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.switch span {
+  position: absolute;
+  inset: 0;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface-2);
+  transition: background .2s ease, border-color .2s ease;
+  pointer-events: none;
+}
+
+.switch span::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--ink-faint);
+  transition: translate .2s ease, background .2s ease;
+}
+
+.switch input:checked + span { background: var(--accent-deep); border-color: var(--accent-edge); }
+.switch input:checked + span::after { translate: 22px 0; background: var(--accent-bright); }
+.switch input:focus-visible + span { outline: 2px solid var(--accent-bright); outline-offset: 2px; }
+.switch input:disabled + span { opacity: .4; }
+
+/* ---------------- 2 · Qibla ---------------- */
+
+.qibla { text-align: center; }
+.qibla[hidden] { display: none; }
+
+.compass { position: relative; width: min(320px, 84vw); margin: 8px auto 18px; aspect-ratio: 1; }
+
+.compass__ring { position: absolute; inset: 0; transition: transform .18s linear; }
+.compass__ring svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.compass__edge { fill: var(--surface); stroke: var(--line); stroke-width: 1.5; }
+.compass__ticks line { stroke: var(--ink-faint); stroke-width: 1.4; opacity: .55; }
+.compass__ticks line.major { stroke: var(--accent); stroke-width: 2.2; opacity: 1; }
+
+.compass__card {
+  fill: var(--ink-soft);
+  font-family: var(--f-display);
+  font-size: 11px;
+  text-anchor: middle;
+  dominant-baseline: middle;
+}
+
+.compass__qibla { position: absolute; inset: 0; transform-origin: center; }
+
+.compass__qibla svg {
+  position: absolute;
+  top: 4%;
+  left: 50%;
+  width: 13%;
+  height: 13%;
+  translate: -50% 0;
+  color: var(--accent-bright);
+  filter: drop-shadow(0 0 8px rgb(63 214 154 / 55%));
+}
+
+.compass__qibla::after {
+  content: "";
+  position: absolute;
+  top: 17%;
+  left: 50%;
+  width: 2px;
+  height: 33%;
+  translate: -50% 0;
+  background: linear-gradient(180deg, var(--accent-bright), transparent);
+}
+
+.compass__hub {
+  position: absolute;
+  inset: 34%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--bg-raised);
+}
+
+.compass__deg { margin: 0; font-family: var(--f-display); font-size: 1.6rem; font-variant-numeric: tabular-nums; }
+.compass__dir { margin: 0; font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-faint); }
+
+.qibla__hint { margin: 0 auto 14px; max-width: 34ch; color: var(--ink-soft); font-size: .88rem; transition: color .2s ease; }
+.qibla__hint--ok { color: var(--accent-bright); font-weight: 600; }
+.qibla__hint--warn { color: var(--sand); }
+
+.facts {
+  display: grid;
+  gap: 1px;
+  margin: 18px 0 0;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--line);
+  overflow: hidden;
+  text-align: left;
+}
+
+.facts > div { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 13px 16px; background: var(--surface); }
+.facts dt { display: flex; align-items: center; gap: 9px; color: var(--ink-soft); font-size: .85rem; }
+.facts dt svg { width: 16px; height: 16px; flex: none; color: var(--accent); }
+.facts dd { margin: 0; font-weight: 600; font-variant-numeric: tabular-nums; text-align: right; }
+
+/* Nivel de burbuja: el punto se descentra según la inclinación del móvil */
+.level {
+  position: absolute;
+  bottom: 13%;
+  left: 50%;
+  width: 26px;
+  height: 26px;
+  translate: -50% 0;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+}
+
+.level[hidden] { display: none; }
+
+.level__dot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background: var(--ink-faint);
+  transition: translate .1s linear, background .2s ease;
+}
+
+.level--flat { border-color: var(--accent-edge); }
+.level--flat .level__dot { background: var(--accent-bright); }
+
+/* Apuntando a la Kaaba: la brújula entera se enciende */
+.compass--aligned .compass__edge {
+  stroke: var(--accent-bright);
+  stroke-width: 2.5;
+}
+
+.compass--aligned .compass__ticks line.major { stroke: var(--accent-bright); }
+
+.compass--aligned .compass__qibla svg {
+  scale: 1.15;
+  filter: drop-shadow(0 0 18px rgb(63 214 154 / 95%));
+}
+
+.compass--aligned .compass__hub {
+  border-color: var(--accent-bright);
+  background: color-mix(in srgb, var(--accent) 22%, var(--bg-raised));
+}
+
+.compass--aligned .compass__deg { color: var(--accent-bright); }
+.compass--aligned .compass__dir { color: var(--accent); }
+
+.compass--aligned { animation: qibla-lock 1.2s ease-in-out infinite; }
+
+@keyframes qibla-lock {
+  0%, 100% { filter: drop-shadow(0 0 2px rgb(63 214 154 / 25%)); }
+  50%      { filter: drop-shadow(0 0 20px rgb(63 214 154 / 60%)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .compass--aligned { animation: none; filter: drop-shadow(0 0 14px rgb(63 214 154 / 50%)); }
+}
+
+/* ---------------- 3 · Corán ---------------- */
+
+.searchbar { margin-bottom: 14px; }
+
+.surahs { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+
+.surah {
+  display: grid;
+  grid-template-columns: 42px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 11px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  text-align: left;
+  cursor: pointer;
+}
+
+.surah:hover { border-color: var(--accent-edge); background: var(--surface-2); }
+
+.surah__num {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  color: var(--accent-bright);
+  font-size: .82rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.surah__num svg { position: absolute; inset: 0; width: 100%; height: 100%; color: var(--accent-wash); }
+.surah__num span { position: relative; }
+
+.surah__name { font-weight: 600; }
+.surah__sub { display: block; color: var(--ink-faint); font-size: .78rem; font-weight: 400; }
+.surah__ar { font-family: var(--f-ar); font-size: 1.35rem; color: var(--accent-bright); }
+
+.reader__bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+.reader__bar .field select { min-width: 168px; }
+
+.reader__head { padding-bottom: 14px; margin-bottom: 8px; border-bottom: 1px solid var(--line); text-align: center; }
+.reader__ar { margin: 6px 0 2px; font-family: var(--f-ar); font-size: 2.1rem; font-weight: 400; color: var(--accent-bright); }
+.reader__meta { margin: 0; color: var(--ink-soft); font-size: .85rem; }
+
+.bismillah {
+  margin: 16px 0 0;
+  font-family: var(--f-ar);
+  font-size: 1.4rem;
+  line-height: 2;
+  color: var(--sand);
+  direction: rtl;
+}
+
+.verses { margin: 0; padding: 0; list-style: none; }
+.verse { padding: 20px 0; border-bottom: 1px solid var(--line); }
+
+.verse__ar {
+  margin: 0;
+  direction: rtl;
+  text-align: right;
+  color: var(--ink);
+  font-family: var(--f-ar);
+  font-size: 1.72rem;
+  line-height: 2.3;
+}
+
+.verse__tr { margin: 12px 0 0; color: var(--ink-read); font-size: .98rem; }
+.verse__tr sup { font-size: .7em; color: var(--accent-bright); }
+
+.verse__no {
+  display: inline-block;
+  min-width: 2.2em;
+  margin-bottom: 8px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--accent-wash);
+  color: var(--accent-bright);
+  font-size: .72rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+/* ---------------- 4 · Tasbih ---------------- */
+
+.tasbih {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 14px;
+  min-height: calc(100dvh - var(--tabbar-h) - env(safe-area-inset-bottom) - 110px);
+}
+
+.tasbih__targets { display: flex; justify-content: center; gap: 8px; }
+
+.tasbih__target {
+  padding: 7px 15px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-soft);
+  font-size: .85rem;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+
+.tasbih__target[aria-pressed="true"] {
+  border-color: var(--accent-edge);
+  background: var(--accent-wash);
+  color: var(--accent-bright);
+  font-weight: 700;
+}
+
+/* La zona de conteo ocupa todo el hueco disponible: se toca sin mirar */
+.tasbih__pad {
+  position: relative;
+  display: grid;
+  place-items: center;
+  align-self: stretch;
+  width: 100%;
+  min-height: 48vh;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: radial-gradient(80% 60% at 50% 40%, var(--accent-wash) 0%, transparent 70%), var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.tasbih__pad:active { background: radial-gradient(80% 60% at 50% 40%, var(--accent-wash) 0%, transparent 55%), var(--surface-2); }
+
+.tasbih__ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
+  width: min(300px, 74vw);
+  aspect-ratio: 1;
+}
+
+.tasbih__ring circle {
+  fill: none;
+  stroke-width: 4;
+  stroke-linecap: round;
+  transform: rotate(-90deg);
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.tasbih__ring .track { stroke: var(--line); }
+.tasbih__ring .fill { stroke: var(--accent-bright); transition: stroke-dashoffset .25s ease; }
+
+.tasbih__inner { position: relative; text-align: center; }
+
+.tasbih__count {
+  display: block;
+  font-family: var(--f-display);
+  font-size: clamp(4.5rem, 22vw, 7rem);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.tasbih__of { display: block; margin-top: 2px; color: var(--ink-faint); font-size: .9rem; font-variant-numeric: tabular-nums; }
+.tasbih__dhikr { display: block; margin-top: 10px; font-family: var(--f-ar); font-size: 1.5rem; color: var(--accent-bright); }
+.tasbih__rounds { display: block; margin-top: 10px; font-size: .62rem; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-faint); }
+
+.tasbih__actions { display: flex; justify-content: center; gap: 10px; }
+
+/* Destello al completar una ronda */
+@keyframes pulse-round {
+  from { box-shadow: 0 0 0 0 rgb(63 214 154 / 45%); }
+  to   { box-shadow: 0 0 0 26px rgb(63 214 154 / 0%); }
+}
+
+.tasbih__pad--round { animation: pulse-round .6s ease-out; }
+
+/* ---------------- Barra de pestañas ---------------- */
+
+.tabbar {
+  position: fixed;
+  inset: auto 0 0;
+  z-index: 30;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  height: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+  border-top: 1px solid var(--line);
+  background: color-mix(in srgb, var(--bg-raised) 92%, transparent);
+  backdrop-filter: blur(12px);
+}
+
+.tabbar__btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  border: 0;
+  background: none;
+  color: var(--ink-faint);
+  font-size: .64rem;
+  letter-spacing: .02em;
+  cursor: pointer;
+}
+
+/* Con cinco pestañas las etiquetas no caben enteras en móviles estrechos */
+.tabbar__btn span {
+  max-width: 100%;
+  padding-inline: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tabbar__btn svg { width: 22px; height: 22px; }
+.tabbar__btn[aria-selected="true"] { color: var(--accent-bright); font-weight: 700; }
+
+/* ---------------- Diálogo ---------------- */
+
+.dialog {
+  width: min(420px, calc(100vw - 32px));
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 30px 70px -20px #000;
+}
+
+.dialog::backdrop { background: rgb(3 6 5 / 78%); backdrop-filter: blur(3px); }
+.dialog form { position: relative; padding: 22px; }
+.dialog h2 { margin: 0; font-family: var(--f-display); font-size: 1.4rem; font-weight: 400; }
+.dialog__lede { margin: 4px 0 16px; color: var(--ink-soft); font-size: .88rem; }
+.dialog__actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 18px; flex-wrap: wrap; }
+
+.dialog__close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  border: 0;
+  background: none;
+  color: var(--ink-faint);
+  font-size: 1.6rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* ---------------- Toast ---------------- */
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--tabbar-h) + 18px + env(safe-area-inset-bottom));
+  z-index: 40;
+  max-width: min(420px, calc(100vw - 32px));
+  margin: 0;
+  padding: 11px 16px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--ink);
+  font-size: .86rem;
+  translate: -50% 12px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .25s ease, translate .25s ease;
+}
+
+.toast--on { opacity: 1; translate: -50% 0; }
+
+/* ---------------- 2b · Mezquitas cercanas ---------------- */
+
+.mosques[hidden] { display: none; }
+
+.mosques__bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.mosques__bar .field { flex: 1; }
+.mosques__bar .icon-btn { width: 44px; height: 44px; flex: none; }
+.mosques__bar .icon-btn svg { width: 20px; height: 20px; }
+
+.map {
+  height: min(58vh, 420px);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  overflow: hidden;
+  background: var(--surface);
+}
+
+/* Leaflet trae fondo blanco y enlaces azules: se adaptan al tema oscuro */
+.leaflet-container { background: var(--surface); font-family: var(--f-ui); }
+
+.leaflet-control-attribution,
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip,
+.leaflet-bar a {
+  background: var(--bg-raised);
+  color: var(--ink-soft);
+}
+
+.leaflet-control-attribution a, .leaflet-popup-content a { color: var(--accent-bright); }
+.leaflet-bar a { border-bottom-color: var(--line); }
+.leaflet-bar a:hover { background: var(--surface-2); color: var(--ink); }
+.leaflet-popup-content-wrapper { border-radius: var(--r-sm); box-shadow: var(--shadow); }
+.leaflet-popup-content { margin: 11px 14px; line-height: 1.5; color: var(--ink); }
+
+/* Marcadores: divIcon en vez de las imágenes PNG de Leaflet */
+.pin-wrap { background: none; border: 0; }
+
+.pin {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+}
+
+.pin--me {
+  background: var(--accent-bright);
+  box-shadow: 0 0 0 3px rgb(63 214 154 / 30%), 0 0 12px rgb(63 214 154 / 60%);
+}
+
+.pin--mosque {
+  background: var(--sand);
+  border: 2px solid var(--bg);
+  box-shadow: 0 0 0 2px rgb(199 168 122 / 45%);
+}
+
+.mosques__summary { margin: 14px 0 8px; color: var(--ink-soft); font-size: .85rem; }
+
+.mosques__list { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+
+.mosque {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  cursor: pointer;
+}
+
+.mosque:hover { border-color: var(--accent-edge); background: var(--surface-2); }
+.mosque:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: 2px; }
+
+.mosque__body { min-width: 0; }
+.mosque__name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mosque__meta { color: var(--ink-faint); font-size: .8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mosque__km { flex: none; color: var(--accent-bright); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+.mosque--error { cursor: default; border-style: dashed; }
+.mosque--error:hover { border-color: var(--line); background: var(--surface); }
+
+/* ---------------- Escritorio ---------------- */
+
+@media (min-width: 800px) {
+  body { padding-bottom: 0; }
+
+  .tabbar {
+    position: sticky;
+    inset: auto;
+    top: 0;
+    z-index: 25;
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    height: auto;
+    padding: 8px;
+    border-top: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .tabbar__btn { flex-direction: row; gap: 8px; padding: 9px 20px; border-radius: 999px; font-size: .9rem; }
+  .tabbar__btn[aria-selected="true"] { background: var(--accent-wash); }
+
+  .panel { padding-top: 26px; }
+  .tasbih { min-height: 62vh; }
+  .toast { bottom: 24px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition-duration: .001ms !important; animation-duration: .001ms !important; }
+}
