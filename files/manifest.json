@@ -1,10 +1,10 @@
 {
-  "name": "Sakina · Oración, Qibla y Corán",
-  "short_name": "Sakina",
-  "description": "Horarios de oración, brújula de la Qibla, lectura del Corán y contador de tasbih.",
+  "name": "SALATI · Oración, Qibla y Corán",
+  "short_name": "SALATI",
+  "description": "Horarios de oración, brújula de la Qibla, mezquitas cercanas, lectura del Corán y contador de tasbih.",
   "lang": "es",
   "dir": "ltr",
-  "id": "sakina-prayer-app",
+  "id": "salati-prayer-app",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
@@ -20,6 +20,7 @@
   ],
   "shortcuts": [
     { "name": "Qibla", "short_name": "Qibla", "url": "./#qibla" },
+    { "name": "Mezquitas cercanas", "short_name": "Mezquitas", "url": "./#mosques" },
     { "name": "Tasbih", "short_name": "Tasbih", "url": "./#tasbih" }
   ]
 }

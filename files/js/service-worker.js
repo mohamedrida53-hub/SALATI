@@ -1,16 +1,16 @@
 /* =========================================================
-   Service worker de Sakina
+   Service worker de SALATI
    · SHELL : la app entera, precargada en la instalación (cache-first)
    · DATA  : respuestas de las APIs (network-first con reserva)
    · FONTS : Google Fonts (stale-while-revalidate)
    Sube la versión para forzar la actualización en los dispositivos.
    ========================================================= */
 
-const VERSION = 'v1.2.0';
-const SHELL = `sakina-shell-${VERSION}`;
-const DATA = `sakina-data-${VERSION}`;
-const FONTS = `sakina-fonts-${VERSION}`;
-const TILES = `sakina-tiles-${VERSION}`;
+const VERSION = 'v1.3.0';
+const SHELL = `SALATI-shell-${VERSION}`;
+const DATA = `SALATI-data-${VERSION}`;
+const FONTS = `SALATI-fonts-${VERSION}`;
+const TILES = `SALATI-tiles-${VERSION}`;
 const CACHES = [SHELL, DATA, FONTS, TILES];
 
 /* Las teselas del mapa son muchas y pequeñas: se limita el cajón
@@ -43,6 +43,10 @@ const SHELL_FILES = [
   './icons/icon-512.png',
   './icons/maskable-512.png',
   './icons/apple-touch-icon.png',
+  './icons/logo-salati.png',
+  './icons/logo-mark.png',
+  // 2,7 MB: alarga la instalación, pero el adhan tiene que sonar sin conexión.
+  './audio/adhan.mp3',
 ];
 
 const API_HOSTS = [
@@ -66,7 +70,7 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil((async () => {
     const keys = await caches.keys();
-    await Promise.all(keys.filter((k) => k.startsWith('sakina-') && !CACHES.includes(k)).map((k) => caches.delete(k)));
+    await Promise.all(keys.filter((k) => k.startsWith('SALATI-') && !CACHES.includes(k)).map((k) => caches.delete(k)));
     await self.clients.claim();
   })());
 });

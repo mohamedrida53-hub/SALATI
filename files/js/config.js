@@ -53,13 +53,33 @@ export const MOSQUE_RADII = [2, 5, 10, 25];
 export const DEFAULT_MOSQUE_RADIUS = 5;
 
 export const STORAGE_KEYS = {
-  place: 'sakina.place',
-  method: 'sakina.method',
-  translation: 'sakina.translation',
-  chapters: 'sakina.chapters',
-  notify: 'sakina.notify',
-  tasbih: 'sakina.tasbih',
-  today: 'sakina.today',
-  lang: 'sakina.lang',
-  radius: 'sakina.radius',
+  place: 'salati.place',
+  method: 'salati.method',
+  translation: 'salati.translation',
+  chapters: 'salati.chapters',
+  notify: 'salati.notify',
+  tasbih: 'salati.tasbih',
+  today: 'salati.today',
+  lang: 'salati.lang',
+  radius: 'salati.radius',
 };
+
+/* La app se llamaba Sakina: se copian las claves antiguas a las nuevas para que
+   nadie pierda su ciudad, su método ni su contador de tasbih.
+
+   Corre aquí, en el cuerpo de config.js, y no en app.js a propósito: store.js y
+   notifications.js leen localStorage al evaluarse, y en módulos ES las
+   dependencias se evalúan antes que el módulo que las importa. config.js no
+   importa nada, así que es lo primero que se ejecuta de toda la app.
+   Se puede borrar este bloque dentro de unas cuantas versiones. */
+(function migrateLegacyKeys() {
+  try {
+    if (localStorage.getItem('salati.migrated')) return;
+    for (const key of Object.values(STORAGE_KEYS)) {
+      const old = key.replace(/^salati\./, 'sakina.');
+      const value = localStorage.getItem(old);
+      if (value !== null && localStorage.getItem(key) === null) localStorage.setItem(key, value);
+    }
+    localStorage.setItem('salati.migrated', '1');
+  } catch { /* modo privado: se empieza de cero */ }
+})();

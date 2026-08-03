@@ -1,6 +1,6 @@
 /* =========================================================
-   Sakina — hoja de estilos única
-   Tema: negro profundo + verde esmeralda. Sin modo claro:
+   SALATI — hoja de estilos única
+   Tema: negro profundo + oro viejo, tomado del logo. Sin modo claro:
    la app se usa de noche y al amanecer, y el contraste alto
    es lo que hace cómoda la lectura del Corán.
    Tipografía: Amiri (display + árabe) · Cairo (interfaz y cifras)
@@ -14,13 +14,16 @@
   --surface-2:   #161f1b;
   --line:        #1f2b26;
 
-  /* Acento: verde esmeralda / bosque */
-  --accent:        #1f9d6b;
-  --accent-bright: #3fd69a;
-  --accent-deep:   #16764f;
-  --accent-wash:   rgb(31 157 107 / 14%);
-  --accent-edge:   rgb(63 214 154 / 28%);
-  --on-accent:     #04150f;
+  /* Acento: oro viejo, tomado del logo de SALATI */
+  --accent:        #c9a227;
+  --accent-bright: #f0cf7a;
+  --accent-deep:   #8a6d1f;
+  --accent-wash:   rgb(201 162 39 / 14%);
+  --accent-edge:   rgb(240 207 122 / 30%);
+  --on-accent:     #1a1204;
+
+  /* Mismo oro en rgb suelto, para sombras y destellos */
+  --glow: 240 207 122;
 
   /* Texto de alto contraste */
   --ink:       #f0f5f2;   /* ~18:1 sobre --bg */
@@ -28,8 +31,11 @@
   --ink-soft:  #a3b2ac;
   --ink-faint: #7b8a84;
 
-  /* Único tono cálido, reservado a la fecha hijri y la basmala */
+  /* Arena apagada: fecha hijri y basmala. Queda por debajo del oro
+     para que el acento siga siendo lo más brillante de la pantalla. */
   --sand: #c7a87a;
+  /* Ámbar del aviso de inclinación: tiene que distinguirse del oro */
+  --warn: #e2a14f;
   --danger: #e2725b;
 
   --r-sm: 10px;
@@ -93,16 +99,19 @@ button, select, input { font: inherit; color: inherit; }
   border-bottom: 1px solid var(--line);
 }
 
-.topbar__brand {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-family: var(--f-display);
-  font-size: 1.35rem;
-  letter-spacing: .04em;
+/* El logo ya trae el nombre dentro, así que la cabecera no lleva texto.
+   Se sirve a 360 px y se muestra a 44: nítido en pantallas 2x y 3x. */
+.topbar__brand { display: flex; align-items: center; flex: none; }
+
+.topbar__brand img {
+  width: auto;
+  height: 44px;
+  display: block;
 }
 
-.topbar__brand .khatam { width: 20px; height: 20px; color: var(--accent-bright); }
+@media (max-width: 360px) {
+  .topbar__brand img { height: 38px; }
+}
 
 .topbar__tools { display: flex; align-items: center; gap: 8px; min-width: 0; }
 
@@ -326,7 +335,7 @@ button, select, input { font: inherit; color: inherit; }
 
 .arc__fill {
   stroke: var(--accent-bright);
-  filter: drop-shadow(0 0 6px rgb(63 214 154 / 45%));
+  filter: drop-shadow(0 0 6px rgb(var(--glow) / 45%));
   transition: stroke-dashoffset .6s ease;
 }
 
@@ -499,7 +508,7 @@ button, select, input { font: inherit; color: inherit; }
   height: 13%;
   translate: -50% 0;
   color: var(--accent-bright);
-  filter: drop-shadow(0 0 8px rgb(63 214 154 / 55%));
+  filter: drop-shadow(0 0 8px rgb(var(--glow) / 55%));
 }
 
 .compass__qibla::after {
@@ -530,7 +539,7 @@ button, select, input { font: inherit; color: inherit; }
 
 .qibla__hint { margin: 0 auto 14px; max-width: 34ch; color: var(--ink-soft); font-size: .88rem; transition: color .2s ease; }
 .qibla__hint--ok { color: var(--accent-bright); font-weight: 600; }
-.qibla__hint--warn { color: var(--sand); }
+.qibla__hint--warn { color: var(--warn); }
 
 .facts {
   display: grid;
@@ -587,7 +596,7 @@ button, select, input { font: inherit; color: inherit; }
 
 .compass--aligned .compass__qibla svg {
   scale: 1.15;
-  filter: drop-shadow(0 0 18px rgb(63 214 154 / 95%));
+  filter: drop-shadow(0 0 18px rgb(var(--glow) / 95%));
 }
 
 .compass--aligned .compass__hub {
@@ -601,12 +610,12 @@ button, select, input { font: inherit; color: inherit; }
 .compass--aligned { animation: qibla-lock 1.2s ease-in-out infinite; }
 
 @keyframes qibla-lock {
-  0%, 100% { filter: drop-shadow(0 0 2px rgb(63 214 154 / 25%)); }
-  50%      { filter: drop-shadow(0 0 20px rgb(63 214 154 / 60%)); }
+  0%, 100% { filter: drop-shadow(0 0 2px rgb(var(--glow) / 25%)); }
+  50%      { filter: drop-shadow(0 0 20px rgb(var(--glow) / 60%)); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .compass--aligned { animation: none; filter: drop-shadow(0 0 14px rgb(63 214 154 / 50%)); }
+  .compass--aligned { animation: none; filter: drop-shadow(0 0 14px rgb(var(--glow) / 50%)); }
 }
 
 /* ---------------- 3 · Corán ---------------- */
@@ -785,8 +794,8 @@ button, select, input { font: inherit; color: inherit; }
 
 /* Destello al completar una ronda */
 @keyframes pulse-round {
-  from { box-shadow: 0 0 0 0 rgb(63 214 154 / 45%); }
-  to   { box-shadow: 0 0 0 26px rgb(63 214 154 / 0%); }
+  from { box-shadow: 0 0 0 0 rgb(var(--glow) / 45%); }
+  to   { box-shadow: 0 0 0 26px rgb(var(--glow) / 0%); }
 }
 
 .tasbih__pad--round { animation: pulse-round .6s ease-out; }
@@ -937,13 +946,15 @@ button, select, input { font: inherit; color: inherit; }
 
 .pin--me {
   background: var(--accent-bright);
-  box-shadow: 0 0 0 3px rgb(63 214 154 / 30%), 0 0 12px rgb(63 214 154 / 60%);
+  box-shadow: 0 0 0 3px rgb(var(--glow) / 30%), 0 0 12px rgb(var(--glow) / 60%);
 }
 
+/* Blanco roto y no dorado: el pin de oro es el del usuario y los dos
+   tienen que distinguirse de un vistazo sobre el mapa. */
 .pin--mosque {
-  background: var(--sand);
+  background: #e9eef1;
   border: 2px solid var(--bg);
-  box-shadow: 0 0 0 2px rgb(199 168 122 / 45%);
+  box-shadow: 0 0 0 2px rgb(233 238 241 / 35%);
 }
 
 .mosques__summary { margin: 14px 0 8px; color: var(--ink-soft); font-size: .85rem; }

@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>POLITISCAN · Laboratorio de análisis ideológico</title>
+<meta name="description" content="Escribe una idea política. El sistema la clasifica, corrige los datos falsos y te obliga a mirar de frente lo que estás proponiendo.">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0A0B0D">
+<link rel="icon" href="favicon.svg">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════ VERIFICACIÓN DE EDAD ═══ -->
+<div id="gate" class="gate" hidden>
+  <div class="gate-box">
+    <p class="mono tag tag--alert">ACCESO RESTRINGIDO · 18+</p>
+    <h1 class="gate-title">POLITISCAN</h1>
+    <p class="gate-lead">
+      Aquí se analizan ideas políticas <em>tal como se escriben</em>: sin suavizarlas
+      y sin fingir que no existen. El sistema clasifica, contrasta los datos y
+      señala con nombre y apellidos las doctrinas que ya se probaron y salieron mal.
+    </p>
+    <ul class="gate-list mono">
+      <li>▸ Contenido histórico sobre regímenes totalitarios y violencia política.</li>
+      <li>▸ Las clasificaciones son analíticas, no acusaciones personales.</li>
+      <li>▸ Tus textos se procesan para clasificarlos; el progreso se guarda en tu navegador.</li>
+    </ul>
+    <div class="gate-actions">
+      <button id="gate-enter" class="btn btn--primary">TENGO 18 O MÁS · ENTRAR</button>
+      <button id="gate-leave" class="btn btn--ghost">SALIR</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════ CABECERA ═══ -->
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark" aria-hidden="true"></span>
+    <span class="brand-name">POLITISCAN</span>
+    <span class="mono brand-sub">unidad de análisis ideológico</span>
+  </div>
+  <nav class="topnav mono">
+    <a href="#lab">LABORATORIO</a>
+    <a href="#archivo">ARCHIVO</a>
+    <a href="#vitrina">PINES</a>
+    <button id="reset" class="linkbtn" type="button">REINICIAR</button>
+  </nav>
+</header>
+
+<main>
+
+  <!-- ═══════════════════════════════════════════════════ LABORATORIO ═══ -->
+  <section id="lab" class="lab">
+    <div class="lab-head">
+      <p class="mono tag">ENTRADA DE MUESTRA · SIN FILTROS</p>
+      <h1 class="lab-title">Escribe tu idea.<br><span class="hl">La máquina te dirá de quién la heredaste.</span></h1>
+      <p class="lab-lead">
+        Una propuesta, una opinión, un exabrupto. Lo que sea. El analizador lo cruza con
+        <b id="stat-total-inline">200+</b> corrientes políticas, verifica las premisas de las que parte
+        y, si tu idea coincide con algo que ya se intentó y acabó en catástrofe, te lo dice sin rodeos.
+      </p>
+    </div>
+
+    <div class="console">
+      <div class="console-bar mono">
+        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        <span class="console-title">entrada_libre.txt</span>
+        <span class="console-count"><b id="counter">0</b> car.</span>
+      </div>
+      <textarea id="idea" class="input" rows="6" maxlength="1200"
+        placeholder="Ej.: «Habría que quitarle el voto a quien no pague impuestos», «El Estado debería ser dueño de toda la vivienda», «Cerrar las fronteras y deportar a todo el que no haya nacido aquí»…"></textarea>
+      <div id="scanline" class="scanline" hidden></div>
+      <div class="console-foot">
+        <div class="seeds mono">
+          <span>PROBAR:</span>
+          <button class="seed" data-text="El Estado debería expropiar todas las viviendas vacías y gestionarlas mediante asambleas de vecinos, sin propiedad privada del suelo.">colectivizar suelo</button>
+          <button class="seed" data-text="Hay que bajar todos los impuestos porque cuanto más bajas los impuestos más recauda el Estado, y privatizar la sanidad porque lo privado siempre funciona mejor.">laffer + privatizar</button>
+          <button class="seed" data-text="Los inmigrantes traen la delincuencia y cobran todas las ayudas, hay que deportar a todos los que no sean de aquí para preservar nuestra identidad nacional.">deportación masiva</button>
+        </div>
+        <button id="analyze" class="btn btn--primary btn--go" type="button">
+          <span class="btn-label">ANALIZAR IDEA</span>
+          <span class="mono btn-hint">⌘/Ctrl + ↵</span>
+        </button>
+      </div>
+    </div>
+
+    <p id="flash" class="flash mono" role="status"></p>
+
+    <!-- resultado inyectado por app.js -->
+    <div id="result" class="result" hidden></div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════ PROGRESO ═══ -->
+  <section class="stats">
+    <div class="stat"><span class="stat-num" id="stat-open">0</span><span class="mono stat-cap">expedientes abiertos</span></div>
+    <div class="stat"><span class="stat-num" id="stat-total">0</span><span class="mono stat-cap">en el archivo</span></div>
+    <div class="stat"><span class="stat-num" id="stat-analyses">0</span><span class="mono stat-cap">ideas analizadas</span></div>
+    <div class="stat"><span class="stat-num" id="stat-bulos">0</span><span class="mono stat-cap">bulos corregidos</span></div>
+    <div class="progress">
+      <div class="progress-bar" id="progress-bar"></div>
+      <span class="mono" id="progress-label">0%</span>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════ VITRINA ═══ -->
+  <section id="vitrina" class="vitrina">
+    <header class="sec-head">
+      <p class="mono tag tag--alert">INVENTARIO · <span id="pin-count">0</span></p>
+      <h2>Pines de la Vergüenza</h2>
+      <p class="sec-lead">
+        No son un castigo, son un recibo. Cada pin corresponde a una doctrina que ya se
+        aplicó en algún sitio, con resultados documentados. Están aquí para que puedas leer
+        cuáles fueron.
+      </p>
+    </header>
+    <div id="pins" class="pins"></div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════ ARCHIVO ═══ -->
+  <section id="archivo" class="archivo">
+    <header class="sec-head">
+      <p class="mono tag">ARCHIVO CENTRAL</p>
+      <h2>Ideologías desbloqueadas</h2>
+      <p class="sec-lead">
+        Cada expediente se abre cuando una de tus ideas hace match con esa corriente.
+        Las tarjetas oscurecidas siguen clasificadas: no puedes leerlas hasta llegar a ellas
+        por tu cuenta.
+      </p>
+    </header>
+    <div id="filters" class="filters mono"></div>
+    <div id="gallery" class="gallery"></div>
+  </section>
+
+</main>
+
+<footer class="foot mono">
+  <p>POLITISCAN · herramienta educativa. Las clasificaciones son analíticas y probabilísticas: describen a qué se parece un texto, no quién es quien lo escribe.</p>
+  <p>Progreso guardado en local. Sin cuentas, sin seguimiento.</p>
+</footer>
+
+<!-- ══════════════════════════════════════════════════════════ MODAL ═══ -->
+<div id="modal" class="modal" hidden>
+  <div class="modal-box" role="dialog" aria-modal="true" aria-label="Ficha de ideología">
+    <button id="modal-close" class="modal-close" aria-label="Cerrar">✕</button>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+  // Configuración de arranque. Con useApi:false la app funciona entera en local.
+  window.PS_CONFIG = { useApi: true, apiUrl: '/api/analyze' };
+</script>
+<script src="js/ideologies.js"></script>
+<script src="js/factcheck.js"></script>
+<script src="js/analyzer.js"></script>
+<script src="js/app.js"></script>
+<script>
+  document.getElementById('stat-total-inline').textContent = window.PS_IDEOLOGIES.total;
+</script>
+</body>
+</html>

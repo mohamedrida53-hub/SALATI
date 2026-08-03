@@ -1,4 +1,4 @@
-# Sakina
+# SALATI
 
 PWA instalable (mobile-first, sin build ni dependencias) con cuatro secciones: horarios de oración,
 brújula de la Qibla, lectura del Corán y contador de tasbih.
@@ -75,10 +75,10 @@ Hay **dos** capas de caché, y hacen cosas distintas:
    copia guardada si falla) y `FONTS` las tipografías de Google. Cada archivo se precarga por
    separado, así que si uno falla no tumba la instalación entera.
 2. **`localStorage`.** El service worker devuelve *respuestas*; para pintar la pantalla al instante
-   hacen falta *datos*. `app.js` guarda `{fecha, lugar, horarios}` en `sakina.today` y los usa si el
+   hacen falta *datos*. `app.js` guarda `{fecha, lugar, horarios}` en `SALATI.today` y los usa si el
    fetch falla, comprobando que la fecha y el lugar coincidan. Los horarios de ayer nunca se
    muestran como si fueran de hoy: si la fecha no cuadra, se muestra el error con botón de reintento.
-   La última ciudad buscada vive en `sakina.place` y la lista de suras en `sakina.chapters`.
+   La última ciudad buscada vive en `SALATI.place` y la lista de suras en `SALATI.chapters`.
 
 Comprobado con la red caída: la app arranca, pinta los horarios guardados y avisa con un toast
 («Sin conexión: mostrando los horarios guardados de hoy»).

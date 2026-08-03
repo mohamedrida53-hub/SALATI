@@ -210,7 +210,7 @@ function wireSettings() {
     const { outcome } = await installEvent.userChoice;
     installEvent = null;
     $('#install-row').hidden = true;
-    if (outcome === 'accepted') toast('Sakina instalada.');
+    if (outcome === 'accepted') toast('SALATI instalada.');
   });
 
   // Al volver del segundo plano los temporizadores pueden haberse retrasado: se rearman.

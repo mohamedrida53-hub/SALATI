@@ -1,1 +1,14 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#070a09"/><path d="M32.00,6.00 L39.62,13.61 L50.38,13.62 L50.39,24.38 L58.00,32.00 L50.39,39.62 L50.38,50.38 L39.62,50.39 L32.00,58.00 L24.38,50.39 L13.62,50.38 L13.61,39.62 L6.00,32.00 L13.61,24.38 L13.62,13.62 L24.38,13.61 Z" fill="#1f9d6b"/><circle cx="32" cy="32" r="3.2" fill="#3fd69a"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Favicon de SALATI: la luna creciente del logo, sin el texto.
+       A 16 px la palabra no se leería, así que aquí sólo va la marca. -->
+  <defs>
+    <linearGradient id="oro" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f0cf7a"/>
+      <stop offset=".5" stop-color="#c9a227"/>
+      <stop offset="1" stop-color="#8a6d1f"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="#070a09"/>
+  <path d="M41.5 12.5a22 22 0 1 0 0 39 26 26 0 0 1 0-39z" fill="url(#oro)"/>
+  <path d="M45.5 20.2 47.9 25l5.3.8-3.8 3.7.9 5.3-4.8-2.5-4.7 2.5.9-5.3-3.9-3.7 5.3-.8z" fill="#f0cf7a"/>
+</svg>

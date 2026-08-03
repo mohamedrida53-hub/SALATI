@@ -1,5 +1,5 @@
 /* =========================================================
-   Traducciones de Sakina — catalán, castellano, inglés y árabe.
+   Traducciones de SALATI — catalán, castellano, inglés y árabe.
 
    Uso:
      t('tab.qibla')                    → texto suelto
@@ -69,7 +69,7 @@ const STRINGS = {
     ar: 'تحقق من مستوى الصوت قبل الاعتماد على التنبيه.',
   },
   'prayer.testBtn': { ca: 'Escoltar', es: 'Escuchar', en: 'Play', ar: 'استمع' },
-  'prayer.installTitle': { ca: 'Instal·la Sakina', es: 'Instalar Sakina', en: 'Install Sakina', ar: 'تثبيت سكينة' },
+  'prayer.installTitle': { ca: 'Instal·la SALATI', es: 'Instalar SALATI', en: 'Install SALATI', ar: 'تثبيت صلاتي' },
   'prayer.installHint': {
     ca: 'S’obre a pantalla completa i funciona sense connexió.',
     es: 'Se abre a pantalla completa y funciona sin conexión.',
