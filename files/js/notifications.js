@@ -203,6 +203,11 @@ function audioContext() {
  * a la hora del rezo `play()` era rechazado y sonaba la campanilla de reserva
  * en vez del adhan. Aprovechamos el primer toque del usuario, sea cual sea.
  */
+/** Desbloqueo inmediato, para llamar desde un gesto explícito del usuario. */
+export function primeAudioNow() {
+  unlockAudio();
+}
+
 export function primeAudioOnFirstGesture() {
   const once = () => {
     document.removeEventListener('pointerdown', once, true);

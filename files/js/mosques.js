@@ -3,8 +3,13 @@ import {
   OVERPASS_SERVER_TIMEOUT, OVERPASS_CLIENT_TIMEOUT, MOSQUE_LIMIT,
   MOSQUE_RADII, DEFAULT_MOSQUE_RADIUS, STORAGE_KEYS,
 } from './config.js';
+import { KAABA } from './config.js';
 import { $, el, showState, hideState, haversineKm, load, save, toast } from './utils.js';
 import { t, getLocale } from './i18n.js';
+
+/* Centro por defecto cuando aún no hay ubicación: la Kaaba. El mapa carga
+   igual y el usuario ve algo con sentido en vez de una pantalla de error. */
+const FALLBACK_PLACE = { lat: KAABA.lat, lon: KAABA.lon, label: 'Makkah' };
 
 /* =========================================================
    Mezquitas cercanas.
@@ -24,7 +29,10 @@ let map = null;
 let markerLayer = null;
 let meMarker = null;
 let sizeObserver = null;
-let inFlight = false;   // evita que dos búsquedas se pisen
+let activeController = null;   // petición en curso, para poder cancelarla
+let retries = 0;               // fallos seguidos de LA MISMA consulta
+let attemptKey = null;         // consulta a la que corresponde ese contador
+const MAX_RETRIES = 2;
 let radius = DEFAULT_MOSQUE_RADIUS;
 let lastQueryKey = null;       // evita repetir la misma consulta al volver a la pestaña
 let results = [];
@@ -37,6 +45,7 @@ export function initMosques(callbacks = {}) {
   dom.wrap = $('#mosques-wrap');
   dom.map = $('#map');
   dom.list = $('#mosque-list');
+  dom.notice = $('#mosque-notice');
   dom.summary = $('#mosque-summary');
   dom.radius = $('#radius-select');
   dom.recenter = $('#btn-recenter');
@@ -63,31 +72,56 @@ export function initMosques(callbacks = {}) {
 
 let state = null;
 
-/** Punto de entrada desde app.js cuando se abre la pestaña o cambia el estado. */
+/**
+ * Punto de entrada desde app.js cuando se abre la pestaña o cambia el estado.
+ *
+ * Regla de oro tras el bucle de errores: **el mapa se pinta siempre**. Antes,
+ * sin ubicación no se creaba el mapa y se tapaba todo con una tarjeta de error
+ * que sólo ofrecía «Reintentar»; si además Overpass fallaba, el usuario nunca
+ * llegaba a ver un mapa. Ahora la falta de ubicación y el fallo de la búsqueda
+ * son avisos dentro de la vista, no pantallas que la sustituyen.
+ */
 export function renderMosques(next) {
   state = next;
-  const place = currentPlace();
-
-  if (!place) {
-    dom.wrap.hidden = true;
-    showState(dom.state, {
-      title: t('mosques.noLocTitle'),
-      message: t('mosques.noLocMsg'),
-      actionLabel: t('qibla.noLocAction'),
-      onAction: () => hooks.onNeedLocation?.(),
-    });
-    return;
-  }
 
   hideState(dom.state);
   dom.wrap.hidden = false;
-  // Sólo se busca si el mapa existe de verdad; si falló, ya se mostró el error.
-  if (ensureMap(place)) refresh();
+
+  const place = currentPlace();
+  const centro = place ?? FALLBACK_PLACE;
+
+  if (!ensureMap(centro)) return;   // Leaflet no cargó: ensureMap ya avisó
+
+  if (!place) {
+    // Sin ubicación se enseña el mapa sobre La Meca y se invita a elegirla,
+    // en vez de dejar la pestaña en blanco.
+    showNotice(t('mosques.noLocMsg'), t('qibla.noLocAction'), () => hooks.onNeedLocation?.());
+    map.setView([centro.lat, centro.lon], 6);
+    placeMe(centro);
+    return;
+  }
+
+  clearNotice();
+  refresh();
 }
 
 function currentPlace() {
   const place = state?.place;
   return place && Number.isFinite(place.lat) ? place : null;
+}
+
+/** Aviso dentro de la vista, encima de la lista. Nunca sustituye al mapa. */
+function showNotice(mensaje, etiqueta, accion) {
+  dom.notice.hidden = false;
+  dom.notice.replaceChildren(
+    el('p', { class: 'mosques__notice-txt', text: mensaje }),
+    etiqueta ? el('button', { class: 'btn btn--ghost', type: 'button', text: etiqueta, onclick: accion }) : null,
+  );
+}
+
+function clearNotice() {
+  dom.notice.hidden = true;
+  dom.notice.replaceChildren();
 }
 
 /** Repinta textos tras un cambio de idioma sin volver a llamar a Overpass. */
@@ -258,7 +292,11 @@ function placeMe(place) {
 async function refresh() {
   const place = currentPlace();
   if (!place || !map) return;
-  if (inFlight) { log('Búsqueda ya en curso, se ignora la petición duplicada.'); return; }
+
+  // Última petición gana. Antes se descartaba la nueva y el resumen se pintaba
+  // con el radio actual, así que salía «11 mezquitas en 25 km» con los datos
+  // de 5 km. Ahora se cancela la anterior y sólo cuenta la última.
+  activeController?.abort();
 
   map.setView([place.lat, place.lon], zoomForRadius(radius));
   placeMe(place);
@@ -269,15 +307,26 @@ async function refresh() {
     return;
   }
 
-  inFlight = true;
+  // El tope de reintentos es por consulta. Cambiar de radio o de ciudad es
+  // una consulta nueva y merece sus propios intentos: sin esto, dos fallos
+  // de búsquedas distintas dejaban al usuario sin botón de reintentar.
+  if (key !== attemptKey) { attemptKey = key; retries = 0; }
+
+  const controller = new AbortController();
+  activeController = controller;
+
+  clearNotice();
   dom.map.classList.add('map--busy');
   dom.summary.textContent = t('mosques.searching');
   dom.list.replaceChildren();
 
   const t0 = performance.now();
   try {
-    const found = await queryOverpass(place, radius);
+    const found = await queryOverpass(place, radius, controller.signal);
+    if (controller.signal.aborted) return;   // la pisó una búsqueda posterior
+
     lastQueryKey = key;
+    retries = 0;
     results = found
       .map((m) => ({ ...m, km: haversineKm(place, { lat: m.lat, lon: m.lon }) }))
       .sort((a, b) => a.km - b.km);
@@ -286,33 +335,49 @@ async function refresh() {
     drawMarkers();
     renderList();
   } catch (err) {
-    const abortado = err?.name === 'AbortError';
-    logError(abortado
+    if (controller.signal.aborted) return;
+    const lento = err?.name === 'AbortError';
+    logError(lento
       ? `Overpass no respondió en ${OVERPASS_CLIENT_TIMEOUT} ms (radio ${radius} km).`
       : `Overpass falló tras ${Math.round(performance.now() - t0)} ms:`, err);
-    showError(abortado);
+    showError(lento);
   } finally {
-    inFlight = false;
-    dom.map.classList.remove('map--busy');
+    if (activeController === controller) {
+      activeController = null;
+      dom.map.classList.remove('map--busy');
+    }
   }
 }
 
+/**
+ * El error ya no tapa el mapa: es un aviso encima de la lista y el mapa sigue
+ * siendo usable (se puede mover, hacer zoom y ver dónde está uno).
+ *
+ * Los reintentos están limitados. Antes el botón «Reintentar» volvía a lanzar
+ * la misma consulta contra el mismo espejo caído una y otra vez, y daba la
+ * sensación de bucle infinito. Tras dos intentos seguidos se deja de ofrecer
+ * y se sugiere lo único que suele funcionar: bajar el radio.
+ */
 function showError(abortado) {
   results = [];
   markerLayer?.clearLayers();
   dom.summary.textContent = '';
-  dom.list.replaceChildren(el('li', { class: 'mosque mosque--error' }, [
-    el('div', {}, [
-      el('div', { class: 'mosque__name', text: t('mosques.errorTitle') }),
-      el('div', { class: 'mosque__meta', text: abortado ? t('mosques.errorSlow') : t('mosques.errorMsg') }),
-    ]),
-    el('button', {
-      class: 'btn btn--ghost',
-      type: 'button',
-      text: t('mosques.retry'),
-      onclick: () => { lastQueryKey = null; refresh(); },
-    }),
-  ]));
+  dom.list.replaceChildren();
+
+  // Sólo cuentan los reintentos que pulsa el usuario. Un mismo gesto puede
+  // disparar dos búsquedas internas (el cambio de radio y el repintado del
+  // estado), y antes eso agotaba los intentos antes de enseñar el botón.
+  const puedeReintentar = retries < MAX_RETRIES;
+
+  showNotice(
+    abortado ? t('mosques.errorSlow') : t('mosques.errorMsg'),
+    puedeReintentar ? t('mosques.retry') : null,
+    () => { retries += 1; lastQueryKey = null; refresh(); },
+  );
+
+  if (!puedeReintentar) {
+    logError(`Agotados los ${MAX_RETRIES} reintentos. Prueba con un radio menor o revisa la conexión.`);
+  }
 }
 
 /**
@@ -325,7 +390,7 @@ function showError(abortado) {
  * timeout de servidor en 25 s eso daba esperas de casi un minuto. Ahora se
  * lanzan los dos a la vez y gana el primero que conteste.
  */
-async function queryOverpass(place, km) {
+async function queryOverpass(place, km, externalSignal) {
   const query = `[out:json][timeout:${OVERPASS_SERVER_TIMEOUT}];`
     + `nwr["amenity"="place_of_worship"]["religion"="muslim"]`
     + `(around:${km * 1000},${place.lat},${place.lon});`
@@ -334,6 +399,8 @@ async function queryOverpass(place, km) {
   const controller = new AbortController();
   // Red de seguridad propia: si ningún espejo contesta, no esperamos indefinidamente.
   const cut = setTimeout(() => controller.abort(), OVERPASS_CLIENT_TIMEOUT);
+  // Y si el usuario cambia el radio, la señal de fuera corta esta consulta.
+  externalSignal?.addEventListener('abort', () => controller.abort(), { once: true });
 
   const attempts = OVERPASS_ENDPOINTS.map(async (endpoint) => {
     const response = await fetch(endpoint, {

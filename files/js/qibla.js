@@ -47,6 +47,7 @@ export function initQibla(callbacks = {}) {
   dom.deg = $('#qibla-deg');
   dom.dir = $('#qibla-dir');
   dom.hint = $('#qibla-hint');
+  dom.status = $('#qibla-status');
   dom.btn = $('#btn-compass');
   dom.bearing = $('#fact-bearing');
   dom.distance = $('#fact-distance');
@@ -114,7 +115,13 @@ function updateHint() {
   const needsPermission = typeof DeviceOrientationEvent !== 'undefined'
     && typeof DeviceOrientationEvent.requestPermission === 'function';
 
-  if (listening && sawEvent) {
+  // La brújula ya entrega datos: el botón sobra y su hueco también.
+  // La clase colapsa la banda a 0 px, así que desaparece de verdad y no
+  // queda un espacio vacío donde antes estaba el botón.
+  const activa = listening && sawEvent;
+  dom.status.classList.toggle('qibla__status--live', activa);
+
+  if (activa) {
     dom.btn.hidden = true;
     if (aligned) {
       dom.hint.textContent = t('qibla.hintAligned');
@@ -168,6 +175,10 @@ export async function enableCompass() {
   window.addEventListener(eventName, handler, true);
   listening = true;
   sawEvent = false;
+
+  // Repintado inmediato: con el permiso ya concedido el botón no pinta nada
+  // esperando 2,5 s a que llegue la primera lectura del sensor.
+  updateHint();
 
   setTimeout(() => {
     if (!sawEvent) updateHint(); // ningún dato: seguimos en modo estático

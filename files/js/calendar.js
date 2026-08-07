@@ -15,15 +15,24 @@ import { t, getLocale, getLang, hijriMonths, hijriSuffix } from './i18n.js';
    no cambie nunca al pasar de mes y no haya ningún salto de layout.
    ========================================================= */
 
-/* Fiestas del año islámico: [mes hijri, día hijri] → clave de traducción. */
+/* Fiestas del año islámico: [mes hijri, día hijri] → clave de traducción.
+   Los dos tonos son ahora morados y se distinguen por intensidad:
+     · feast → los tres grandes días de fiesta, en morado sólido
+     · key   → días importantes, en morado perfilado */
 const HOLIDAYS = [
-  { month: 1,  day: 1,  key: 'cal.newYear',  tone: 'gold' },
-  { month: 1,  day: 10, key: 'cal.ashura',   tone: 'gold' },
-  { month: 9,  day: 1,  key: 'cal.ramadan',  tone: 'green' },
-  { month: 10, day: 1,  key: 'cal.eidFitr',  tone: 'green' },
-  { month: 12, day: 9,  key: 'cal.arafat',   tone: 'gold' },
-  { month: 12, day: 10, key: 'cal.eidAdha',  tone: 'green' },
+  { month: 1,  day: 1,  key: 'cal.newYear',  tone: 'key' },
+  { month: 1,  day: 10, key: 'cal.ashura',   tone: 'key' },
+  { month: 9,  day: 1,  key: 'cal.ramadan',  tone: 'feast' },
+  { month: 10, day: 1,  key: 'cal.eidFitr',  tone: 'feast' },
+  { month: 12, day: 9,  key: 'cal.arafat',   tone: 'key' },
+  { month: 12, day: 10, key: 'cal.eidAdha',  tone: 'feast' },
 ];
+
+/* Deslizamiento: recorrido mínimo, cuánto debe dominar el eje horizontal
+   sobre el vertical para no robarle el scroll a la página, y tiempo máximo. */
+const SWIPE_MIN_PX = 50;
+const SWIPE_RATIO = 1.4;
+const SWIPE_MAX_MS = 700;
 
 /* Primer día de la semana por idioma: lunes en Europa, sábado en árabe. */
 const FIRST_DAY = { ca: 1, es: 1, en: 1, ar: 6 };
@@ -36,6 +45,7 @@ let selected = null;  // clave 'YYYY-M-D' de la celda abierta
 
 export function initCalendar() {
   dom.grid = $('#cal-grid');
+  dom.swipe = $('#cal-swipe');
   dom.head = $('#cal-weekdays');
   dom.greg = $('#cal-greg');
   dom.hijri = $('#cal-hijri');
@@ -63,6 +73,46 @@ export function initCalendar() {
     if (event.key === 'ArrowLeft') { event.preventDefault(); shiftMonth(-1); }
     if (event.key === 'ArrowRight') { event.preventDefault(); shiftMonth(1); }
   });
+
+  attachSwipe(dom.swipe);
+}
+
+/**
+ * Cambio de mes deslizando el dedo.
+ *
+ * Los listeners son `passive: true` a propósito: nunca llamamos a
+ * preventDefault, así que el navegador puede seguir haciendo scroll vertical
+ * sin esperar a nuestro código. El gesto sólo cuenta como deslizamiento si el
+ * recorrido horizontal supera al vertical con holgura; si no, era un scroll.
+ */
+function attachSwipe(node) {
+  let x0 = null;
+  let y0 = null;
+  let t0 = 0;
+
+  node.addEventListener('touchstart', (event) => {
+    if (event.touches.length !== 1) { x0 = null; return; }   // pellizco de zoom
+    x0 = event.touches[0].clientX;
+    y0 = event.touches[0].clientY;
+    t0 = Date.now();
+  }, { passive: true });
+
+  node.addEventListener('touchend', (event) => {
+    if (x0 === null) return;
+    const touch = event.changedTouches[0];
+    const dx = touch.clientX - x0;
+    const dy = touch.clientY - y0;
+    x0 = null;
+
+    if (Date.now() - t0 > SWIPE_MAX_MS) return;             // arrastre lento
+    if (Math.abs(dx) < SWIPE_MIN_PX) return;                // recorrido corto
+    if (Math.abs(dx) < Math.abs(dy) * SWIPE_RATIO) return;  // era scroll
+
+    shiftMonth(dx < 0 ? 1 : -1);   // izquierda = siguiente
+  }, { passive: true });
+
+  // Si el sistema cancela el gesto (llamada entrante, gesto del sistema…)
+  node.addEventListener('touchcancel', () => { x0 = null; }, { passive: true });
 }
 
 function shiftMonth(delta) {
@@ -71,6 +121,15 @@ function shiftMonth(delta) {
   viewMonth = d.getUTCMonth();
   selected = null;
   renderCalendar();
+  slideIn(delta);
+}
+
+/** Entrada animada del mes nuevo, sólo con transform: no toca el layout. */
+function slideIn(delta) {
+  const cls = delta > 0 ? 'cal__grid--from-right' : 'cal__grid--from-left';
+  dom.grid.classList.remove('cal__grid--from-right', 'cal__grid--from-left');
+  void dom.grid.offsetWidth;   // reinicia la animación
+  dom.grid.classList.add(cls);
 }
 
 /* ---------------- Conversión ---------------- */

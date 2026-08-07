@@ -14,7 +14,7 @@ import {
   notificationsSupported, notificationsEnabled, permissionDenied,
   enableNotifications, disableNotifications,
   adhanEnabled, enableAdhan, disableAdhan,
-  scheduleAdhan, playAdhan, primeAudioOnFirstGesture,
+  scheduleAdhan, playAdhan, primeAudioOnFirstGesture, primeAudioNow,
 } from './notifications.js';
 import { $, $$, apiDate, tomorrow, load, save, toast } from './utils.js';
 
@@ -171,6 +171,20 @@ function armAdhan() {
 function wireSettings() {
   const adhanToggle = $('#adhan-toggle');
   const notifyToggle = $('#notify-toggle');
+  const dlg = $('#dlg-settings');
+
+  // Abrir el panel es ya una interacción del usuario: es el momento perfecto
+  // para desbloquear el audio, que es lo que el navegador exige para poder
+  // reproducir el adhan solo más tarde.
+  $('#btn-settings').addEventListener('click', () => {
+    primeAudioNow();
+    dlg.showModal();
+  });
+
+  $('#btn-close-cfg').addEventListener('click', () => dlg.close());
+  dlg.addEventListener('click', (event) => {
+    if (event.target === dlg) dlg.close();   // clic en el fondo cierra
+  });
 
   adhanToggle.checked = adhanEnabled();
   notifyToggle.checked = notificationsEnabled();

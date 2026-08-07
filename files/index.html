@@ -39,8 +39,55 @@
               aria-haspopup="listbox" aria-expanded="false" aria-controls="lang-list"></button>
       <ul id="lang-list" class="lang__list" role="listbox" data-i18n-aria="app.langLabel" hidden></ul>
     </div>
+
+    <button id="btn-settings" class="chip chip--icon" type="button"
+            data-i18n-aria="cfg.open" data-i18n-title="cfg.open" aria-haspopup="dialog">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-gear"></use></svg>
+    </button>
   </div>
 </header>
+
+<!-- ============ Panel de configuración ============ -->
+<dialog id="dlg-settings" class="dialog dialog--settings" aria-labelledby="cfg-title">
+  <div class="dialog__head">
+    <h2 id="cfg-title" data-i18n="cfg.title">Configuración</h2>
+    <button type="button" id="btn-close-cfg" class="dialog__close" data-i18n-aria="cfg.close">×</button>
+  </div>
+
+  <div class="cfg">
+    <div class="cfg__row">
+      <div class="cfg__text">
+        <b data-i18n="prayer.adhanToggle">Adhan</b>
+        <p data-i18n="cfg.adhanHelp"></p>
+      </div>
+      <label class="switch">
+        <input id="adhan-toggle" type="checkbox" data-i18n-aria="prayer.adhanAria">
+        <span aria-hidden="true"></span>
+      </label>
+    </div>
+
+    <div class="cfg__row">
+      <div class="cfg__text">
+        <b data-i18n="prayer.notifyToggle">Notificaciones</b>
+        <p data-i18n="cfg.notifyHelp"></p>
+      </div>
+      <label class="switch">
+        <input id="notify-toggle" type="checkbox" data-i18n-aria="prayer.notifyAria">
+        <span aria-hidden="true"></span>
+      </label>
+    </div>
+
+    <div class="cfg__row">
+      <div class="cfg__text">
+        <b data-i18n="prayer.testTitle">Probar adhan</b>
+        <p data-i18n="cfg.testHelp"></p>
+      </div>
+      <button id="btn-test-adhan" class="btn btn--ghost" type="button" data-i18n="prayer.testBtn">Escuchar</button>
+    </div>
+
+    <p class="note" data-i18n="prayer.bgNote"></p>
+  </div>
+</dialog>
 
 <main id="main">
 
@@ -69,37 +116,9 @@
     <ol class="times" id="times-list" data-i18n-aria="prayer.timesLabel"></ol>
 
     <div class="settings">
-      <div class="settings__row">
-        <span class="settings__text">
-          <b data-i18n="prayer.adhanToggle">Adhan</b>
-        </span>
-        <label class="switch">
-          <input id="adhan-toggle" type="checkbox" data-i18n-aria="prayer.adhanAria">
-          <span aria-hidden="true"></span>
-        </label>
-      </div>
-
-      <div class="settings__row">
-        <span class="settings__text">
-          <b data-i18n="prayer.notifyToggle">Notificaciones</b>
-        </span>
-        <label class="switch">
-          <input id="notify-toggle" type="checkbox" data-i18n-aria="prayer.notifyAria">
-          <span aria-hidden="true"></span>
-        </label>
-      </div>
-
-      <div class="settings__row settings__row--note">
-        <p class="note" data-i18n="prayer.bgNote"></p>
-      </div>
-
-      <div class="settings__row">
-        <span class="settings__text">
-          <b data-i18n="prayer.testTitle">Probar adhan</b>
-        </span>
-        <button id="btn-test-adhan" class="btn btn--ghost" type="button" data-i18n="prayer.testBtn">Escuchar</button>
-      </div>
-
+      <!-- El adhan, las notificaciones y la prueba de sonido se han movido al
+           panel de configuración (icono de tuerca de la cabecera). El botón de
+           instalar se queda exactamente donde estaba. -->
       <div class="settings__row" id="install-row" hidden>
         <span class="settings__text">
           <b data-i18n="prayer.installTitle">Instalar SALATI</b>
@@ -149,7 +168,7 @@
       </div>
 
       <!-- Banda 2 · aviso y botón, con hueco reservado para ambos -->
-      <div class="qibla__status">
+      <div class="qibla__status" id="qibla-status">
         <p class="qibla__hint" id="qibla-hint"></p>
         <div class="qibla__action">
           <button id="btn-compass" class="btn" type="button" data-i18n="qibla.enable" hidden>Activar brújula</button>
@@ -191,6 +210,8 @@
 
       <div id="map" class="map"></div>
 
+      <div class="mosques__notice" id="mosque-notice" role="status" hidden></div>
+
       <p class="mosques__summary" id="mosque-summary" aria-live="polite"></p>
       <ul class="mosques__list" id="mosque-list" data-i18n-aria="mosques.listLabel"></ul>
     </div>
@@ -215,17 +236,20 @@
         </button>
       </header>
 
-      <div class="cal__weekdays" id="cal-weekdays" aria-hidden="true"></div>
-
-      <div class="cal__grid" id="cal-grid" role="grid" data-i18n-aria="cal.gridLabel" tabindex="0"></div>
+      <!-- Zona sensible al deslizamiento: envuelve cabecera de días y rejilla
+           para que el gesto se pueda empezar en cualquier punto del mes. -->
+      <div class="cal__swipe" id="cal-swipe">
+        <div class="cal__weekdays" id="cal-weekdays" aria-hidden="true"></div>
+        <div class="cal__grid" id="cal-grid" role="grid" data-i18n-aria="cal.gridLabel" tabindex="0"></div>
+      </div>
 
       <div class="cal__detail" id="cal-detail" aria-live="polite" hidden></div>
 
       <div class="cal__foot">
         <button id="cal-today" class="btn btn--ghost" type="button" data-i18n="cal.today">Hoy</button>
         <ul class="cal__legend">
-          <li><span class="cal__dot cal__dot--green" aria-hidden="true"></span><span data-i18n="cal.legendFeast">Fiesta</span></li>
-          <li><span class="cal__dot cal__dot--gold" aria-hidden="true"></span><span data-i18n="cal.legendDay">Día señalado</span></li>
+          <li><span class="cal__chip cal__chip--feast" aria-hidden="true"></span><span data-i18n="cal.legendFeast">Festividad</span></li>
+          <li><span class="cal__chip cal__chip--key" aria-hidden="true"></span><span data-i18n="cal.legendDay">Día importante</span></li>
         </ul>
       </div>
     </div>
@@ -351,6 +375,7 @@
   <symbol id="icon-reset" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" d="M20 12a8 8 0 1 1-2.6-5.9M20 4v4h-4"/></symbol>
   <symbol id="icon-ruler" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" d="M3 12h18M12 3v18"/></symbol>
   <symbol id="icon-map" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3zM9 3v15M15 6v15"/></symbol>
+  <symbol id="icon-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="1.7"/><path fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 8.9 19.3a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.56-1.03H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.7 8.9a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34H9.1a1.7 1.7 0 0 0 1.03-1.56V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87v.01a1.7 1.7 0 0 0 1.56 1.03H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.56 1.03z"/></symbol>
   <symbol id="icon-calendar" viewBox="0 0 24 24"><rect x="3.2" y="5" width="17.6" height="16" rx="2.4" fill="none" stroke="currentColor" stroke-width="1.6"/><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" d="M3.2 10h17.6M8 3v4M16 3v4"/><circle cx="12" cy="15.5" r="1.6" fill="currentColor"/></symbol>
   <symbol id="icon-crosshair" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="2" fill="currentColor"/><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" d="M12 2v3M12 19v3M2 12h3M19 12h3"/></symbol>
 

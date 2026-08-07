@@ -41,6 +41,29 @@ const STRINGS = {
   'app.langLabel': { ca: 'Idioma', es: 'Idioma', en: 'Language', ar: 'اللغة' },
   'app.sections': { ca: 'Seccions', es: 'Secciones', en: 'Sections', ar: 'الأقسام' },
 
+  /* ---------------- Panel de configuración ---------------- */
+  'cfg.open':  { ca: 'Configuració', es: 'Configuración', en: 'Settings', ar: 'الإعدادات' },
+  'cfg.title': { ca: 'Configuració', es: 'Configuración', en: 'Settings', ar: 'الإعدادات' },
+  'cfg.close': { ca: 'Tanca', es: 'Cerrar', en: 'Close', ar: 'إغلاق' },
+  'cfg.adhanHelp': {
+    ca: 'Activa aquesta opció perquè l’aplicació reprodueixi automàticament la crida a l’oració quan arribi l’hora exacta de cada res.',
+    es: 'Activa esta opción para que la aplicación reproduzca automáticamente la llamada a la oración cuando sea la hora exacta de cada rezo.',
+    en: 'Turn this on and the app will automatically play the call to prayer at the exact time of each prayer.',
+    ar: 'فعّل هذا الخيار ليشغّل التطبيق الأذان تلقائيًا عند حلول وقت كل صلاة.',
+  },
+  'cfg.notifyHelp': {
+    ca: 'Rep un avís del sistema a l’hora de cada res, sense so. Útil si tens el mòbil en silenci o no vols que soni l’adhan.',
+    es: 'Recibe un aviso del sistema a la hora de cada rezo, sin sonido. Útil si tienes el móvil en silencio o no quieres que suene el adhan.',
+    en: 'Get a silent system notification at each prayer time. Useful if your phone is on mute or you would rather not hear the adhan.',
+    ar: 'استلم إشعارًا صامتًا من النظام عند وقت كل صلاة. مفيد إذا كان هاتفك صامتًا أو لا ترغب بسماع الأذان.',
+  },
+  'cfg.testHelp': {
+    ca: 'Escolta l’adhan ara mateix per comprovar el volum. En prémer també s’autoritza el navegador a reproduir so més tard.',
+    es: 'Escucha el adhan ahora mismo para comprobar el volumen. Al pulsar también se autoriza al navegador a reproducir sonido más tarde.',
+    en: 'Play the adhan right now to check the volume. Pressing it also allows the browser to play sound later on.',
+    ar: 'استمع إلى الأذان الآن للتحقق من مستوى الصوت. الضغط يسمح أيضًا للمتصفح بتشغيل الصوت لاحقًا.',
+  },
+
   'tab.prayer':  { ca: 'Resos',    es: 'Rezos',    en: 'Prayers',  ar: 'الصلوات' },
   'tab.qibla':   { ca: 'Qibla',    es: 'Qibla',    en: 'Qibla',    ar: 'القبلة' },
   'tab.quran':   { ca: 'Alcorà',   es: 'Corán',    en: 'Quran',    ar: 'القرآن' },
@@ -54,7 +77,7 @@ const STRINGS = {
   'cal.today': { ca: 'Avui', es: 'Hoy', en: 'Today', ar: 'اليوم' },
   'cal.gridLabel': { ca: 'Dies del mes', es: 'Días del mes', en: 'Days of the month', ar: 'أيام الشهر' },
   'cal.legendFeast': { ca: 'Festivitat', es: 'Festividad', en: 'Feast', ar: 'عيد' },
-  'cal.legendDay': { ca: 'Dia assenyalat', es: 'Día señalado', en: 'Notable day', ar: 'يوم مميز' },
+  'cal.legendDay': { ca: 'Dia important', es: 'Día importante', en: 'Important day', ar: 'يوم مهم' },
 
   'cal.newYear': {
     ca: 'Cap d’Any islàmic', es: 'Año Nuevo islámico',

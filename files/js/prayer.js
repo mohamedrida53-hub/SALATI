@@ -49,11 +49,14 @@ export function renderPrayer(state) {
   if (state.error && !state.today) {
     dom.hero.hidden = true;
     dom.list.replaceChildren();
+    // El botón abre el buscador de ciudad, no reintenta el GPS. Antes ponía
+    // «Reintentar», que en un primer arranque con la ubicación denegada
+    // invitaba a repetir algo que iba a volver a fallar.
     showState(dom.state, {
       kind: 'error',
-      title: 'No hay horarios que mostrar',
+      title: 'Elige tu ciudad',
       message: state.error,
-      actionLabel: 'Reintentar',
+      actionLabel: 'Buscar ciudad',
       onAction: () => hooks.onRetry?.(),
     });
     stopClock();

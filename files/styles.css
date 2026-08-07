@@ -25,6 +25,16 @@
   /* Mismo oro en rgb suelto, para sombras y destellos */
   --glow: 240 207 122;
 
+  /* Morado del calendario. Contrasta con el oro de la app sin pelearse con él.
+     `deep` es el tono base pedido (#6B21A8); `fest` sube algo la saturación
+     para que el relleno sólido despegue sobre el fondo casi negro, y `soft`
+     es el único que se usa como texto o borde: los tonos oscuros no llegan
+     al contraste mínimo sobre negro. */
+  --fest-deep:   #6b21a8;
+  --fest:        #7c3aed;
+  --fest-soft:   #c4a0f5;
+  --fest-glow:   167 85 247;
+
   /* Texto de alto contraste */
   --ink:       #f0f5f2;   /* ~18:1 sobre --bg */
   --ink-read:  #dbe5e0;   /* cuerpos de texto largos */
@@ -127,6 +137,7 @@ button, select, input { font: inherit; color: inherit; }
   align-items: center;
   gap: 6px;
   max-width: 46vw;
+  min-height: 44px;   /* suelo táctil: antes quedaban en 34 px de alto */
   padding: 6px 12px;
   border: 1px solid var(--line);
   border-radius: 999px;
@@ -139,6 +150,51 @@ button, select, input { font: inherit; color: inherit; }
 .chip svg { width: 15px; height: 15px; flex: none; color: var(--accent-bright); }
 .chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .chip:hover { border-color: var(--accent-edge); color: var(--ink); }
+
+/* Chip cuadrado sólo con icono (tuerca) */
+.chip--icon { padding: 0; width: 44px; justify-content: center; max-width: none; flex: none; }
+.chip--icon svg { width: 19px; height: 19px; }
+
+/* ---------------- Panel de configuración ---------------- */
+
+.dialog--settings { width: min(460px, calc(100vw - 24px)); }
+
+.dialog__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 20px 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.dialog__head h2 { margin: 0; font-family: var(--f-display); font-size: 1.3rem; }
+.dialog__head .dialog__close { position: static; }
+
+.cfg { padding: 6px 20px 20px; }
+
+.cfg__row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.cfg__text { flex: 1; min-width: 0; }
+.cfg__text b { display: block; font-size: 1rem; font-weight: 600; }
+
+/* La explicación es el motivo de existir de este panel: que se lea bien. */
+.cfg__text p {
+  margin: 4px 0 0;
+  color: var(--ink-soft);
+  font-size: .82rem;
+  line-height: 1.5;
+}
+
+.cfg__row .switch, .cfg__row .btn { flex: none; margin-top: 2px; }
+.cfg > .note { margin-top: 16px; line-height: 1.5; }
 
 /* ---------------- Selector de idioma ---------------- */
 
@@ -566,6 +622,17 @@ button, select, input { font: inherit; color: inherit; }
   .qibla__status { grid-template-rows: 44px 44px; }
 }
 
+/* Brújula ya activa: la fila del botón se colapsa a cero. Es una transición
+   única (ocurre al conceder el permiso, no se repite), así que no reintroduce
+   el salto de layout que se corrigió reservando el hueco. */
+.qibla__status--live { grid-template-rows: 2lh 0; gap: 0; }
+
+@supports not (height: 1lh) {
+  .qibla__status--live { grid-template-rows: 44px 0; }
+}
+
+.qibla__status--live .qibla__action { display: none; }
+
 .qibla__action { display: flex; align-items: center; justify-content: center; }
 
 .compass__ring { position: absolute; inset: 0; transition: transform .18s linear; }
@@ -746,6 +813,31 @@ button, select, input { font: inherit; color: inherit; }
 
 .cal__next svg { rotate: 180deg; }   /* se reutiliza la flecha de «atrás» */
 
+/* Zona de deslizamiento. `overflow-x: clip` recorta la animación de entrada
+   sin crear un contenedor de scroll, así que el gesto no genera barra
+   horizontal. `pan-y` le dice al navegador que el scroll vertical es suyo y
+   el horizontal nuestro, que es lo que hace que el gesto se sienta fluido. */
+.cal__swipe {
+  display: grid;
+  gap: 4px;
+  overflow-x: clip;
+  touch-action: pan-y;
+}
+
+/* Entrada del mes nuevo: sólo transform y opacidad, cero coste de layout. */
+.cal__grid--from-right { animation: cal-in-right .22s ease-out; }
+.cal__grid--from-left  { animation: cal-in-left .22s ease-out; }
+
+@keyframes cal-in-right {
+  from { transform: translateX(9%); opacity: 0; }
+  to   { transform: none; opacity: 1; }
+}
+
+@keyframes cal-in-left {
+  from { transform: translateX(-9%); opacity: 0; }
+  to   { transform: none; opacity: 1; }
+}
+
 /* Cabecera y rejilla comparten las mismas 7 columnas iguales, así nunca
    se desalinean por mucho que cambie el ancho del texto. */
 .cal__weekdays,
@@ -769,10 +861,15 @@ button, select, input { font: inherit; color: inherit; }
 /* 6 filas SIEMPRE, tenga el mes 28 o 31 días y empiece donde empiece.
    Ésta es la línea que impide cualquier salto de altura al cambiar de mes. */
 .cal__grid {
-  grid-template-rows: repeat(6, 1fr);
-  /* 7 columnas × 6 filas manteniendo celdas casi cuadradas */
-  aspect-ratio: 7 / 6.6;
-  contain: layout paint;
+  /* minmax(44px, …) es el suelo táctil recomendado: a 320 px las celdas se
+     quedaban en 39×43 y se fallaba el toque a menudo. La proporción 1:1 da
+     el alto necesario, y el tope evita que en escritorio salgan enormes. */
+  grid-template-rows: repeat(6, minmax(44px, 1fr));
+  aspect-ratio: 7 / 7;
+  max-height: 420px;
+  /* `layout` a secas y no `layout paint`: paint recortaría las filas si el
+     suelo de 44 px llegara a superar la altura de la caja. */
+  contain: layout;
 }
 
 .cal__grid:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: 4px; border-radius: 8px; }
@@ -802,9 +899,15 @@ button, select, input { font: inherit; color: inherit; }
 .cal__h { font-size: .66rem; line-height: 1.1; color: var(--accent); font-variant-numeric: tabular-nums; }
 
 /* Días del mes anterior o siguiente: presentes para no romper la rejilla,
-   pero apagados para que no compitan con el mes que se está mirando. */
-.cal__day--out { background: transparent; color: var(--ink-faint); opacity: .45; }
+   pero apagados para que no compitan con el mes que se está mirando.
+
+   Aquí había `opacity: .45` sobre un color ya tenue y el contraste real
+   caía a 1,98:1, por debajo incluso del mínimo de texto grande. Se atenúan
+   por color en vez de por opacidad, manteniendo la legibilidad. */
+.cal__day--out { background: transparent; }
+.cal__day--out .cal__g { color: var(--ink-faint); font-weight: 500; }
 .cal__day--out .cal__h { color: var(--ink-faint); }
+.cal__day--out .cal__dot { opacity: .5; }
 
 .cal__day--today { border-color: var(--accent-bright); background: var(--accent-wash); }
 .cal__day--today .cal__g { color: var(--accent-bright); }
@@ -820,15 +923,41 @@ button, select, input { font: inherit; color: inherit; }
   height: 5px;
   translate: -50% 0;
   border-radius: 50%;
-  background: var(--accent-bright);
+  background: var(--fest-soft);
 }
 
-.cal__day--green .cal__dot, .cal__dot--green { background: #12a150; }
-.cal__day--gold  .cal__dot, .cal__dot--gold  { background: var(--accent-bright); }
+/* ---- Días marcados: dos intensidades del mismo morado ----
+   Festividad = relleno sólido y número en blanco, imposible de pasar por alto.
+   Día importante = perfilado, un escalón por debajo pero claramente distinto
+   de un día normal. Ambos en negrita. */
 
-.cal__day--fest { background: var(--surface-2); }
-.cal__day--green { border-color: rgb(18 161 80 / 45%); }
-.cal__day--gold  { border-color: var(--accent-edge); }
+.cal__day--feast {
+  background: var(--fest);
+  border-color: var(--fest-soft);
+  box-shadow: 0 0 0 1px var(--fest-deep) inset, 0 3px 10px rgb(var(--fest-glow) / 35%);
+}
+
+.cal__day--feast .cal__g { color: #fff; font-weight: 800; }
+.cal__day--feast .cal__h { color: rgb(255 255 255 / 88%); font-weight: 600; }
+.cal__day--feast .cal__dot { background: #fff; }
+.cal__day--feast:hover { background: var(--fest-deep); border-color: #fff; }
+
+.cal__day--key {
+  background: color-mix(in srgb, var(--fest) 18%, var(--surface));
+  border-color: var(--fest-soft);
+  box-shadow: 0 0 0 1px rgb(var(--fest-glow) / 25%) inset;
+}
+
+.cal__day--key .cal__g { color: var(--fest-soft); font-weight: 800; }
+.cal__day--key .cal__h { color: var(--fest-soft); font-weight: 600; }
+.cal__day--key:hover { background: color-mix(in srgb, var(--fest) 32%, var(--surface)); }
+
+/* Los días normales bajan un punto para que los marcados manden.
+   Se apaga el fondo y el borde, nunca el texto: bajar el color del número
+   rompería el contraste que se corrigió en la auditoría. */
+.cal__day:not(.cal__day--fest):not(.cal__day--today) {
+  background: color-mix(in srgb, var(--surface) 70%, transparent);
+}
 
 /* Tarjeta del día elegido. Sin altura reservada porque aparece bajo la
    rejilla y sólo empuja la leyenda, que es lo último de la vista. */
@@ -853,14 +982,26 @@ button, select, input { font: inherit; color: inherit; }
   font-weight: 600;
 }
 
-.cal__detail-fest--green { background: rgb(18 161 80 / 18%); color: #4ade80; }
-.cal__detail-fest--gold  { background: var(--accent-wash); color: var(--accent-bright); }
+.cal__detail-fest--feast { background: var(--fest); color: #fff; }
+.cal__detail-fest--key   { background: rgb(var(--fest-glow) / 18%); color: var(--fest-soft); }
 
 .cal__foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 
 .cal__legend { display: flex; gap: 14px; margin: 0; padding: 0; list-style: none; }
-.cal__legend li { display: flex; align-items: center; gap: 6px; color: var(--ink-faint); font-size: .76rem; }
-.cal__legend .cal__dot { position: static; translate: none; }
+.cal__legend li { display: flex; align-items: center; gap: 6px; color: var(--ink-soft); font-size: .76rem; }
+
+/* La muestra de la leyenda replica el aspecto real de la celda, no un punto:
+   así se reconoce de un vistazo a qué corresponde cada estilo. */
+.cal__chip {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  border-radius: 5px;
+  border: 1px solid var(--fest-soft);
+}
+
+.cal__chip--feast { background: var(--fest); }
+.cal__chip--key { background: color-mix(in srgb, var(--fest) 18%, var(--surface)); }
 
 @media (max-width: 360px) {
   .cal__grid { gap: 3px; }
@@ -1225,6 +1366,33 @@ button, select, input { font: inherit; color: inherit; }
    y se les da algo de sombra para que despeguen del mapa claro. */
 .pin-wrap { background: none; border: 0; }
 .pin-wrap svg { display: block; filter: drop-shadow(0 2px 3px rgb(0 0 0 / 35%)); }
+
+/* Aviso dentro de la vista: acompaña al mapa, nunca lo sustituye. */
+.mosques__notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--warn);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+}
+
+.mosques__notice[hidden] { display: none; }
+
+.mosques__notice-txt {
+  flex: 1 1 100%;
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: .85rem;
+  overflow-wrap: anywhere;
+}
+
+.mosques__notice .btn { flex: none; }
 
 .mosques__summary { margin: 14px 0 8px; color: var(--ink-soft); font-size: .85rem; }
 
