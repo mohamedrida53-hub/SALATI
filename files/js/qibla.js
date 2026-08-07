@@ -8,6 +8,18 @@ const ALIGN_ENTER = 4;
 const ALIGN_EXIT = 9;
 const TILT_LIMIT = 25;   // grados de inclinación que el magnetómetro tolera
 
+/* El magnetómetro de un móvil es ruidoso: en reposo sigue entregando lecturas
+   que bailan varios grados, y el evento llega hasta 60 veces por segundo. Sin
+   filtrar, la aguja tiembla sin parar y la vista «se mueve» aunque el layout
+   esté quieto. Esto no lo arregla ningún CSS: hay que suavizar el dato.
+
+   SMOOTHING = peso de cada lectura nueva (filtro paso bajo de primer orden).
+   Más bajo = más estable y más perezoso; 0.15 va sobrado para orientarse.
+   DEADZONE = por debajo de este cambio ni siquiera se repinta. */
+const SMOOTHING = 0.15;
+const DEADZONE_DEG = 0.8;
+const MIN_FRAME_MS = 66;   // ~15 repintados por segundo son de sobra
+
 const dom = {};
 let bearing = null;
 let heading = null;
@@ -19,6 +31,8 @@ let sawEvent = false;
 let aligned = false;
 let tilted = false;
 let alignTimer = null;
+let smoothed = null;    // rumbo filtrado
+let lastPaint = 0;      // marca de tiempo del último repintado
 let hooks = { onNeedLocation: null };
 
 export function initQibla(callbacks = {}) {
@@ -166,6 +180,7 @@ export function stopCompass() {
   listening = false;
   handler = null;
   heading = null;
+  smoothed = null;
   stopAlignBuzz();
   aligned = false;
   tilted = false;
@@ -188,15 +203,39 @@ function onOrientation(event) {
 
   // Compensa el giro de pantalla del dispositivo.
   const screenAngle = screen.orientation?.angle ?? 0;
-  heading = (raw + screenAngle) % 360;
+  const measured = (raw + screenAngle) % 360;
+
+  smoothed = smoothHeading(measured);
+  heading = smoothed;
 
   if (!sawEvent) {
     sawEvent = true;
     updateHint();
   }
 
-  rotateRing(-heading);
+  // Limita la frecuencia de repintado y descarta los temblores minúsculos.
+  const now = performance.now();
+  if (now - lastPaint >= MIN_FRAME_MS) {
+    lastPaint = now;
+    rotateRing(-heading);
+  }
   updateAlignment();
+}
+
+/**
+ * Filtro paso bajo sobre el círculo. No se puede promediar en grados sin más
+ * (entre 359° y 1° la media daría 180°), así que se trabaja con la diferencia
+ * más corta entre el valor filtrado y la lectura nueva.
+ */
+function smoothHeading(measured) {
+  if (smoothed === null) return measured;
+
+  const delta = ((measured - smoothed) % 360 + 540) % 360 - 180;
+  // Un salto grande es un giro de verdad, no ruido: se sigue sin frenar.
+  if (Math.abs(delta) > 40) return measured;
+  if (Math.abs(delta) < DEADZONE_DEG) return smoothed;
+
+  return ((smoothed + delta * SMOOTHING) % 360 + 360) % 360;
 }
 
 /** Gira siempre por el camino corto: acumulamos grados en vez de saltar de 359 a 0. */

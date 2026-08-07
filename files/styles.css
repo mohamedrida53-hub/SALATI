@@ -510,16 +510,63 @@ button, select, input { font: inherit; color: inherit; }
 
 /* ---------------- 2 · Qibla ---------------- */
 
-.qibla { text-align: center; }
+/* Rejilla de tres bandas. `auto` en las dos primeras suena flexible, pero cada
+   una tiene su propia altura fija más abajo, así que en la práctica las tres
+   filas son inmutables y ningún cambio de contenido reflota nada.
+   `align-content: start` impide que la rejilla recoloque las bandas si sobra
+   espacio, que era otra fuente de descuadre entre pestañas. */
+.qibla {
+  display: grid;
+  grid-template-rows: auto auto auto;
+  align-content: start;
+  gap: 12px;
+  width: 100%;
+  text-align: center;
+}
+
 .qibla[hidden] { display: none; }
 
-/* En iOS el botón de permiso aparece y luego desaparece: el hueco se reserva
-   siempre para que ese cambio no desplace la tarjeta de datos. */
-.qibla__action { display: flex; justify-content: center; min-height: 44px; margin-bottom: 4px; }
+/* Banda 1 · escenario. Es un cuadrado perfecto y recortado: pase lo que pase
+   dentro (la brújula crece al alinearse, el halo se expande), no puede
+   empujar ni un píxel hacia fuera. Aquí es donde se corta el CLS de raíz. */
+.qibla__stage {
+  position: relative;
+  overflow: hidden;
+  width: min(300px, 78vw);
+  aspect-ratio: 1 / 1;
+  margin-inline: auto;
+  /* place-items centra la brújula en los dos ejes sin márgenes que ajustar */
+  display: grid;
+  place-items: center;
+  /* Aísla el cálculo de layout de este subárbol del resto de la página */
+  contain: layout paint;
+}
 
-/* 78vw en vez de 84: con la brújula algo más pequeña la vista entera cabe
-   sin scroll en móviles bajos, y sin scroll no hay nada que se mueva. */
-.compass { position: relative; width: min(300px, 78vw); margin: 8px auto 16px; aspect-ratio: 1; }
+/* La brújula ocupa el escenario entero y se ancla a él, no al flujo. */
+.compass {
+  position: absolute;
+  inset: 0;
+  /* El glow de --aligned se dibuja hacia dentro, nunca desplaza */
+  transform-origin: center;
+}
+
+/* Banda 2 · aviso y botón, con altura reservada para el peor caso:
+   dos líneas de texto + el botón de permiso de iOS. Así da igual que el
+   mensaje cambie de una a dos líneas o que el botón aparezca y desaparezca. */
+.qibla__status {
+  display: grid;
+  grid-template-rows: 2lh 44px;
+  align-items: center;
+  justify-items: center;
+  gap: 6px;
+}
+
+/* Respaldo para navegadores sin la unidad `lh` (2 líneas ≈ 44 px) */
+@supports not (height: 1lh) {
+  .qibla__status { grid-template-rows: 44px 44px; }
+}
+
+.qibla__action { display: flex; align-items: center; justify-content: center; }
 
 .compass__ring { position: absolute; inset: 0; transition: transform .18s linear; }
 .compass__ring svg { position: absolute; inset: 0; width: 100%; height: 100%; }
@@ -574,15 +621,12 @@ button, select, input { font: inherit; color: inherit; }
 .compass__deg { margin: 0; font-family: var(--f-display); font-size: 1.6rem; font-variant-numeric: tabular-nums; }
 .compass__dir { margin: 0; font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-faint); }
 
-/* El aviso cambia constantemente mientras giras el móvil (alineado, plano,
-   sigue girando…). Sin altura reservada, pasar de una a dos líneas empujaba
-   la tarjeta de datos 22 px arriba y abajo sin parar. `lh` = altura de línea;
-   los 44 px son el respaldo para navegadores que aún no la soportan. */
+/* La altura ya la impone la rejilla .qibla__status, así que aquí el párrafo
+   sólo se centra dentro de su banda y se recorta si algún idioma se pasara. */
 .qibla__hint {
-  margin: 0 auto 14px;
+  margin: 0;
   max-width: 34ch;
-  min-height: 44px;
-  min-height: 2lh;
+  overflow: hidden;
   color: var(--ink-soft);
   font-size: .88rem;
   transition: color .2s ease;
@@ -593,7 +637,7 @@ button, select, input { font: inherit; color: inherit; }
 .facts {
   display: grid;
   gap: 1px;
-  margin: 18px 0 0;
+  margin: 0;   /* el espaciado lo pone el `gap` de la rejilla .qibla */
   border: 1px solid var(--line);
   border-radius: var(--r-md);
   background: var(--line);
@@ -665,6 +709,163 @@ button, select, input { font: inherit; color: inherit; }
 
 @media (prefers-reduced-motion: reduce) {
   .compass--aligned { animation: none; filter: drop-shadow(0 0 14px rgb(var(--glow) / 50%)); }
+}
+
+/* ---------------- 2c · Calendario islámico ---------------- */
+
+.cal { display: grid; gap: 14px; }
+
+.cal__bar {
+  display: grid;
+  grid-template-columns: 52px 1fr 52px;   /* columnas fijas: el título no mueve los botones */
+  align-items: center;
+  gap: 10px;
+}
+
+.cal__titles { text-align: center; min-width: 0; }
+
+.cal__greg {
+  margin: 0;
+  font-family: var(--f-display);
+  font-size: 1.25rem;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cal__hijri {
+  margin: 2px 0 0;
+  color: var(--accent-bright);
+  font-size: .82rem;
+  letter-spacing: .04em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cal__next svg { rotate: 180deg; }   /* se reutiliza la flecha de «atrás» */
+
+/* Cabecera y rejilla comparten las mismas 7 columnas iguales, así nunca
+   se desalinean por mucho que cambie el ancho del texto. */
+.cal__weekdays,
+.cal__grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.cal__wd {
+  padding: 4px 0;
+  color: var(--ink-faint);
+  font-size: .68rem;
+  font-weight: 600;
+  letter-spacing: .04em;
+  text-align: center;
+  text-transform: uppercase;
+  overflow: hidden;
+}
+
+/* 6 filas SIEMPRE, tenga el mes 28 o 31 días y empiece donde empiece.
+   Ésta es la línea que impide cualquier salto de altura al cambiar de mes. */
+.cal__grid {
+  grid-template-rows: repeat(6, 1fr);
+  /* 7 columnas × 6 filas manteniendo celdas casi cuadradas */
+  aspect-ratio: 7 / 6.6;
+  contain: layout paint;
+}
+
+.cal__grid:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: 4px; border-radius: 8px; }
+
+.cal__day {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  min-width: 0;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+  overflow: hidden;
+  transition: background .15s ease, border-color .15s ease;
+}
+
+.cal__day:hover { background: var(--surface-2); border-color: var(--accent-edge); }
+.cal__day:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: -2px; }
+
+.cal__g { font-size: .95rem; font-weight: 600; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.cal__h { font-size: .66rem; line-height: 1.1; color: var(--accent); font-variant-numeric: tabular-nums; }
+
+/* Días del mes anterior o siguiente: presentes para no romper la rejilla,
+   pero apagados para que no compitan con el mes que se está mirando. */
+.cal__day--out { background: transparent; color: var(--ink-faint); opacity: .45; }
+.cal__day--out .cal__h { color: var(--ink-faint); }
+
+.cal__day--today { border-color: var(--accent-bright); background: var(--accent-wash); }
+.cal__day--today .cal__g { color: var(--accent-bright); }
+
+.cal__day--sel { border-color: var(--accent-bright); box-shadow: 0 0 0 2px rgb(var(--glow) / 30%) inset; }
+
+/* Punto de festividad, anclado en absoluto para que no altere la altura */
+.cal__dot {
+  position: absolute;
+  bottom: 5px;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  translate: -50% 0;
+  border-radius: 50%;
+  background: var(--accent-bright);
+}
+
+.cal__day--green .cal__dot, .cal__dot--green { background: #12a150; }
+.cal__day--gold  .cal__dot, .cal__dot--gold  { background: var(--accent-bright); }
+
+.cal__day--fest { background: var(--surface-2); }
+.cal__day--green { border-color: rgb(18 161 80 / 45%); }
+.cal__day--gold  { border-color: var(--accent-edge); }
+
+/* Tarjeta del día elegido. Sin altura reservada porque aparece bajo la
+   rejilla y sólo empuja la leyenda, que es lo último de la vista. */
+.cal__detail {
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+}
+
+.cal__detail[hidden] { display: none; }
+.cal__detail-h { margin: 0; font-family: var(--f-display); font-size: 1.1rem; color: var(--accent-bright); }
+.cal__detail-g { margin: 2px 0 0; color: var(--ink-soft); font-size: .85rem; }
+
+.cal__detail-fest {
+  display: inline-block;
+  margin: 8px 0 0;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: .8rem;
+  font-weight: 600;
+}
+
+.cal__detail-fest--green { background: rgb(18 161 80 / 18%); color: #4ade80; }
+.cal__detail-fest--gold  { background: var(--accent-wash); color: var(--accent-bright); }
+
+.cal__foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+
+.cal__legend { display: flex; gap: 14px; margin: 0; padding: 0; list-style: none; }
+.cal__legend li { display: flex; align-items: center; gap: 6px; color: var(--ink-faint); font-size: .76rem; }
+.cal__legend .cal__dot { position: static; translate: none; }
+
+@media (max-width: 360px) {
+  .cal__grid { gap: 3px; }
+  .cal__g { font-size: .86rem; }
+  .cal__h { font-size: .6rem; }
 }
 
 /* ---------------- 3 · Corán ---------------- */
@@ -856,7 +1057,7 @@ button, select, input { font: inherit; color: inherit; }
   inset: auto 0 0;
   z-index: 30;
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   height: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
   padding-bottom: env(safe-area-inset-bottom);
   border-top: 1px solid var(--line);
@@ -873,8 +1074,8 @@ button, select, input { font: inherit; color: inherit; }
   border: 0;
   background: none;
   color: var(--ink-faint);
-  font-size: .64rem;
-  letter-spacing: .02em;
+  font-size: .58rem;   /* seis pestañas: el rótulo tiene que encoger */
+  letter-spacing: 0;
   cursor: pointer;
 }
 
@@ -887,7 +1088,7 @@ button, select, input { font: inherit; color: inherit; }
   white-space: nowrap;
 }
 
-.tabbar__btn svg { width: 22px; height: 22px; }
+.tabbar__btn svg { width: 21px; height: 21px; }
 .tabbar__btn[aria-selected="true"] { color: var(--accent-bright); font-weight: 700; }
 
 /* ---------------- Diálogo ---------------- */
@@ -959,12 +1160,48 @@ button, select, input { font: inherit; color: inherit; }
 .mosques__bar .icon-btn svg { width: 20px; height: 20px; }
 
 .map {
+  position: relative;
   height: min(58vh, 420px);
   border: 1px solid var(--line);
   border-radius: var(--r-md);
   overflow: hidden;
   background: var(--surface);
 }
+
+/* Barra de progreso mientras Overpass responde: sin esto el mapa parece
+   colgado durante los segundos que tarda la consulta. */
+.map--busy::after {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 500;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--accent-bright), transparent);
+  animation: map-busy 1.1s linear infinite;
+}
+
+@keyframes map-busy {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(100%); }
+}
+
+/* Globo de agrupación de marcadores */
+.cluster {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #12a150;
+  border: 2px solid #fff;
+  color: #fff;
+  font-weight: 700;
+  font-size: .85rem;
+  box-shadow: 0 2px 6px rgb(0 0 0 / 40%);
+}
+
+/* La librería trae sus propios fondos claros; los anulamos */
+.marker-cluster, .marker-cluster div { background: none !important; }
 
 /* Leaflet trae fondo blanco y enlaces azules: se adaptan al tema oscuro */
 .leaflet-container { background: var(--surface); font-family: var(--f-ui); }

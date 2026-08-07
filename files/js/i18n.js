@@ -46,6 +46,28 @@ const STRINGS = {
   'tab.quran':   { ca: 'Alcorà',   es: 'Corán',    en: 'Quran',    ar: 'القرآن' },
   'tab.tasbih':  { ca: 'Tasbih',   es: 'Tasbih',   en: 'Tasbih',   ar: 'التسبيح' },
   'tab.mosques': { ca: 'Mesquites', es: 'Mezquitas', en: 'Mosques', ar: 'المساجد' },
+  'tab.calendar': { ca: 'Calendari', es: 'Calendario', en: 'Calendar', ar: 'التقويم' },
+
+  /* ---------------- Calendario ---------------- */
+  'cal.prev':  { ca: 'Mes anterior', es: 'Mes anterior', en: 'Previous month', ar: 'الشهر السابق' },
+  'cal.next':  { ca: 'Mes següent', es: 'Mes siguiente', en: 'Next month', ar: 'الشهر التالي' },
+  'cal.today': { ca: 'Avui', es: 'Hoy', en: 'Today', ar: 'اليوم' },
+  'cal.gridLabel': { ca: 'Dies del mes', es: 'Días del mes', en: 'Days of the month', ar: 'أيام الشهر' },
+  'cal.legendFeast': { ca: 'Festivitat', es: 'Festividad', en: 'Feast', ar: 'عيد' },
+  'cal.legendDay': { ca: 'Dia assenyalat', es: 'Día señalado', en: 'Notable day', ar: 'يوم مميز' },
+
+  'cal.newYear': {
+    ca: 'Cap d’Any islàmic', es: 'Año Nuevo islámico',
+    en: 'Islamic New Year', ar: 'رأس السنة الهجرية',
+  },
+  'cal.ashura':  { ca: 'Aixura', es: 'Ashura', en: 'Ashura', ar: 'عاشوراء' },
+  'cal.ramadan': {
+    ca: 'Inici del Ramadà', es: 'Inicio del Ramadán',
+    en: 'Start of Ramadan', ar: 'بداية رمضان',
+  },
+  'cal.eidFitr': { ca: 'Eid al-Fitr', es: 'Eid al-Fitr', en: 'Eid al-Fitr', ar: 'عيد الفطر' },
+  'cal.arafat':  { ca: 'Dia d’Arafat', es: 'Día de Arafat', en: 'Day of Arafah', ar: 'يوم عرفة' },
+  'cal.eidAdha': { ca: 'Eid al-Adha', es: 'Eid al-Adha', en: 'Eid al-Adha', ar: 'عيد الأضحى' },
 
   /* ---------------- Rezos ---------------- */
   'prayer.next':      { ca: 'Pròxim res', es: 'Próximo rezo', en: 'Next prayer', ar: 'الصلاة القادمة' },
@@ -167,6 +189,12 @@ const STRINGS = {
     es: 'El servicio de mapas no responde. Vuelve a intentarlo en un momento.',
     en: 'The map service is not responding. Try again in a moment.',
     ar: 'خدمة الخرائط لا تستجيب. حاول مرة أخرى بعد قليل.',
+  },
+  'mosques.errorSlow': {
+    ca: 'El servei de mapes ha trigat massa. Prova amb un radi més petit.',
+    es: 'El servicio de mapas ha tardado demasiado. Prueba con un radio más pequeño.',
+    en: 'The map service took too long. Try a smaller radius.',
+    ar: 'استغرقت خدمة الخرائط وقتًا طويلاً. جرّب نطاقًا أصغر.',
   },
   'mosques.retry': { ca: 'Torna-ho a provar', es: 'Reintentar', en: 'Try again', ar: 'إعادة المحاولة' },
   'mosques.noLocTitle': { ca: 'Falta la teva ubicació', es: 'Falta tu ubicación', en: 'Location missing', ar: 'الموقع غير محدد' },

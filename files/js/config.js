@@ -56,8 +56,10 @@ export const OVERPASS_CLIENT_TIMEOUT = 9000; // ms antes de que abortemos nosotr
 export const MOSQUE_RADII = [2, 5, 10, 25];
 export const DEFAULT_MOSQUE_RADIUS = 2;
 
-/* Tope de resultados: más de esto no cabe en una lista usable. */
-export const MOSQUE_LIMIT = 60;
+/* Tope de resultados. Sube a 200 ahora que los marcadores se agrupan:
+   con clustering el mapa aguanta el volumen y en radios de 25 km sobre
+   una ciudad densa el tope anterior de 60 se quedaba corto. */
+export const MOSQUE_LIMIT = 200;
 
 export const STORAGE_KEYS = {
   place: 'salati.place',

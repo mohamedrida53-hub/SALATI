@@ -6,7 +6,7 @@
    Sube la versión para forzar la actualización en los dispositivos.
    ========================================================= */
 
-const VERSION = 'v1.4.0';
+const VERSION = 'v1.6.0';
 const SHELL = `SALATI-shell-${VERSION}`;
 const DATA = `SALATI-data-${VERSION}`;
 const FONTS = `SALATI-fonts-${VERSION}`;
@@ -26,6 +26,7 @@ const SHELL_FILES = [
   './js/app.js',
   './js/api.js',
   './js/config.js',
+  './js/calendar.js',
   './js/i18n.js',
   './js/langpicker.js',
   './js/location.js',
@@ -39,6 +40,8 @@ const SHELL_FILES = [
   './js/utils.js',
   './js/vendor/leaflet.js',
   './js/vendor/leaflet.css',
+  './js/vendor/leaflet.markercluster.js',
+  './js/vendor/MarkerCluster.css',
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/maskable-512.png',

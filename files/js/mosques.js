@@ -23,6 +23,8 @@ const dom = {};
 let map = null;
 let markerLayer = null;
 let meMarker = null;
+let sizeObserver = null;
+let inFlight = false;   // evita que dos búsquedas se pisen
 let radius = DEFAULT_MOSQUE_RADIUS;
 let lastQueryKey = null;       // evita repetir la misma consulta al volver a la pestaña
 let results = [];
@@ -79,8 +81,8 @@ export function renderMosques(next) {
 
   hideState(dom.state);
   dom.wrap.hidden = false;
-  ensureMap(place);
-  refresh();
+  // Sólo se busca si el mapa existe de verdad; si falló, ya se mostró el error.
+  if (ensureMap(place)) refresh();
 }
 
 function currentPlace() {
@@ -96,29 +98,97 @@ export function refreshMosquesText() {
 
 /* ---------------- Mapa ---------------- */
 
+const log = (...args) => console.log('[SALATI/mapa]', ...args);
+const logError = (...args) => console.error('[SALATI/mapa]', ...args);
+
+/**
+ * Crea el mapa una sola vez y lo mantiene con el tamaño correcto.
+ *
+ * El fallo clásico de Leaflet: si se instancia mientras su contenedor está
+ * oculto, mide 0×0 y queda gris para siempre. Aquí puede pasar porque el
+ * panel vive con `hidden` hasta que se abre la pestaña. Se cubre por partida
+ * doble: se remide en el siguiente frame y, además, un ResizeObserver avisa
+ * de cualquier cambio de tamaño posterior (rotar el móvil, teclado, etc.).
+ */
 function ensureMap(place) {
   if (map) {
-    map.invalidateSize();   // el panel estaba oculto: Leaflet debe remedir
-    return;
+    scheduleInvalidate();
+    return true;
   }
+
   if (typeof L === 'undefined') {
+    logError('Leaflet no se ha cargado. Revisa js/vendor/leaflet.js en el HTML.');
     showState(dom.state, { kind: 'error', title: t('mosques.errorTitle'), message: t('mosques.errorMsg') });
-    return;
+    return false;
   }
 
-  map = L.map(dom.map, {
-    center: [place.lat, place.lon],
-    zoom: zoomForRadius(radius),
-    zoomControl: true,
-    attributionControl: true,
+  try {
+    map = L.map(dom.map, {
+      center: [place.lat, place.lon],
+      zoom: zoomForRadius(radius),
+      zoomControl: true,
+      attributionControl: true,
+      // El zoom por rueda en un panel con scroll secuestra la página.
+      scrollWheelZoom: false,
+    });
+
+    const tiles = L.tileLayer(OSM_TILES, { maxZoom: 19, attribution: OSM_ATTRIBUTION });
+    let tileErrors = 0;
+    tiles.on('tileerror', () => {
+      tileErrors += 1;
+      if (tileErrors === 5) logError('Varias teselas no cargan. ¿Sin conexión o OSM bloqueado?');
+    });
+    tiles.addTo(map);
+
+    // Agrupación de marcadores. Si la librería no está, se cae a una capa
+    // normal en vez de romper el mapa entero.
+    markerLayer = typeof L.markerClusterGroup === 'function'
+      ? L.markerClusterGroup({
+        maxClusterRadius: 45,
+        showCoverageOnHover: false,
+        spiderfyOnMaxZoom: true,
+        disableClusteringAtZoom: 17,
+        iconCreateFunction: (cluster) => L.divIcon({
+          html: `<span class="cluster">${cluster.getChildCount()}</span>`,
+          className: 'pin-wrap',
+          iconSize: [36, 36],
+        }),
+      })
+      : L.layerGroup();
+
+    if (typeof L.markerClusterGroup !== 'function') {
+      log('Leaflet.markercluster no disponible: se pintan los marcadores sueltos.');
+    }
+    markerLayer.addTo(map);
+
+    observeSize();
+    scheduleInvalidate();
+    log('Mapa creado en', place.lat, place.lon);
+    return true;
+  } catch (err) {
+    logError('No se ha podido crear el mapa:', err);
+    map = null;
+    showState(dom.state, { kind: 'error', title: t('mosques.errorTitle'), message: t('mosques.errorMsg') });
+    return false;
+  }
+}
+
+/** Remide en el siguiente frame, cuando el navegador ya ha hecho el layout. */
+function scheduleInvalidate() {
+  requestAnimationFrame(() => {
+    if (!map) return;
+    map.invalidateSize({ animate: false });
+    const { x, y } = map.getSize();
+    if (x === 0 || y === 0) logError('El contenedor del mapa mide 0×0. ¿Está oculto un ancestro?');
   });
+}
 
-  L.tileLayer(OSM_TILES, {
-    maxZoom: 19,
-    attribution: OSM_ATTRIBUTION,
-  }).addTo(map);
-
-  markerLayer = L.layerGroup().addTo(map);
+function observeSize() {
+  if (sizeObserver || typeof ResizeObserver === 'undefined') return;
+  sizeObserver = new ResizeObserver(() => {
+    if (map) map.invalidateSize({ animate: false });
+  });
+  sizeObserver.observe(dom.map);
 }
 
 /** Un radio de 2 km cabe en zoom 14; cada duplicación baja un nivel. */
@@ -188,39 +258,61 @@ function placeMe(place) {
 async function refresh() {
   const place = currentPlace();
   if (!place || !map) return;
+  if (inFlight) { log('Búsqueda ya en curso, se ignora la petición duplicada.'); return; }
 
   map.setView([place.lat, place.lon], zoomForRadius(radius));
   placeMe(place);
 
   const key = `${place.lat.toFixed(3)}|${place.lon.toFixed(3)}|${radius}`;
   if (key === lastQueryKey) {
-    renderList();
+    renderList();   // mismos parámetros: se reutiliza lo ya descargado
     return;
   }
 
+  inFlight = true;
+  dom.map.classList.add('map--busy');
   dom.summary.textContent = t('mosques.searching');
   dom.list.replaceChildren();
 
+  const t0 = performance.now();
   try {
     const found = await queryOverpass(place, radius);
     lastQueryKey = key;
     results = found
       .map((m) => ({ ...m, km: haversineKm(place, { lat: m.lat, lon: m.lon }) }))
       .sort((a, b) => a.km - b.km);
+
+    log(`${results.length} mezquitas en ${radius} km · ${Math.round(performance.now() - t0)} ms`);
     drawMarkers();
     renderList();
-  } catch {
-    results = [];
-    markerLayer?.clearLayers();
-    dom.summary.textContent = '';
-    dom.list.replaceChildren(el('li', { class: 'mosque mosque--error' }, [
-      el('div', {}, [
-        el('div', { class: 'mosque__name', text: t('mosques.errorTitle') }),
-        el('div', { class: 'mosque__meta', text: t('mosques.errorMsg') }),
-      ]),
-      el('button', { class: 'btn btn--ghost', type: 'button', text: t('mosques.retry'), onclick: () => { lastQueryKey = null; refresh(); } }),
-    ]));
+  } catch (err) {
+    const abortado = err?.name === 'AbortError';
+    logError(abortado
+      ? `Overpass no respondió en ${OVERPASS_CLIENT_TIMEOUT} ms (radio ${radius} km).`
+      : `Overpass falló tras ${Math.round(performance.now() - t0)} ms:`, err);
+    showError(abortado);
+  } finally {
+    inFlight = false;
+    dom.map.classList.remove('map--busy');
   }
+}
+
+function showError(abortado) {
+  results = [];
+  markerLayer?.clearLayers();
+  dom.summary.textContent = '';
+  dom.list.replaceChildren(el('li', { class: 'mosque mosque--error' }, [
+    el('div', {}, [
+      el('div', { class: 'mosque__name', text: t('mosques.errorTitle') }),
+      el('div', { class: 'mosque__meta', text: abortado ? t('mosques.errorSlow') : t('mosques.errorMsg') }),
+    ]),
+    el('button', {
+      class: 'btn btn--ghost',
+      type: 'button',
+      text: t('mosques.retry'),
+      onclick: () => { lastQueryKey = null; refresh(); },
+    }),
+  ]));
 }
 
 /**

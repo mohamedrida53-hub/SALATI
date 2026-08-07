@@ -18,6 +18,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="js/vendor/leaflet.css">
+<link rel="stylesheet" href="js/vendor/MarkerCluster.css">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -116,36 +117,46 @@
   <section id="panel-qibla" class="panel" role="tabpanel" aria-labelledby="tab-qibla" tabindex="-1" hidden>
     <div id="qibla-state" class="state" hidden></div>
 
+    <!-- Rejilla de tres bandas de altura fija: escenario / aviso / datos.
+         Ninguna banda puede crecer ni encoger, así que nada de lo que pase
+         dentro (texto que cambia, botón que aparece) mueve al resto. -->
     <div class="qibla" id="qibla-wrap" hidden>
-      <div
-       class="compass" id="compass">
-        <div class="compass__ring" id="compass-ring">
-          <svg viewBox="0 0 240 240" aria-hidden="true">
-            <circle class="compass__edge" cx="120" cy="120" r="112"></circle>
-            <g class="compass__ticks" id="compass-ticks"></g>
-            <text class="compass__card" x="120" y="30">N</text>
-            <text class="compass__card" x="214" y="126">E</text>
-            <text class="compass__card" x="120" y="222">S</text>
-            <text class="compass__card" x="26" y="126">O</text>
-          </svg>
-          <div class="compass__qibla" id="qibla-marker">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-kaaba"></use></svg>
+
+      <!-- Banda 1 · escenario cuadrado que contiene la brújula -->
+      <div class="qibla__stage">
+        <div class="compass" id="compass">
+          <div class="compass__ring" id="compass-ring">
+            <svg viewBox="0 0 240 240" aria-hidden="true">
+              <circle class="compass__edge" cx="120" cy="120" r="112"></circle>
+              <g class="compass__ticks" id="compass-ticks"></g>
+              <text class="compass__card" x="120" y="30">N</text>
+              <text class="compass__card" x="214" y="126">E</text>
+              <text class="compass__card" x="120" y="222">S</text>
+              <text class="compass__card" x="26" y="126">O</text>
+            </svg>
+            <div class="compass__qibla" id="qibla-marker">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-kaaba"></use></svg>
+            </div>
+          </div>
+          <div class="compass__hub">
+            <p class="compass__deg" id="qibla-deg">—</p>
+            <p class="compass__dir" id="qibla-dir"></p>
+            <span class="level" id="level" hidden title="Nivel: centra el punto para que el móvil esté plano">
+              <span class="level__dot" id="level-dot"></span>
+            </span>
           </div>
         </div>
-        <div class="compass__hub">
-          <p class="compass__deg" id="qibla-deg">—</p>
-          <p class="compass__dir" id="qibla-dir"></p>
-          <span class="level" id="level" hidden title="Nivel: centra el punto para que el móvil esté plano">
-            <span class="level__dot" id="level-dot"></span>
-          </span>
+      </div>
+
+      <!-- Banda 2 · aviso y botón, con hueco reservado para ambos -->
+      <div class="qibla__status">
+        <p class="qibla__hint" id="qibla-hint"></p>
+        <div class="qibla__action">
+          <button id="btn-compass" class="btn" type="button" data-i18n="qibla.enable" hidden>Activar brújula</button>
         </div>
       </div>
 
-      <p class="qibla__hint" id="qibla-hint"></p>
-      <div class="qibla__action">
-        <button id="btn-compass" class="btn" type="button" data-i18n="qibla.enable" hidden>Activar brújula</button>
-      </div>
-
+      <!-- Banda 3 · datos -->
       <dl class="facts">
         <div>
           <dt><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-kaaba"></use></svg><span data-i18n="qibla.factBearing">Dirección de la Qibla</span></dt>
@@ -182,6 +193,41 @@
 
       <p class="mosques__summary" id="mosque-summary" aria-live="polite"></p>
       <ul class="mosques__list" id="mosque-list" data-i18n-aria="mosques.listLabel"></ul>
+    </div>
+  </section>
+
+  <!-- ============ 2c. Calendario islámico ============ -->
+  <section id="panel-calendar" class="panel" role="tabpanel" aria-labelledby="tab-calendar" tabindex="-1" hidden>
+    <div class="cal">
+
+      <header class="cal__bar">
+        <button id="cal-prev" class="icon-btn" type="button" data-i18n-aria="cal.prev" data-i18n-title="cal.prev">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-back"></use></svg>
+        </button>
+
+        <div class="cal__titles">
+          <p class="cal__greg" id="cal-greg">—</p>
+          <p class="cal__hijri" id="cal-hijri"></p>
+        </div>
+
+        <button id="cal-next" class="icon-btn cal__next" type="button" data-i18n-aria="cal.next" data-i18n-title="cal.next">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-back"></use></svg>
+        </button>
+      </header>
+
+      <div class="cal__weekdays" id="cal-weekdays" aria-hidden="true"></div>
+
+      <div class="cal__grid" id="cal-grid" role="grid" data-i18n-aria="cal.gridLabel" tabindex="0"></div>
+
+      <div class="cal__detail" id="cal-detail" aria-live="polite" hidden></div>
+
+      <div class="cal__foot">
+        <button id="cal-today" class="btn btn--ghost" type="button" data-i18n="cal.today">Hoy</button>
+        <ul class="cal__legend">
+          <li><span class="cal__dot cal__dot--green" aria-hidden="true"></span><span data-i18n="cal.legendFeast">Fiesta</span></li>
+          <li><span class="cal__dot cal__dot--gold" aria-hidden="true"></span><span data-i18n="cal.legendDay">Día señalado</span></li>
+        </ul>
+      </div>
     </div>
   </section>
 
@@ -255,6 +301,9 @@
   <button id="tab-mosques" class="tabbar__btn" role="tab" aria-controls="panel-mosques" aria-selected="false" data-panel="mosques" tabindex="-1">
     <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-map"></use></svg><span data-i18n="tab.mosques">Mezquitas</span>
   </button>
+  <button id="tab-calendar" class="tabbar__btn" role="tab" aria-controls="panel-calendar" aria-selected="false" data-panel="calendar" tabindex="-1">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-calendar"></use></svg><span data-i18n="tab.calendar">Calendario</span>
+  </button>
   <button id="tab-quran" class="tabbar__btn" role="tab" aria-controls="panel-quran" aria-selected="false" data-panel="quran" tabindex="-1">
     <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-book"></use></svg><span data-i18n="tab.quran">Corán</span>
   </button>
@@ -302,6 +351,7 @@
   <symbol id="icon-reset" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" d="M20 12a8 8 0 1 1-2.6-5.9M20 4v4h-4"/></symbol>
   <symbol id="icon-ruler" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" d="M3 12h18M12 3v18"/></symbol>
   <symbol id="icon-map" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3zM9 3v15M15 6v15"/></symbol>
+  <symbol id="icon-calendar" viewBox="0 0 24 24"><rect x="3.2" y="5" width="17.6" height="16" rx="2.4" fill="none" stroke="currentColor" stroke-width="1.6"/><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" d="M3.2 10h17.6M8 3v4M16 3v4"/><circle cx="12" cy="15.5" r="1.6" fill="currentColor"/></symbol>
   <symbol id="icon-crosshair" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="2" fill="currentColor"/><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" d="M12 2v3M12 19v3M2 12h3M19 12h3"/></symbol>
 
   <!-- Banderas del selector de idioma. Proporción 3:2 (24×16).
@@ -314,6 +364,7 @@
 </svg>
 
 <script src="js/vendor/leaflet.js"></script>
+<script src="js/vendor/leaflet.markercluster.js"></script>
 <script type="module" src="js/app.js"></script>
 </body>
 </html>

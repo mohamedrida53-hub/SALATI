@@ -34,6 +34,7 @@ relativas (`./`), así que funciona igual en la raíz del dominio que en `usuari
     ├── location.js       Geolocation API con errores en español
     ├── store.js          Estado compartido (pub/sub) y persistencia
     ├── notifications.js  Permisos, programación del adhan y audio
+    ├── calendar.js       Calendario hijri con Intl (sin librería ni red)
     ├── prayer.js         Sección 1
     ├── qibla.js          Sección 2
     ├── quran.js          Sección 3
@@ -171,6 +172,15 @@ consultado. En vez de construir `Date` (que usa la zona del dispositivo y se rom
 extranjera), todo se compara en «segundos del día» vía `Intl.DateTimeFormat` sobre `meta.timezone`.
 Tras el Isha el objetivo pasa de 86 400 y el cálculo sigue siendo una resta lineal, que es también
 lo que alimenta el arco de progreso y los temporizadores del adhan.
+
+**El calendario hijri no necesita librería ni API.** `Intl.DateTimeFormat` con
+`calendar: 'islamic-umalqura'` está en todos los navegadores modernos y coincide exactamente con lo
+que devuelve Aladhan (verificado: 3-8-2026 → 20 Safar 1448, mientras que `islamic-civil` da 18 y
+`islamic-tbla` da 19). Se descartó `moment-hijri` porque arrastra Moment entero, y la API `gToH`
+porque exigiría llamadas de red por mes y rompería el modo sin conexión.
+
+La rejilla pinta **siempre 42 celdas** (6 semanas × 7 días), tenga el mes 28 o 31 días. Es lo que
+hace que la altura no cambie nunca al pasar de mes: 324 px en los doce meses probados.
 
 **Azimut ≠ Haversine.** Haversine da la *distancia*; la dirección es el *forward azimuth*.
 `utils.js` tiene las dos (`initialBearing`, `haversineKm`). Verificado: L'Hospitalet 110,4° ESE y

@@ -7,6 +7,7 @@ import { initQibla, renderQibla, enableCompass, stopCompass } from './qibla.js';
 import { initQuran, ensureQuranLoaded, refreshQuranTranslation } from './quran.js';
 import { initTasbih, setTasbihActive, refreshTasbih } from './tasbih.js';
 import { initMosques, renderMosques, refreshMosquesText } from './mosques.js';
+import { initCalendar, renderCalendar } from './calendar.js';
 import { initI18n, onLangChange, applyStatic, t } from './i18n.js';
 import { initLangPicker, render as renderLangPicker } from './langpicker.js';
 import {
@@ -17,7 +18,7 @@ import {
 } from './notifications.js';
 import { $, $$, apiDate, tomorrow, load, save, toast } from './utils.js';
 
-const PANELS = ['prayer', 'qibla', 'mosques', 'quran', 'tasbih'];
+const PANELS = ['prayer', 'qibla', 'mosques', 'calendar', 'quran', 'tasbih'];
 let activeTab = 'prayer';
 let installEvent = null;
 
@@ -36,6 +37,7 @@ initPrayer({
 
 initQibla({ onNeedLocation: openLocationDialog });
 initMosques({ onNeedLocation: openLocationDialog });
+initCalendar();
 initQuran();
 initTasbih();
 initLangPicker();
@@ -58,6 +60,7 @@ function wireLanguage() {
     refreshTasbih();
     refreshMosquesText();
     refreshQuranTranslation();
+    if (activeTab === 'calendar') renderCalendar();
   });
 }
 
@@ -350,6 +353,7 @@ function switchTab(name) {
 
   if (name === 'quran') ensureQuranLoaded();
   if (name === 'mosques') renderMosques(state);
+  if (name === 'calendar') renderCalendar();
 
   if (name === 'qibla') {
     renderQibla(state);
