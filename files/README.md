@@ -86,26 +86,59 @@ Comprobado con la red caída: la app arranca, pinta los horarios guardados y avi
 Para subir versión, cambia `VERSION` en `service-worker.js`. Al detectar el worker nuevo la app
 muestra un toast; no recarga sola, para no interrumpir una lectura.
 
-## Aviso del adhan
+## Avisos del rezo
 
-En Ajustes hay un interruptor y un botón «Escuchar» para comprobar el volumen antes de confiar en él.
+Son **dos interruptores independientes**, más un botón «Escuchar» para comprobar el volumen antes
+de confiar en ellos:
 
-- `enableNotifications()` sólo se llama desde el gesto del interruptor: los permisos y el desbloqueo
-  del audio lo exigen. Ese mismo gesto sirve para «tocar» el elemento `<audio>` y que después pueda
-  sonar solo.
-- `scheduleAdhan()` arma un `setTimeout` por cada rezo que quede del día, calculando el retardo en
-  segundos del día sobre la zona horaria del lugar. Se rearma al cambiar los horarios, el método, el
-  lugar, al cambiar el día y al volver del segundo plano (donde los temporizadores se retrasan).
+| Interruptor | Clave | Necesita permiso | Qué hace |
+|---|---|---|---|
+| Adhan | `salati.adhan` | No | Reproduce `audio/adhan.mp3` |
+| Notificaciones | `salati.notify` | Sí | Notificación **silenciosa** del sistema |
+
+Se pueden usar por separado. Antes eran un solo ajuste y el sonido estaba atado al permiso de
+notificaciones: si lo denegabas, te quedabas sin adhan. Ahora no.
+
+- `enableAdhan()` sólo se llama desde el gesto del interruptor, porque el navegador sólo desbloquea
+  la reproducción automática con una interacción real del usuario.
+- `primeAudioOnFirstGesture()` cubre el caso de la recarga: al volver a cargar la página el audio
+  queda bloqueado otra vez aunque el interruptor siguiera encendido, así que se vuelve a desbloquear
+  en el primer toque, sea donde sea. Sin esto, a la hora del rezo sonaba `chime()` en vez del adhan.
+- `scheduleAdhan()` guarda las horas que quedan del día y **un único `setInterval` de 15 s** las
+  comprueba. Antes era un `setTimeout` por rezo, de hasta varias horas: los navegadores estrangulan
+  y agrupan los temporizadores de las pestañas en segundo plano, así que un timer tan largo se
+  disparaba tarde o no se disparaba. Con la comprobación periódica, aunque el navegador la frene a
+  una vez por minuto, el aviso salta con un margen de segundos.
+- `GRACE_SEC` (5 min) evita que, si la pestaña estuvo congelada, se lance el adhan de un rezo que
+  pasó hace horas al volver a primer plano.
 - La notificación se lanza por `registration.showNotification()`, no por `new Notification()`:
   en Android lo segundo lanza excepción, y sólo la vía del service worker permite `vibrate`.
-- El audio sale de `audio/adhan.mp3`. **No incluyo ninguna grabación por licencia**: pon la tuya
-  (ver `audio/LEEME.txt`). Si el archivo no existe o el navegador bloquea la reproducción,
-  `chime()` genera dos notas suaves con Web Audio, así que el aviso nunca se queda mudo.
+  Va con `silent: true`, para que el sonido lo ponga el interruptor del adhan y no el sistema.
+- Si el archivo no existe o el navegador bloquea la reproducción, `chime()` genera dos notas suaves
+  con Web Audio, así que el aviso nunca se queda mudo.
 
-**Límite honesto:** los temporizadores viven en la página, así que el aviso salta con la app abierta
-(aunque esté en segundo plano). Cerrada, no suena. La programación en segundo plano real necesita
-Web Push con servidor, o un envoltorio nativo (Capacitor) con alarmas del sistema. La
-Notification Triggers API resolvería esto sin servidor, pero no está disponible de forma estable.
+### Por qué NO suena con la app cerrada
+
+Esto se investigó a fondo y la respuesta es que **no se puede con una PWA**. Hay dos muros
+independientes y harían falta superar los dos:
+
+1. **No se puede programar un aviso local sin servidor.** La
+   [Notification Triggers API](https://developer.chrome.com/docs/web-platform/notification-triggers)
+   (`TimestampTrigger`) existía justo para esto. Estuvo en *origin trial* en Chrome 80–83 y 86–88, y
+   Google **abandonó su desarrollo**; nunca llegó a estable. Periodic Background Sync tiene
+   intervalo mínimo de horas y no garantiza el momento.
+2. **Un service worker no puede reproducir audio.** Hace falta un documento vivo y una sesión de
+   audio, y con la app cerrada no existe ninguno. Lo único que suena es el tono de notificación del
+   sistema, no tu MP3.
+
+Corolario importante: **montar Web Push tampoco resolvería el sonido**. La notificación llegaría
+puntual, pero sonaría el tono genérico del móvil, no el adhan.
+
+La única vía real es un **envoltorio nativo** (Capacitor) con alarmas del sistema y el adhan como
+recurso de sonido nativo. Ahí Android reproduce el archivo completo; **iOS limita los sonidos de
+notificación a 30 s**, así que un adhan entero con la app cerrada requeriría el permiso de
+*Critical Alerts* de Apple, que se concede de forma muy restrictiva.
+
 En iOS, además, la API de notificaciones sólo existe si la app está instalada en la pantalla de
 inicio (16.4+).
 
@@ -156,4 +189,5 @@ etiquetas, no por `innerHTML` a pelo.
 - Recitación en audio de cada sura: `verses/by_chapter` acepta `audio={reciter_id}`.
 - Guardar el último verso leído y lectura continua por juz.
 - Ajuste manual del adhan por rezo (avisar sólo de Fajr y Maghrib, por ejemplo).
-- Web Push con un endpoint mínimo si el aviso con la app cerrada se vuelve imprescindible.
+- Envoltorio con Capacitor si el adhan con la app cerrada se vuelve imprescindible. Es la única vía
+  que lo consigue de verdad; Web Push no, porque el sonido lo elige el sistema (ver arriba).

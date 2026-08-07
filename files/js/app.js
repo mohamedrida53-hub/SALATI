@@ -2,16 +2,18 @@ import { STORAGE_KEYS } from './config.js';
 import { getTimingsByAddress, getTimingsByCoords, reverseGeocode } from './api.js';
 import { requestPosition, geolocationAvailable } from './location.js';
 import { state, setState, subscribe } from './store.js';
-import { initPrayer, renderPrayer, refreshPrayerMethods } from './prayer.js';
+import { initPrayer, renderPrayer } from './prayer.js';
 import { initQibla, renderQibla, enableCompass, stopCompass } from './qibla.js';
-import { initQuran, ensureQuranLoaded } from './quran.js';
+import { initQuran, ensureQuranLoaded, refreshQuranTranslation } from './quran.js';
 import { initTasbih, setTasbihActive, refreshTasbih } from './tasbih.js';
 import { initMosques, renderMosques, refreshMosquesText } from './mosques.js';
 import { initI18n, onLangChange, applyStatic, t } from './i18n.js';
 import { initLangPicker, render as renderLangPicker } from './langpicker.js';
 import {
   notificationsSupported, notificationsEnabled, permissionDenied,
-  enableNotifications, disableNotifications, scheduleAdhan, playAdhan,
+  enableNotifications, disableNotifications,
+  adhanEnabled, enableAdhan, disableAdhan,
+  scheduleAdhan, playAdhan, primeAudioOnFirstGesture,
 } from './notifications.js';
 import { $, $$, apiDate, tomorrow, load, save, toast } from './utils.js';
 
@@ -27,10 +29,6 @@ applyStatic();
 
 initPrayer({
   onRetry: openLocationDialog,
-  onMethodChange: (method) => {
-    setState({ method });
-    if (state.place) loadTimes(state.place);
-  },
   onDayChange: () => {
     if (state.place) loadTimes(state.place);
   },
@@ -45,6 +43,7 @@ wireTabs();
 wireLocationUi();
 wireSettings();
 wireLanguage();
+primeAudioOnFirstGesture();
 registerServiceWorker();
 
 subscribe(render);
@@ -55,10 +54,10 @@ boot();
 function wireLanguage() {
   onLangChange(() => {
     renderLangPicker();
-    refreshPrayerMethods();
     render(state);
     refreshTasbih();
     refreshMosquesText();
+    refreshQuranTranslation();
   });
 }
 
@@ -167,38 +166,31 @@ function armAdhan() {
 }
 
 function wireSettings() {
-  const toggle = $('#notify-toggle');
-  const hint = $('#notify-hint');
+  const adhanToggle = $('#adhan-toggle');
+  const notifyToggle = $('#notify-toggle');
 
-  toggle.checked = notificationsEnabled();
+  adhanToggle.checked = adhanEnabled();
+  notifyToggle.checked = notificationsEnabled();
 
-  if (!notificationsSupported()) {
-    toggle.disabled = true;
-    hint.textContent = 'Este navegador no admite notificaciones.';
-  } else if (permissionDenied()) {
-    toggle.disabled = true;
-    hint.textContent = 'Notificaciones bloqueadas en los ajustes del navegador.';
-  } else if (toggle.checked) {
-    hint.textContent = 'Activado mientras la app esté abierta.';
-  }
+  // Las notificaciones dependen de un permiso; el sonido del adhan, no.
+  if (!notificationsSupported() || permissionDenied()) notifyToggle.disabled = true;
 
-  toggle.addEventListener('change', async () => {
-    if (toggle.checked) {
+  adhanToggle.addEventListener('change', () => {
+    // El gesto del usuario es lo que desbloquea el audio: hay que aprovecharlo aquí.
+    if (adhanToggle.checked) enableAdhan();
+    else disableAdhan();
+    announceAlerts();
+  });
+
+  notifyToggle.addEventListener('change', async () => {
+    if (notifyToggle.checked) {
       const granted = await enableNotifications();
-      toggle.checked = granted;
-      if (granted) {
-        const armed = armAdhan();
-        hint.textContent = 'Activado mientras la app esté abierta.';
-        toast(armed ? `Aviso activado: ${armed} rezo(s) pendientes hoy.` : 'Aviso activado desde el próximo Fajr.');
-      } else {
-        hint.textContent = permissionDenied()
-          ? 'Notificaciones bloqueadas en los ajustes del navegador.'
-          : 'Notificación y sonido a la hora de cada rezo.';
-      }
+      notifyToggle.checked = granted;
+      if (!granted && permissionDenied()) notifyToggle.disabled = true;
     } else {
       disableNotifications();
-      hint.textContent = 'Notificación y sonido a la hora de cada rezo.';
     }
+    announceAlerts();
   });
 
   // Es un gesto del usuario, así que aquí el navegador siempre deja sonar el audio.
@@ -217,6 +209,25 @@ function wireSettings() {
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden) armAdhan();
   });
+}
+
+/** Reprograma los avisos y confirma en un toast, ya que las filas no llevan texto. */
+function announceAlerts() {
+  const armed = armAdhan();
+  const on = [
+    adhanEnabled() ? 'Adhan' : null,
+    notificationsEnabled() ? 'Notificaciones' : null,
+  ].filter(Boolean);
+
+  if (!on.length) {
+    toast('Avisos desactivados.');
+    return;
+  }
+  // Se repite aquí lo de «con la app abierta» a propósito: es el momento en
+  // que el usuario decide confiar en el aviso, y conviene que no se confunda.
+  toast(armed
+    ? `${on.join(' y ')}: ${armed} rezo(s) hoy, con la app abierta.`
+    : `${on.join(' y ')}: desde el próximo Fajr, con la app abierta.`);
 }
 
 /* ---------------- PWA ---------------- */

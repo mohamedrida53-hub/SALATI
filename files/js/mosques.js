@@ -1,5 +1,6 @@
 import {
   OSM_TILES, OSM_ATTRIBUTION, OVERPASS_ENDPOINTS,
+  OVERPASS_SERVER_TIMEOUT, OVERPASS_CLIENT_TIMEOUT, MOSQUE_LIMIT,
   MOSQUE_RADII, DEFAULT_MOSQUE_RADIUS, STORAGE_KEYS,
 } from './config.js';
 import { $, el, showState, hideState, haversineKm, load, save, toast } from './utils.js';
@@ -17,7 +18,6 @@ import { t, getLocale } from './i18n.js';
    Leaflet mide el contenedor y en un panel oculto mediría 0×0.
    ========================================================= */
 
-const OVERPASS_TIMEOUT = 25;   // segundos que le damos a Overpass
 const dom = {};
 
 let map = null;
@@ -129,10 +129,53 @@ function zoomForRadius(km) {
   return 10;
 }
 
+/* ---------------- Iconos ---------------- */
+
+/* Los dos marcadores se dibujan con SVG en línea dentro de un L.divIcon:
+   así no hace falta ningún PNG y el color se controla desde aquí.
+   Las teselas de OpenStreetMap son claras, de modo que ambos llevan
+   contorno oscuro o blanco para que no se pierdan sobre el mapa. */
+
+/** Mezquita: gota verde con la silueta de una cúpula y dos alminares. */
+const MOSQUE_SVG = `
+<svg viewBox="0 0 30 38" width="30" height="38" xmlns="http://www.w3.org/2000/svg">
+  <path d="M15 36.5S27.5 22 27.5 14A12.5 12.5 0 1 0 2.5 14C2.5 22 15 36.5 15 36.5z"
+        fill="#12a150" stroke="#ffffff" stroke-width="2.2" stroke-linejoin="round"/>
+  <g fill="#ffffff">
+    <path d="M15 7.4c.95 1.05 1.5 1.85 1.5 2.6 0 .5-.28.93-.72 1.24 2.03.92 3.42 2.72 3.42 4.86v3.2h-8.4v-3.2c0-2.14 1.39-3.94 3.42-4.86-.44-.31-.72-.74-.72-1.24 0-.75.55-1.55 1.5-2.6z"/>
+    <rect x="8" y="12.2" width="1.9" height="7.1" rx=".95"/>
+    <rect x="20.1" y="12.2" width="1.9" height="7.1" rx=".95"/>
+    <rect x="7.3" y="19.3" width="15.4" height="1.7" rx=".85"/>
+  </g>
+</svg>`;
+
+/** Usuario: flecha dorada. El mapa está orientado al norte, así que apunta al norte. */
+const ME_SVG = `
+<svg viewBox="0 0 30 30" width="30" height="30" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="15" cy="15" r="13.5" fill="rgba(10,8,2,.30)"/>
+  <path d="M15 4.5 23 24 15 19.6 7 24z"
+        fill="#f0cf7a" stroke="#3a2c07" stroke-width="1.6" stroke-linejoin="round"/>
+</svg>`;
+
+const mosqueIcon = () => L.divIcon({
+  html: MOSQUE_SVG,
+  className: 'pin-wrap',
+  iconSize: [30, 38],
+  iconAnchor: [15, 36],    // la punta de la gota es lo que marca el sitio
+  popupAnchor: [0, -32],
+});
+
+const meIcon = () => L.divIcon({
+  html: ME_SVG,
+  className: 'pin-wrap',
+  iconSize: [30, 30],
+  iconAnchor: [15, 15],    // la flecha se centra en la posición exacta
+  popupAnchor: [0, -14],
+});
+
 function placeMe(place) {
   if (!map) return;
-  const html = '<span class="pin pin--me"></span>';
-  const icon = L.divIcon({ html, className: 'pin-wrap', iconSize: [18, 18], iconAnchor: [9, 9] });
+  const icon = meIcon();
 
   if (meMarker) meMarker.setLatLng([place.lat, place.lon]).setIcon(icon);
   else meMarker = L.marker([place.lat, place.lon], { icon, zIndexOffset: 1000 }).addTo(map);
@@ -184,28 +227,45 @@ async function refresh() {
  * Overpass QL: mezquitas en un radio dado.
  * `nwr` cubre nodos, vías y relaciones a la vez; `out center` devuelve
  * un punto único para las que son polígonos (la mayoría de edificios).
+ * El número final limita cuántos elementos devuelve el servidor.
+ *
+ * Antes se probaba un espejo y, si tardaba, se pasaba al siguiente: con el
+ * timeout de servidor en 25 s eso daba esperas de casi un minuto. Ahora se
+ * lanzan los dos a la vez y gana el primero que conteste.
  */
 async function queryOverpass(place, km) {
-  const query = `[out:json][timeout:${OVERPASS_TIMEOUT}];
-nwr["amenity"="place_of_worship"]["religion"="muslim"](around:${km * 1000},${place.lat},${place.lon});
-out center tags;`;
+  const query = `[out:json][timeout:${OVERPASS_SERVER_TIMEOUT}];`
+    + `nwr["amenity"="place_of_worship"]["religion"="muslim"]`
+    + `(around:${km * 1000},${place.lat},${place.lon});`
+    + `out center tags ${MOSQUE_LIMIT};`;
 
-  let lastError = null;
-  for (const endpoint of OVERPASS_ENDPOINTS) {
-    try {
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `data=${encodeURIComponent(query)}`,
-      });
-      if (!response.ok) throw new Error(`Overpass ${response.status}`);
-      const data = await response.json();
-      return (data.elements || []).map(toMosque).filter(Boolean);
-    } catch (err) {
-      lastError = err;   // espejo saturado o caído: probamos el siguiente
-    }
+  const controller = new AbortController();
+  // Red de seguridad propia: si ningún espejo contesta, no esperamos indefinidamente.
+  const cut = setTimeout(() => controller.abort(), OVERPASS_CLIENT_TIMEOUT);
+
+  const attempts = OVERPASS_ENDPOINTS.map(async (endpoint) => {
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: `data=${encodeURIComponent(query)}`,
+      signal: controller.signal,
+    });
+    if (!response.ok) throw new Error(`Overpass ${response.status}`);
+    const data = await response.json();
+    return (data.elements || []).map(toMosque).filter(Boolean);
+  });
+
+  try {
+    // `any` resuelve con la primera que va bien e ignora las que fallan.
+    const found = await Promise.any(attempts);
+    controller.abort();   // el otro espejo ya no hace falta
+    return found;
+  } catch (err) {
+    // AggregateError: han fallado todas.
+    throw err instanceof AggregateError ? (err.errors[0] ?? err) : err;
+  } finally {
+    clearTimeout(cut);
   }
-  throw lastError ?? new Error('Overpass no disponible');
 }
 
 function toMosque(element) {
@@ -231,13 +291,7 @@ function drawMarkers() {
   markerLayer.clearLayers();
 
   for (const mosque of results) {
-    const icon = L.divIcon({
-      html: '<span class="pin pin--mosque"></span>',
-      className: 'pin-wrap',
-      iconSize: [22, 22],
-      iconAnchor: [11, 11],
-    });
-    const marker = L.marker([mosque.lat, mosque.lon], { icon }).addTo(markerLayer);
+    const marker = L.marker([mosque.lat, mosque.lon], { icon: mosqueIcon() }).addTo(markerLayer);
     marker.bindPopup(popupHtml(mosque));
     mosque.marker = marker;
   }

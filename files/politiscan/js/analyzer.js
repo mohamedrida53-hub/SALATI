@@ -1,4 +1,4 @@
-/* ============================================================================
+﻿/* ============================================================================
  * POLITISCAN · Capa de análisis
  * ----------------------------------------------------------------------------
  * analyze(text) intenta primero el backend (POST /api/analyze). Si no responde
@@ -26,6 +26,8 @@
   var AUTHORITARIAN_SIGNALS = [
     { re: /(prohibir|ilegalizar|cerrar) (los )?(partidos|la oposicion|los sindicatos|los medios)/, w: 6, s: 'Propone eliminar actores políticos legales' },
     { re: /(deportar|expulsar|echar) a (todos|los) /, w: 6, s: 'Propone expulsión colectiva de un grupo' },
+    { re: /pureza (del pueblo|racial|etnica|de la raza)|pueblo puro|nacion pura/, w: 8, s: 'Apelación a la pureza del grupo nacional o étnico' },
+    { re: /(los que no|quien no) (sea|son|seamos) de aqui/, w: 5, s: 'Divide a la población por origen para retirarle derechos' },
     { re: /(fusilar|eliminar|exterminar|acabar con) (a )?(todos|los)/, w: 9, s: 'Lenguaje de eliminación física de un grupo' },
     { re: /raza (superior|inferior|pura)|pureza racial|sangre y suelo/, w: 10, s: 'Jerarquía racial explícita' },
     { re: /(no son|no somos) (personas|humanos)|son (una plaga|animales|ratas|parasitos|escoria)/, w: 10, s: 'Deshumanización directa' },
@@ -47,7 +49,7 @@
       { re: /impuestos? (a los ricos|progresiv)|redistribu|subir impuestos|renta basica/, v: -2 },
       { re: /estado del bienestar|sanidad publica|educacion publica|vivienda publica/, v: -1.5 },
       { re: /sindicat|huelga|negociacion colectiva|salario minimo/, v: -1 },
-      { re: /libre mercado|desregul|privatiz|bajar impuestos|competencia/, v: 2 },
+      { re: /libre mercado|desregul|privatiz|lo privado|bajar (los )?impuestos|competencia/, v: 2 },
       { re: /impuestos son robo|estado minimo|eliminar (el )?(irpf|los impuestos)/, v: 3 },
       { re: /arancel|proteccionismo|industria nacional/, v: 0.5 }
     ],
@@ -87,13 +89,30 @@
     return scored;
   }
 
-  function axisPosition(t) {
+  /* authScore alimenta el eje social: las señales autoritarias son la evidencia
+   * más fiable que tenemos de posición en ese eje, y dejarlas fuera producía
+   * puntos en el centro para textos abiertamente autoritarios. */
+  function axisPosition(t, authScore) {
     var out = { econ: 0, social: 0 };
     ['econ', 'social'].forEach(function (k) {
       AXIS[k].forEach(function (r) { if (r.re.test(t)) out[k] += r.v; });
-      out[k] = Math.max(-10, Math.min(10, out[k] * 1.6));
+      out[k] = out[k] * 1.6;
     });
+    out.social += Math.min(9, (authScore || 0) * 0.85);
+    out.econ = Math.max(-10, Math.min(10, out.econ));
+    out.social = Math.max(-10, Math.min(10, out.social));
     return out;
+  }
+
+  /* Preguntar por una ideología no es defenderla. Sin este filtro, "quiero
+   * entender el fascismo italiano" recibía pin, que es exactamente el error que
+   * convierte una herramienta educativa en un detector de brujas. El backend
+   * hace esta distinción por comprensión; aquí se aproxima por marcadores. */
+  var INQUIRY = /(quiero (entender|saber)|me gustaria (entender|saber)|por que |porque razon|que es el |que fue el |en que consist|explicame|explica el|como funcionaba|cual es la diferencia|de donde (viene|surge)|historia del |historia de la )/;
+  var ADVOCACY = /(hay que |habria que |deberiamos|se deberia|propongo|yo haria|lo mejor seria|es necesario|tenemos que |apoyo |defiendo |estoy a favor)/;
+
+  function isInquiry(t) {
+    return INQUIRY.test(t) && !ADVOCACY.test(t);
   }
 
   function analyzeLocal(text) {
@@ -101,18 +120,23 @@
     var scored = scoreIdeologies(t);
     var signals = [];
     var authScore = 0;
+    var inquiry = isInquiry(t);
 
     AUTHORITARIAN_SIGNALS.forEach(function (a) {
       if (a.re.test(t)) { authScore += a.w; signals.push(a.s); }
     });
 
-    // Si hay señales extremas fuertes y ninguna ideología concreta domina,
-    // se fuerza el match hacia la entrada extremista más cercana.
+    // Escalada. Dos vías: señales extremas muy fuertes por sí solas, o señales
+    // moderadas sobre un match que ya está en la franja antidemocrática (risk 2).
+    // Sin la segunda, textos como "deportar a todos para preservar la pureza del
+    // pueblo" se quedaban en "nacionalismo étnico" sin activar el pin.
     var top = scored[0];
-    if (authScore >= 9 && (!top || top.item.risk < 3)) {
+    var hardEscalate = authScore >= 8;
+    var softEscalate = authScore >= 5 && top && top.item.risk >= 2;
+    if (!inquiry && (hardEscalate || softEscalate) && (!top || top.item.risk < 3)) {
       var forced = null;
-      if (/raza|racial|sangre y suelo|arios?/.test(t)) forced = 'ext-supremacismo';
-      else if (/deportar|expulsar|remigracion|limpieza etnica|puro/.test(t)) forced = 'ext-etnonacionalismo';
+      if (/raza (superior|inferior|pura)|supremac|sangre y suelo|arios?/.test(t)) forced = 'ext-supremacismo';
+      else if (/deportar|expulsar|remigracion|limpieza etnica|pureza|puro/.test(t)) forced = 'ext-etnonacionalismo';
       else if (/esteriliz|reproducirse|mejorar la raza/.test(t)) forced = 'ext-eugenesia';
       else if (/campos?|exterminar|eliminar a/.test(t)) forced = 'fas-nazismo';
       else if (/golpe|militares|ejercito gobierne/.test(t)) forced = 'aut-militar';
@@ -133,7 +157,7 @@
           summary: 'El texto no contiene suficientes marcadores ideológicos reconocibles para asignar una corriente. Prueba a formular una propuesta concreta: qué harías, con qué recursos y sobre quién recae.',
           contrast: '', question: '¿Qué problema concreto intentas resolver con esa idea?'
         },
-        axis: axisPosition(t),
+        axis: axisPosition(t, authScore),
         meta: { engine: 'local', refusal: false, note: 'Motor heurístico local.' }
       };
     }
@@ -144,7 +168,7 @@
     var it = best.item;
 
     var pin = null;
-    if (it.risk === 3) {
+    if (it.risk === 3 && !inquiry) {
       pin = {
         awarded: true,
         id: it.id,
@@ -161,7 +185,8 @@
       match: {
         id: it.id, name: it.n, family: it.family, familyName: it.familyName,
         confidence: confidence,
-        rationale: it.t + ' ' + (best.hits.length ? 'Marcadores detectados: ' + best.hits.slice(0, 4).join(', ') + '.' : ''),
+        rationale: (inquiry ? 'Tu texto pregunta por esta corriente en lugar de defenderla, así que se abre el expediente sin insignia. ' : '') +
+          it.t + ' ' + (best.hits.length ? 'Marcadores detectados: ' + best.hits.slice(0, 4).join(', ') + '.' : ''),
         signals: signals
       },
       alternatives: scored.slice(1, 4).map(function (s) {
@@ -179,7 +204,7 @@
         contrast: it.c,
         question: '¿Qué pasaría con quien no forme parte del grupo que tu propuesta beneficia?'
       },
-      axis: axisPosition(t),
+      axis: axisPosition(t, authScore),
       meta: { engine: 'local', refusal: false, note: 'Motor heurístico local (sin backend). Precisión limitada.' }
     };
   }

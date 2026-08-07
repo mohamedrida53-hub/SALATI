@@ -1,4 +1,4 @@
-/* ============================================================================
+﻿/* ============================================================================
  * POLITISCAN · Base de bulos frecuentes (motor local de respaldo)
  * ----------------------------------------------------------------------------
  * Esto NO sustituye al verificador del backend. Es la red de seguridad para
@@ -28,7 +28,7 @@
     },
     {
       id: 'fc-ayudas-inmigrantes',
-      p: [/(los )?inmigrantes? (cobran|reciben|se llevan) (mas|todas las) (ayudas|subvenciones|paguitas)/, /paguita/, /(ayudas|subsidios) solo para (los )?(inmigrantes|extranjeros)/],
+      p: [/(cobran|reciben|se llevan) (mas |todas las |todas |las )?(ayudas|subvenciones|paguitas|subsidios)/, /paguita/, /(ayudas|subsidios) solo para (los )?(inmigrantes|extranjeros)/],
       claim: 'Los inmigrantes cobran más ayudas públicas que los nacionales.',
       v: 'falso',
       fix: 'Ningún sistema de protección social europeo prioriza por nacionalidad: los requisitos son de residencia legal, cotización y renta. En España, los perceptores del Ingreso Mínimo Vital son mayoritariamente de nacionalidad española y la normativa exige un año de residencia legal previa. Los estudios de contribución fiscal neta (OCDE) sitúan el saldo de la población inmigrante en el entorno del equilibrio, y positivo en tramos de edad laboral.',
@@ -183,7 +183,7 @@
   ];
 
   function norm(s) {
-    return (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+    return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   }
 
   global.PS_FACTCHECK = {

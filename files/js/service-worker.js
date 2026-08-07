@@ -6,7 +6,7 @@
    Sube la versión para forzar la actualización en los dispositivos.
    ========================================================= */
 
-const VERSION = 'v1.3.0';
+const VERSION = 'v1.4.0';
 const SHELL = `SALATI-shell-${VERSION}`;
 const DATA = `SALATI-data-${VERSION}`;
 const FONTS = `SALATI-fonts-${VERSION}`;

@@ -69,27 +69,32 @@
 
     <div class="settings">
       <div class="settings__row">
-        <label class="field">
-          <span data-i18n="prayer.method">Método de cálculo</span>
-          <select id="method-select"></select>
-        </label>
-      </div>
-
-      <div class="settings__row">
         <span class="settings__text">
-          <b data-i18n="prayer.adhanTitle">Aviso del adhan</b>
-          <span id="notify-hint" data-i18n="prayer.adhanHint">Notificación y sonido a la hora de cada rezo.</span>
+          <b data-i18n="prayer.adhanToggle">Adhan</b>
         </span>
         <label class="switch">
-          <input id="notify-toggle" type="checkbox" data-i18n-aria="prayer.adhanAria">
+          <input id="adhan-toggle" type="checkbox" data-i18n-aria="prayer.adhanAria">
           <span aria-hidden="true"></span>
         </label>
       </div>
 
       <div class="settings__row">
         <span class="settings__text">
-          <b data-i18n="prayer.testTitle">Probar el sonido</b>
-          <span data-i18n="prayer.testHint">Comprueba el volumen antes de confiar en el aviso.</span>
+          <b data-i18n="prayer.notifyToggle">Notificaciones</b>
+        </span>
+        <label class="switch">
+          <input id="notify-toggle" type="checkbox" data-i18n-aria="prayer.notifyAria">
+          <span aria-hidden="true"></span>
+        </label>
+      </div>
+
+      <div class="settings__row settings__row--note">
+        <p class="note" data-i18n="prayer.bgNote"></p>
+      </div>
+
+      <div class="settings__row">
+        <span class="settings__text">
+          <b data-i18n="prayer.testTitle">Probar adhan</b>
         </span>
         <button id="btn-test-adhan" class="btn btn--ghost" type="button" data-i18n="prayer.testBtn">Escuchar</button>
       </div>
@@ -97,7 +102,6 @@
       <div class="settings__row" id="install-row" hidden>
         <span class="settings__text">
           <b data-i18n="prayer.installTitle">Instalar SALATI</b>
-          <span data-i18n="prayer.installHint">Se abre a pantalla completa y funciona sin conexión.</span>
         </span>
         <button id="btn-install" class="btn" type="button" data-i18n="prayer.installBtn">Instalar</button>
       </div>
@@ -138,7 +142,9 @@
       </div>
 
       <p class="qibla__hint" id="qibla-hint"></p>
-      <button id="btn-compass" class="btn" type="button" data-i18n="qibla.enable" hidden>Activar brújula</button>
+      <div class="qibla__action">
+        <button id="btn-compass" class="btn" type="button" data-i18n="qibla.enable" hidden>Activar brújula</button>
+      </div>
 
       <dl class="facts">
         <div>
@@ -195,10 +201,6 @@
         <button id="btn-back" class="btn btn--ghost" type="button">
           <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-back"></use></svg> Suras
         </button>
-        <label class="field field--inline">
-          <span class="sr-only">Traducción</span>
-          <select id="translation-select"></select>
-        </label>
       </div>
       <header class="reader__head">
         <p class="eyebrow" id="reader-eyebrow"></p>

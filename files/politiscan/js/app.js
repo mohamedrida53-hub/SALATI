@@ -285,7 +285,7 @@
           ' data-id="' + esc(it.id) + '"' + (u ? '' : ' aria-label="Tarjeta bloqueada"') + '>' +
           '<span class="mono tile-year">' + esc(it.y) + '</span>' +
           '<span class="tile-name">' + (u ? esc(it.n) : '████████') + '</span>' +
-          '<span class="tile-desc">' + (u ? esc(it.d) : 'Expediente clasificado. Formula una idea que haga match para desbloquearlo.') + '</span>' +
+          '<span class="tile-desc">' + (u ? esc(it.d) : '▓▒░ clasificado') + '</span>' +
           (it.risk === 3 ? '<span class="mono tile-flag">⚠ PIN</span>' : '') +
           (u && u.times > 1 ? '<span class="mono tile-times">×' + u.times + '</span>' : '') +
           '</button>';

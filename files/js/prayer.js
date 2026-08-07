@@ -1,9 +1,9 @@
-import { METHODS, PRAYERS } from './config.js';
+import { PRAYERS } from './config.js';
 import {
   $, el, icon, showState, hideState, cleanTime, timeToSeconds,
   secondsOfDayInZone, formatCountdown, formatWeekday, formatGregorianShort, formatHijri,
 } from './utils.js';
-import { t, prayerName, prayerSub, methodName } from './i18n.js';
+import { t, prayerName, prayerSub } from './i18n.js';
 
 const ARC_RADIUS = 88;
 const ARC_LENGTH = 2 * Math.PI * ARC_RADIUS;
@@ -13,7 +13,7 @@ let current = null;
 let timer = null;
 let lastKey = null;
 let lastNowSec = null;
-let hooks = { onRetry: null, onMethodChange: null, onDayChange: null };
+let hooks = { onRetry: null, onDayChange: null };
 
 export function initPrayer(callbacks = {}) {
   hooks = { ...hooks, ...callbacks };
@@ -27,36 +27,18 @@ export function initPrayer(callbacks = {}) {
   dom.count = $('#countdown');
   dom.arc = $('#arc-fill');
   dom.list = $('#times-list');
-  dom.method = $('#method-select');
   dom.note = $('#meta-note');
 
   dom.arc.style.strokeDasharray = String(ARC_LENGTH);
   dom.arc.style.strokeDashoffset = String(ARC_LENGTH);
-
-  dom.method.replaceChildren(
-    ...METHODS.map((id) => el('option', { value: id, text: methodName(id) })),
-  );
-  dom.method.addEventListener('change', () => hooks.onMethodChange?.(Number(dom.method.value)));
 
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden) tick();
   });
 }
 
-/** Vuelve a rotular las opciones del método tras un cambio de idioma. */
-export function refreshPrayerMethods() {
-  if (!dom.method) return;
-  const chosen = dom.method.value;
-  dom.method.replaceChildren(
-    ...METHODS.map((id) => el('option', { value: id, text: methodName(id) })),
-  );
-  dom.method.value = chosen;
-}
-
 /** Punto de entrada: recibe el estado y decide qué pintar. */
 export function renderPrayer(state) {
-  dom.method.value = String(state.method);
-
   if (state.loading && !state.today) {
     dom.hero.hidden = true;
     dom.list.replaceChildren();

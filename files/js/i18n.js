@@ -52,30 +52,31 @@ const STRINGS = {
   'prayer.todayAt':   { ca: 'Avui a les {time}', es: 'Hoy a las {time}', en: 'Today at {time}', ar: 'اليوم في {time}' },
   'prayer.tomorrowAt': { ca: 'Demà a les {time}', es: 'Mañana a las {time}', en: 'Tomorrow at {time}', ar: 'غدًا في {time}' },
   'prayer.timesLabel': { ca: 'Horaris d’avui', es: 'Horarios de hoy', en: 'Today’s times', ar: 'مواقيت اليوم' },
-  'prayer.method':    { ca: 'Mètode de càlcul', es: 'Método de cálculo', en: 'Calculation method', ar: 'طريقة الحساب' },
-  'prayer.adhanTitle': { ca: 'Avís de l’adhan', es: 'Aviso del adhan', en: 'Adhan alert', ar: 'تنبيه الأذان' },
-  'prayer.adhanHint': {
-    ca: 'Notificació i so a l’hora de cada res.',
-    es: 'Notificación y sonido a la hora de cada rezo.',
-    en: 'Notification and sound at each prayer time.',
-    ar: 'إشعار وصوت عند وقت كل صلاة.',
+  'prayer.adhanToggle': { ca: 'Adhan', es: 'Adhan', en: 'Adhan', ar: 'الأذان' },
+  'prayer.notifyToggle': { ca: 'Notificacions', es: 'Notificaciones', en: 'Notifications', ar: 'الإشعارات' },
+  'prayer.adhanAria': {
+    ca: 'Fes sonar l’adhan a l’hora de cada res',
+    es: 'Hacer sonar el adhan a la hora de cada rezo',
+    en: 'Play the adhan at each prayer time',
+    ar: 'تشغيل الأذان عند وقت كل صلاة',
   },
-  'prayer.adhanAria': { ca: 'Activa l’avís de l’adhan', es: 'Activar el aviso del adhan', en: 'Enable the adhan alert', ar: 'تفعيل تنبيه الأذان' },
-  'prayer.testTitle': { ca: 'Prova el so', es: 'Probar el sonido', en: 'Test the sound', ar: 'اختبار الصوت' },
-  'prayer.testHint': {
-    ca: 'Comprova el volum abans de confiar en l’avís.',
-    es: 'Comprueba el volumen antes de confiar en el aviso.',
-    en: 'Check the volume before relying on the alert.',
-    ar: 'تحقق من مستوى الصوت قبل الاعتماد على التنبيه.',
+  'prayer.notifyAria': {
+    ca: 'Rep una notificació a l’hora de cada res',
+    es: 'Recibir una notificación a la hora de cada rezo',
+    en: 'Get a notification at each prayer time',
+    ar: 'تلقّي إشعار عند وقت كل صلاة',
   },
+  /* Aviso obligado: los navegadores no dejan reproducir audio con la app
+     cerrada, y prometer lo contrario haría que alguien se perdiera un rezo. */
+  'prayer.bgNote': {
+    ca: 'Els avisos funcionen amb SALATI oberta o fa poc en segon pla. El navegador no permet fer sonar l’adhan amb l’app tancada del tot.',
+    es: 'Los avisos funcionan con SALATI abierta o hace poco en segundo plano. El navegador no permite hacer sonar el adhan con la app cerrada del todo.',
+    en: 'Alerts work while SALATI is open or recently backgrounded. Browsers cannot play the adhan once the app is fully closed.',
+    ar: 'تعمل التنبيهات عندما يكون التطبيق مفتوحًا أو حديث الاستخدام في الخلفية. لا يمكن للمتصفح تشغيل الأذان بعد إغلاق التطبيق تمامًا.',
+  },
+  'prayer.testTitle': { ca: 'Prova l’adhan', es: 'Probar adhan', en: 'Test adhan', ar: 'اختبار الأذان' },
   'prayer.testBtn': { ca: 'Escoltar', es: 'Escuchar', en: 'Play', ar: 'استمع' },
   'prayer.installTitle': { ca: 'Instal·la SALATI', es: 'Instalar SALATI', en: 'Install SALATI', ar: 'تثبيت صلاتي' },
-  'prayer.installHint': {
-    ca: 'S’obre a pantalla completa i funciona sense connexió.',
-    es: 'Se abre a pantalla completa y funciona sin conexión.',
-    en: 'Opens full screen and works offline.',
-    ar: 'يفتح بملء الشاشة ويعمل دون اتصال.',
-  },
   'prayer.installBtn': { ca: 'Instal·lar', es: 'Instalar', en: 'Install', ar: 'تثبيت' },
   'prayer.metaMethod': { ca: 'Mètode: {name}.', es: 'Método: {name}.', en: 'Method: {name}.', ar: 'الطريقة: {name}.' },
   'prayer.metaZone': { ca: 'Hores a {zone}.', es: 'Horas en {zone}.', en: 'Times in {zone}.', ar: 'التوقيت في {zone}.' },
@@ -228,31 +229,6 @@ export const HIJRI_MONTHS = {
 /* Sufijo del año hijri (1447 H / 1447 هـ). */
 export const HIJRI_SUFFIX = { ca: 'H', es: 'H', en: 'AH', ar: 'هـ' };
 
-/* Aclaraciones entre paréntesis de los métodos de cálculo.
-   La clave es el id numérico de Aladhan; el nombre propio no se traduce. */
-const METHOD_NOTES = {
-  2:  { ca: 'Amèrica del Nord', es: 'Norteamérica', en: 'North America', ar: 'أمريكا الشمالية' },
-  4:  { ca: 'la Meca', es: 'La Meca', en: 'Mecca', ar: 'مكة' },
-  5:  { ca: 'Egipte', es: 'Egipto', en: 'Egypt', ar: 'مصر' },
-  13: { ca: 'Turquia', es: 'Turquía', en: 'Turkey', ar: 'تركيا' },
-};
-
-const METHOD_BASE = {
-  1:  'Universidad de Karachi',
-  2:  'ISNA',
-  3:  'Muslim World League',
-  4:  'Umm al-Qura',
-  5:  'Autoridad General Egipcia',
-  12: 'Union des Organisations Islamiques de France',
-  13: 'Diyanet',
-  15: 'Moonsighting Committee',
-};
-
-const METHOD_NAMES = {
-  1:  { ca: 'Universitat de Karachi', es: 'Universidad de Karachi', en: 'University of Karachi', ar: 'جامعة كراتشي' },
-  5:  { ca: 'Autoritat General Egípcia', es: 'Autoridad General Egipcia', en: 'Egyptian General Authority', ar: 'الهيئة المصرية العامة' },
-};
-
 /* ---------------- Estado ---------------- */
 
 let lang = DEFAULT_LANG;
@@ -333,13 +309,6 @@ export function hijriMonths() {
 
 export function hijriSuffix() {
   return HIJRI_SUFFIX[lang] ?? HIJRI_SUFFIX[DEFAULT_LANG];
-}
-
-/** Nombre del método de cálculo, con la aclaración geográfica traducida. */
-export function methodName(id) {
-  const base = METHOD_NAMES[id]?.[lang] ?? METHOD_BASE[id] ?? '';
-  const note = METHOD_NOTES[id]?.[lang];
-  return note ? `${base} (${note})` : base;
 }
 
 /* ---------------- Traducción del HTML estático ---------------- */

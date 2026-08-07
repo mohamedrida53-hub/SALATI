@@ -6,11 +6,9 @@ export const ALADHAN_BASE = 'https://api.aladhan.com/v1';
 export const QURAN_BASE = 'https://api.quran.com/api/v4';
 export const GEOCODE_BASE = 'https://api.bigdatacloud.net/data/reverse-geocode-client';
 
-/* Métodos de cálculo de Aladhan (subconjunto habitual), en orden de aparición.
-   Los nombres visibles viven en i18n.js → methodName(id).
-   Lista completa: https://aladhan.com/calculation-methods */
-export const METHODS = [3, 12, 2, 4, 5, 1, 13, 15];
-
+/* Método de cálculo de Aladhan. Ya no se elige desde la interfaz: se usa
+   siempre el de la Muslim World League, que es el más extendido en Europa.
+   Para cambiarlo, edita este número. Lista: https://aladhan.com/calculation-methods */
 export const DEFAULT_METHOD = 3;
 
 /* Los cinco rezos obligatorios, en orden. `info: true` = fila informativa, no es rezo.
@@ -48,16 +46,25 @@ export const OVERPASS_ENDPOINTS = [
   'https://overpass.kumi.systems/api/interpreter',
 ];
 
-/* Radios de búsqueda de mezquitas, en kilómetros. */
+/* Los dos espejos se consultan a la vez y gana el primero que responda:
+   el cuello de botella no es la consulta, es que un espejo esté saturado. */
+export const OVERPASS_SERVER_TIMEOUT = 8;    // segundos que Overpass se da a sí mismo
+export const OVERPASS_CLIENT_TIMEOUT = 9000; // ms antes de que abortemos nosotros
+
+/* Radios de búsqueda de mezquitas, en kilómetros.
+   Se arranca en 2 km: es lo que se recorre andando y es lo que más rápido responde. */
 export const MOSQUE_RADII = [2, 5, 10, 25];
-export const DEFAULT_MOSQUE_RADIUS = 5;
+export const DEFAULT_MOSQUE_RADIUS = 2;
+
+/* Tope de resultados: más de esto no cabe en una lista usable. */
+export const MOSQUE_LIMIT = 60;
 
 export const STORAGE_KEYS = {
   place: 'salati.place',
   method: 'salati.method',
-  translation: 'salati.translation',
   chapters: 'salati.chapters',
-  notify: 'salati.notify',
+  notify: 'salati.notify',   // aviso visual
+  adhan: 'salati.adhan',     // sonido del adhan, independiente del anterior
   tasbih: 'salati.tasbih',
   today: 'salati.today',
   lang: 'salati.lang',

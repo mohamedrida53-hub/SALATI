@@ -54,7 +54,14 @@
 
 * { box-sizing: border-box; }
 
-html { -webkit-text-size-adjust: 100%; background: var(--bg); }
+/* scrollbar-gutter: el panel de rezos tiene scroll y el de la Qibla no.
+   Sin esto, al cambiar de pestaña desaparece la barra y todo el contenido
+   salta unos píxeles en horizontal. */
+html {
+  -webkit-text-size-adjust: 100%;
+  background: var(--bg);
+  scrollbar-gutter: stable;
+}
 
 body {
   margin: 0;
@@ -217,12 +224,16 @@ button, select, input { font: inherit; color: inherit; }
 /* ---------------- Estados y avisos ---------------- */
 
 .state {
+  max-width: 100%;
   padding: 16px;
   border: 1px dashed var(--line);
   border-radius: var(--r-md);
   background: var(--surface);
   color: var(--ink-soft);
   font-size: .92rem;
+  /* Los mensajes de error traen a veces URLs o cadenas sin espacios:
+     sin esto se salían de la tarjeta y rompían el ancho de la página. */
+  overflow-wrap: anywhere;
 }
 
 .state--error { border-style: solid; border-color: color-mix(in srgb, var(--danger) 50%, transparent); }
@@ -472,17 +483,43 @@ button, select, input { font: inherit; color: inherit; }
   transition: translate .2s ease, background .2s ease;
 }
 
-.switch input:checked + span { background: var(--accent-deep); border-color: var(--accent-edge); }
-.switch input:checked + span::after { translate: 22px 0; background: var(--accent-bright); }
+/* Encendido: el raíl se llena de oro y el botón desprende brillo, para que
+   el estado ON se distinga de un vistazo sin necesidad de leer nada. */
+.switch input:checked + span {
+  background: var(--accent);
+  border-color: var(--accent-bright);
+  box-shadow: 0 0 12px rgb(var(--glow) / 35%);
+}
+
+.switch input:checked + span::after {
+  translate: 22px 0;
+  background: #fff;
+  box-shadow: 0 0 8px rgb(var(--glow) / 80%);
+}
+
 .switch input:focus-visible + span { outline: 2px solid var(--accent-bright); outline-offset: 2px; }
 .switch input:disabled + span { opacity: .4; }
+.switch input:disabled { cursor: not-allowed; }
+
+/* Sin subtítulo, la etiqueta es lo único que se lee: que tenga cuerpo. */
+.settings__text b { font-size: 1rem; }
+
+/* Nota al pie de los dos interruptores, no un subtítulo de cada fila. */
+.settings__row--note { padding-top: 0; border-top: 0; }
+.settings__row--note .note { margin: 0; line-height: 1.45; }
 
 /* ---------------- 2 · Qibla ---------------- */
 
 .qibla { text-align: center; }
 .qibla[hidden] { display: none; }
 
-.compass { position: relative; width: min(320px, 84vw); margin: 8px auto 18px; aspect-ratio: 1; }
+/* En iOS el botón de permiso aparece y luego desaparece: el hueco se reserva
+   siempre para que ese cambio no desplace la tarjeta de datos. */
+.qibla__action { display: flex; justify-content: center; min-height: 44px; margin-bottom: 4px; }
+
+/* 78vw en vez de 84: con la brújula algo más pequeña la vista entera cabe
+   sin scroll en móviles bajos, y sin scroll no hay nada que se mueva. */
+.compass { position: relative; width: min(300px, 78vw); margin: 8px auto 16px; aspect-ratio: 1; }
 
 .compass__ring { position: absolute; inset: 0; transition: transform .18s linear; }
 .compass__ring svg { position: absolute; inset: 0; width: 100%; height: 100%; }
@@ -537,7 +574,19 @@ button, select, input { font: inherit; color: inherit; }
 .compass__deg { margin: 0; font-family: var(--f-display); font-size: 1.6rem; font-variant-numeric: tabular-nums; }
 .compass__dir { margin: 0; font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-faint); }
 
-.qibla__hint { margin: 0 auto 14px; max-width: 34ch; color: var(--ink-soft); font-size: .88rem; transition: color .2s ease; }
+/* El aviso cambia constantemente mientras giras el móvil (alineado, plano,
+   sigue girando…). Sin altura reservada, pasar de una a dos líneas empujaba
+   la tarjeta de datos 22 px arriba y abajo sin parar. `lh` = altura de línea;
+   los 44 px son el respaldo para navegadores que aún no la soportan. */
+.qibla__hint {
+  margin: 0 auto 14px;
+  max-width: 34ch;
+  min-height: 44px;
+  min-height: 2lh;
+  color: var(--ink-soft);
+  font-size: .88rem;
+  transition: color .2s ease;
+}
 .qibla__hint--ok { color: var(--accent-bright); font-weight: 600; }
 .qibla__hint--warn { color: var(--warn); }
 
@@ -659,8 +708,8 @@ button, select, input { font: inherit; color: inherit; }
 .surah__sub { display: block; color: var(--ink-faint); font-size: .78rem; font-weight: 400; }
 .surah__ar { font-family: var(--f-ar); font-size: 1.35rem; color: var(--accent-bright); }
 
-.reader__bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
-.reader__bar .field select { min-width: 168px; }
+/* Sólo lleva el botón de volver: la traducción sigue al idioma de la app. */
+.reader__bar { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
 
 .reader__head { padding-bottom: 14px; margin-bottom: 8px; border-bottom: 1px solid var(--line); text-align: center; }
 .reader__ar { margin: 6px 0 2px; font-family: var(--f-ar); font-size: 2.1rem; font-weight: 400; color: var(--accent-bright); }
@@ -934,28 +983,11 @@ button, select, input { font: inherit; color: inherit; }
 .leaflet-popup-content-wrapper { border-radius: var(--r-sm); box-shadow: var(--shadow); }
 .leaflet-popup-content { margin: 11px 14px; line-height: 1.5; color: var(--ink); }
 
-/* Marcadores: divIcon en vez de las imágenes PNG de Leaflet */
+/* Marcadores: SVG en línea dentro de un divIcon, sin los PNG de Leaflet.
+   El dibujo vive en js/mosques.js; aquí sólo se quita el fondo del envoltorio
+   y se les da algo de sombra para que despeguen del mapa claro. */
 .pin-wrap { background: none; border: 0; }
-
-.pin {
-  display: block;
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-}
-
-.pin--me {
-  background: var(--accent-bright);
-  box-shadow: 0 0 0 3px rgb(var(--glow) / 30%), 0 0 12px rgb(var(--glow) / 60%);
-}
-
-/* Blanco roto y no dorado: el pin de oro es el del usuario y los dos
-   tienen que distinguirse de un vistazo sobre el mapa. */
-.pin--mosque {
-  background: #e9eef1;
-  border: 2px solid var(--bg);
-  box-shadow: 0 0 0 2px rgb(233 238 241 / 35%);
-}
+.pin-wrap svg { display: block; filter: drop-shadow(0 2px 3px rgb(0 0 0 / 35%)); }
 
 .mosques__summary { margin: 14px 0 8px; color: var(--ink-soft); font-size: .85rem; }
 
@@ -976,13 +1008,32 @@ button, select, input { font: inherit; color: inherit; }
 .mosque:hover { border-color: var(--accent-edge); background: var(--surface-2); }
 .mosque:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: 2px; }
 
+/* min-width: 0 es lo que permite que un hijo flex se encoja por debajo de su
+   contenido; sin esto los nombres largos de OSM estiraban la fila. */
 .mosque__body { min-width: 0; }
 .mosque__name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mosque__meta { color: var(--ink-faint); font-size: .8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mosque__km { flex: none; color: var(--accent-bright); font-weight: 600; font-variant-numeric: tabular-nums; }
 
-.mosque--error { cursor: default; border-style: dashed; }
+/* La fila de error no es una mezquita: el texto va completo y en varias
+   líneas, y el botón baja debajo si no cabe al lado. */
+.mosque--error {
+  flex-wrap: wrap;
+  align-items: flex-start;
+  cursor: default;
+  border-style: dashed;
+}
+
 .mosque--error:hover { border-color: var(--line); background: var(--surface); }
+.mosque--error > div { flex: 1 1 100%; min-width: 0; }
+.mosque--error .btn { flex: none; margin-top: 10px; }
+
+.mosque--error .mosque__name,
+.mosque--error .mosque__meta {
+  overflow: visible;
+  white-space: normal;
+  overflow-wrap: anywhere;   /* corta URLs o palabras sin espacios */
+}
 
 /* ---------------- Escritorio ---------------- */
 

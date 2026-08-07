@@ -1,11 +1,16 @@
-import { STORAGE_KEYS } from './config.js';
 import { getChapters, getTranslations, getVerses } from './api.js';
-import { $, el, icon, showState, hideState, sanitize, load, save } from './utils.js';
+import { $, el, icon, showState, hideState, sanitize } from './utils.js';
+import { getLang } from './i18n.js';
+
+/* La traducción ya no se elige a mano: sale del idioma de la app.
+   Quran.com no publica traducción al catalán, así que el catalán lee en
+   castellano; en árabe se muestra sólo el texto original. */
+const LANG_TO_TRANSLATION = { es: 'spanish', ca: 'spanish', en: 'english', ar: null };
 
 const dom = {};
 let chapters = [];
 let translations = [];
-let translationId = load(STORAGE_KEYS.translation, null);
+let translationId = null;
 let openChapter = null;
 let loaded = false;
 
@@ -16,7 +21,6 @@ export function initQuran() {
   dom.list = $('#surah-list');
   dom.listState = $('#chapters-state');
   dom.back = $('#btn-back');
-  dom.select = $('#translation-select');
   dom.eyebrow = $('#reader-eyebrow');
   dom.arabic = $('#reader-arabic');
   dom.meta = $('#reader-meta');
@@ -26,11 +30,14 @@ export function initQuran() {
 
   dom.search.addEventListener('input', () => renderList(dom.search.value));
   dom.back.addEventListener('click', closeReader);
-  dom.select.addEventListener('change', () => {
-    translationId = dom.select.value ? Number(dom.select.value) : null;
-    save(STORAGE_KEYS.translation, translationId);
-    if (openChapter) loadVerses(openChapter);
-  });
+}
+
+/** La llama app.js al cambiar de idioma: recarga la sura abierta traducida. */
+export function refreshQuranTranslation() {
+  if (!loaded) return;
+  const previous = translationId;
+  pickTranslation();
+  if (translationId !== previous && openChapter) loadVerses(openChapter);
 }
 
 /** Se llama la primera vez que se abre la pestaña: no gastamos red antes. */
@@ -46,7 +53,7 @@ export async function ensureQuranLoaded() {
     ]);
     chapters = chapterList;
     translations = translationList;
-    fillTranslationSelect();
+    pickTranslation();
     hideState(dom.listState);
     renderList('');
   } catch (err) {
@@ -61,22 +68,12 @@ export async function ensureQuranLoaded() {
   }
 }
 
-function fillTranslationSelect() {
-  const options = [el('option', { value: '', text: 'Sólo árabe' })];
-  const groups = new Map();
-  for (const t of translations) {
-    const label = t.language_name === 'spanish' ? 'Español' : 'Inglés';
-    if (!groups.has(label)) groups.set(label, el('optgroup', { label }));
-    groups.get(label).append(el('option', { value: t.id, text: t.author_name || t.name }));
-  }
-  options.push(...groups.values());
-  dom.select.replaceChildren(...options);
-
-  const spanish = translations.find((t) => t.language_name === 'spanish');
-  if (translationId === null && spanish) translationId = spanish.id;
-  const exists = translations.some((t) => t.id === translationId);
-  dom.select.value = exists ? String(translationId) : '';
-  if (!exists) translationId = null;
+/** Primera traducción disponible en el idioma de la app; si no hay, sólo árabe. */
+function pickTranslation() {
+  const wanted = LANG_TO_TRANSLATION[getLang()];
+  translationId = wanted
+    ? translations.find((t) => t.language_name === wanted)?.id ?? null
+    : null;
 }
 
 /* ---------------- Índice de suras ---------------- */
