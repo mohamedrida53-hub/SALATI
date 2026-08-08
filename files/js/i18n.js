@@ -175,6 +175,54 @@ const STRINGS = {
   'cfg.open':  { ca: 'Configuració', es: 'Configuración', en: 'Settings', ar: 'الإعدادات' },
   'cfg.title': { ca: 'Configuració', es: 'Configuración', en: 'Settings', ar: 'الإعدادات' },
   'cfg.close': { ca: 'Tanca', es: 'Cerrar', en: 'Close', ar: 'إغلاق' },
+  /* ---------------- Instalación manual en iOS ---------------- */
+  'ios.title': {
+    ca: 'Instal·la-la al teu iPhone', es: 'Instalar en tu iPhone',
+    en: 'Install on your iPhone', ar: 'التثبيت على iPhone',
+  },
+  'ios.lede': {
+    ca: 'Safari no ofereix un botó d’instal·lació, però en tres passos tindràs SALATI a la pantalla d’inici, com qualsevol altra app.',
+    es: 'Safari no ofrece un botón de instalación, pero en tres pasos tendrás SALATI en tu pantalla de inicio, como cualquier otra app.',
+    en: 'Safari has no install button, but three steps will put SALATI on your home screen, just like any other app.',
+    ar: 'لا يوفر Safari زر تثبيت، لكن ثلاث خطوات تضع صلاتي على شاشتك الرئيسية كأي تطبيق آخر.',
+  },
+  'ios.step1': {
+    ca: 'Prem el botó de Compartir a la barra inferior: un quadrat amb una fletxa cap amunt.',
+    es: 'Pulsa el botón de Compartir en la barra inferior: un cuadrado con una flecha hacia arriba.',
+    en: 'Tap the Share button in the bottom bar: a square with an arrow pointing up.',
+    ar: 'اضغط زر المشاركة في الشريط السفلي: مربع بسهم متجه للأعلى.',
+  },
+  'ios.step2': {
+    ca: 'Baixa per la llista i tria «Afegir a pantalla d’inici».',
+    es: 'Desplázate por la lista y elige «Añadir a pantalla de inicio».',
+    en: 'Scroll the list and choose “Add to Home Screen”.',
+    ar: 'مرّر القائمة واختر «إضافة إلى الشاشة الرئيسية».',
+  },
+  'ios.step3': {
+    ca: 'Confirma amb «Afegir». Ja la pots obrir des de la icona, a pantalla completa.',
+    es: 'Confirma con «Añadir». Ya puedes abrirla desde el icono, a pantalla completa.',
+    en: 'Confirm with “Add”. You can now open it from the icon, full screen.',
+    ar: 'أكّد بالضغط على «إضافة». يمكنك الآن فتحه من الأيقونة بملء الشاشة.',
+  },
+  'ios.safariOnly': {
+    ca: 'Aquesta opció només existeix a Safari. Si fas servir Chrome o Firefox a l’iPhone, obre aquesta pàgina amb Safari.',
+    es: 'Esta opción solo existe en Safari. Si usas Chrome o Firefox en el iPhone, abre esta página con Safari.',
+    en: 'This option only exists in Safari. If you use Chrome or Firefox on iPhone, open this page in Safari.',
+    ar: 'هذا الخيار متاح في Safari فقط. إذا كنت تستخدم Chrome أو Firefox على iPhone، افتح هذه الصفحة في Safari.',
+  },
+
+  'cfg.donate': {
+    ca: 'Dona suport al projecte',
+    es: 'Apoyar el proyecto',
+    en: 'Support the project',
+    ar: 'ادعم المشروع',
+  },
+  'cfg.feedback': {
+    ca: 'Suggeriments o report d’errors',
+    es: 'Sugerencias o reporte de errores',
+    en: 'Suggestions or bug reports',
+    ar: 'اقتراحات أو الإبلاغ عن أخطاء',
+  },
   'cfg.adhanHelp': {
     ca: 'Activa aquesta opció perquè l’aplicació reprodueixi automàticament la crida a l’oració quan arribi l’hora exacta de cada res.',
     es: 'Activa esta opción para que la aplicación reproduzca automáticamente la llamada a la oración cuando sea la hora exacta de cada rezo.',

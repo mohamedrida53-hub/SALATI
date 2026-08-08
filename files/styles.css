@@ -80,6 +80,11 @@ html {
   -webkit-text-size-adjust: 100%;
   background: var(--bg);
   scrollbar-gutter: stable;
+  /* Corta el rebote elástico de iOS. Sin esto, al llegar al final del scroll
+     asomaba el fondo del navegador y se rompía la ilusión de app nativa.
+     También desactiva el «tirar para recargar», que en una PWA es un
+     accidente esperando a pasar. */
+  overscroll-behavior: none;
 }
 
 body {
@@ -204,6 +209,103 @@ button, select, input { font: inherit; color: inherit; }
 
 .cfg__row .switch, .cfg__row .btn { flex: none; margin-top: 2px; }
 .cfg > .note { margin-top: 16px; line-height: 1.5; }
+
+/* ---------------- Instrucciones de instalación en iOS ---------------- */
+
+.dialog--ios { width: min(440px, calc(100vw - 24px)); }
+.ios { padding: 6px 20px 22px; }
+.ios__lede { margin: 6px 0 18px; color: var(--ink-soft); font-size: .9rem; line-height: 1.55; }
+
+.ios__steps {
+  display: grid;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: paso;
+}
+
+.ios__step {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+  color: var(--ink-read);
+  font-size: .9rem;
+  line-height: 1.5;
+}
+
+/* El número del paso se genera con CSS: no ensucia el HTML ni el i18n. */
+.ios__step::before {
+  counter-increment: paso;
+  content: counter(paso);
+  grid-row: 1;
+  grid-column: 1;
+  justify-self: center;
+  align-self: start;
+  margin-top: -6px;
+  margin-left: -30px;
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: .7rem;
+  font-weight: 800;
+}
+
+.ios__icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--accent-edge);
+  border-radius: 12px;
+  background: var(--accent-wash);
+  color: var(--accent-bright);
+}
+
+.ios__icon svg { width: 22px; height: 22px; }
+.ios .note { margin-top: 18px; line-height: 1.5; }
+
+/* Apoyar el proyecto: un punto por encima del feedback, pero sin llegar a
+   competir con los ajustes. Perfilado en oro en vez de relleno sólido. */
+.cfg__donate {
+  display: block;
+  margin-top: 20px;
+  padding: 11px 16px;
+  border: 1px solid var(--accent-edge);
+  border-radius: 999px;
+  background: var(--accent-wash);
+  color: var(--accent-bright);
+  font-size: .88rem;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+  transition: background .15s ease, border-color .15s ease;
+}
+
+.cfg__donate:hover { background: color-mix(in srgb, var(--accent) 24%, transparent); border-color: var(--accent-bright); }
+.cfg__donate:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: 2px; }
+
+/* Canal de feedback: deliberadamente discreto. No compite con los ajustes,
+   pero sigue siendo un objetivo táctil cómodo de pulsar. */
+.cfg__feedback {
+  display: block;
+  margin-top: 18px;
+  padding: 10px 8px;
+  color: var(--ink-faint);
+  font-size: .8rem;
+  text-align: center;
+  text-decoration: none;
+  border-radius: 8px;
+  transition: color .15s ease, background .15s ease;
+}
+
+.cfg__feedback:hover { color: var(--accent-bright); background: var(--surface); }
+.cfg__feedback:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: 2px; }
 
 /* ---------------- Selector de idioma ---------------- */
 

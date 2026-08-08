@@ -9,6 +9,8 @@ import { initTasbih, setTasbihActive, refreshTasbih } from './tasbih.js';
 import { initMosques, renderMosques, refreshMosquesText } from './mosques.js';
 import { initCalendar, renderCalendar } from './calendar.js';
 import { initI18n, onLangChange, applyStatic, t } from './i18n.js';
+import { track, trackScreen } from './analytics.js';
+import { needsManualInstall, isIOSSafari } from './platform.js';
 import { initLangPicker, render as renderLangPicker } from './langpicker.js';
 import {
   notificationsSupported, notificationsEnabled, permissionDenied,
@@ -183,6 +185,20 @@ function wireSettings() {
   });
 
   $('#btn-close-cfg').addEventListener('click', () => dlg.close());
+
+  // El enlace navega solo; la métrica va aparte y nunca lo interrumpe.
+  $('#btn-donate')?.addEventListener('click', () => track('donate_click'));
+
+  const dlgIos = $('#dlg-ios');
+  $('#btn-close-ios').addEventListener('click', () => dlgIos.close());
+  dlgIos.addEventListener('click', (event) => {
+    if (event.target === dlgIos) dlgIos.close();
+  });
+
+  /* En iOS nunca llega `beforeinstallprompt`, así que la fila de instalar
+     no se mostraba jamás y el usuario ni sabía que podía instalarla. Aquí
+     se muestra a mano cuando toca. */
+  if (needsManualInstall()) $('#install-row').hidden = false;
   dlg.addEventListener('click', (event) => {
     if (event.target === dlg) dlg.close();   // clic en el fondo cierra
   });
@@ -215,11 +231,28 @@ function wireSettings() {
   $('#btn-test-adhan').addEventListener('click', () => playAdhan());
 
   $('#btn-install').addEventListener('click', async () => {
+    // La métrica va primero y por separado: `track` nunca lanza, así que
+    // pase lo que pase con la analítica la instalación sigue su curso.
+    track('install_app');
+
+    // iOS no implementa `beforeinstallprompt`: no hay diálogo nativo que
+    // disparar, así que se explica el proceso manual paso a paso.
+    if (needsManualInstall()) {
+      track('install_ios_help');
+      $('#ios-note').hidden = isIOSSafari();   // el aviso sólo si NO es Safari
+      $('#dlg-ios').showModal();
+      return;
+    }
+
     if (!installEvent) return;
     installEvent.prompt();
     const { outcome } = await installEvent.userChoice;
     installEvent = null;
     $('#install-row').hidden = true;
+
+    // El clic sólo dice que le interesó; esto dice si llegó a instalarla.
+    track('install_result', { outcome });   // 'accepted' o 'dismissed'
+
     if (outcome === 'accepted') toast(t('state.installed'));
   });
 
@@ -277,6 +310,8 @@ window.addEventListener('beforeinstallprompt', (event) => {
 window.addEventListener('appinstalled', () => {
   installEvent = null;
   $('#install-row').hidden = true;
+  // También salta si instalan desde el menú del navegador, sin usar el botón.
+  track('app_installed');
 });
 
 navigator.serviceWorker?.addEventListener('message', (event) => {
@@ -366,6 +401,9 @@ function switchTab(name) {
   }
 
   setTasbihActive(name === 'tasbih');
+
+  // GA4 vería una sola página en toda la app: esto distingue las secciones.
+  trackScreen(name);
 
   if (name === 'quran') ensureQuranLoaded();
   if (name === 'mosques') renderMosques(state);

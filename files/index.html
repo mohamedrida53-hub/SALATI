@@ -4,9 +4,48 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>SALATI · Oración, Qibla y Corán</title>
-<meta name="description" content="Horarios de oración, brújula de la Qibla y lectura del Corán.">
+<meta name="description" content="Tiempos de rezo exactos, brújula Qibla, calendario hijri y más. Rápida, limpia y respetuosa con tu privacidad.">
 <meta name="theme-color" content="#070a09">
 <link rel="manifest" href="./manifest.json">
+
+<!-- ============ Vista previa al compartir (Open Graph / Twitter) ============
+     IMPORTANTE: og:url y og:image tienen que ser URLs ABSOLUTAS. Los robots de
+     WhatsApp, Telegram, Facebook y X no resuelven rutas relativas, así que con
+     "./icons/…" la tarjeta saldría sin imagen. Sustituye tu-dominio.com por el
+     dominio real en las tres etiquetas marcadas antes de publicar. -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="SALATI">
+<meta property="og:locale" content="es_ES">
+<meta property="og:title" content="Salati — Tu aplicación islámica sin filtros ni anuncios">
+<meta property="og:description" content="Tiempos de rezo exactos, brújula Qibla, calendario Hégira y más. Diseñada para ser rápida, limpia y respetuosa con tu privacidad.">
+<meta property="og:url" content="https://tu-dominio.com/">
+<meta property="og:image" content="https://tu-dominio.com/icons/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:alt" content="Logotipo de SALATI: luna creciente dorada con mezquita y Corán abierto.">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Salati — Tu aplicación islámica sin filtros ni anuncios">
+<meta name="twitter:description" content="Tiempos de rezo exactos, brújula Qibla, calendario Hégira y más. Diseñada para ser rápida, limpia y respetuosa con tu privacidad.">
+<meta name="twitter:image" content="https://tu-dominio.com/icons/og-image.png">
+<meta name="twitter:image:alt" content="Logotipo de SALATI: luna creciente dorada con mezquita y Corán abierto.">
+
+<link rel="canonical" href="https://tu-dominio.com/">
+
+<!-- ============ Analítica sin cookies (Umami) ============
+     ▼▼▼ SUSTITUYE TU-WEBSITE-ID-AQUI POR EL ID DE TU PANEL DE UMAMI ▼▼▼
+
+     Umami no usa cookies ni almacena datos personales: no hace falta banner
+     de consentimiento y la promesa de privacidad de la app se mantiene.
+     Si te alojas tú mismo, cambia también el `src` por el de tu servidor.
+
+     `defer` evita que bloquee el arranque, y js/analytics.js comprueba que
+     `umami` exista antes de usarlo, así que un bloqueador no rompe nada. -->
+<script defer
+        src="https://cloud.umami.is/script.js"
+        data-website-id="TU-WEBSITE-ID-AQUI"></script>
+<!-- ▲▲▲ FIN ANALÍTICA ▲▲▲ -->
 <link rel="icon" href="./favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -84,6 +123,18 @@
       </div>
       <button id="btn-test-adhan" class="btn btn--ghost" type="button" data-i18n="prayer.testBtn">Escuchar</button>
     </div>
+
+    <!-- Sadaqah. `target="_blank"` abre Ko-fi en una pestaña nueva y
+         `rel="noopener noreferrer"` impide que esa pestaña pueda tocar la
+         nuestra vía window.opener, que es el motivo de seguridad real. -->
+    <a class="cfg__donate" id="btn-donate"
+       href="https://ko-fi.com/salati"
+       target="_blank" rel="noopener noreferrer"
+       data-i18n="cfg.donate">Apoyar el proyecto</a>
+
+    <a class="cfg__feedback"
+       href="mailto:soporte.salati@gmail.com?subject=Feedback%20App%20Salati"
+       data-i18n="cfg.feedback">Sugerencias o reporte de errores</a>
   </div>
 </dialog>
 
@@ -333,6 +384,41 @@
   </button>
 </nav>
 
+<!-- ============ Cómo instalar en iPhone (iOS no tiene prompt nativo) ============ -->
+<dialog id="dlg-ios" class="dialog dialog--ios" aria-labelledby="ios-title">
+  <div class="dialog__head">
+    <h2 id="ios-title" data-i18n="ios.title">Instalar en tu iPhone</h2>
+    <button type="button" id="btn-close-ios" class="dialog__close" data-i18n-aria="cfg.close">×</button>
+  </div>
+
+  <div class="ios">
+    <p class="ios__lede" data-i18n="ios.lede"></p>
+
+    <ol class="ios__steps">
+      <li class="ios__step">
+        <span class="ios__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><use href="#icon-share-ios"></use></svg>
+        </span>
+        <span data-i18n="ios.step1"></span>
+      </li>
+      <li class="ios__step">
+        <span class="ios__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><use href="#icon-add-square"></use></svg>
+        </span>
+        <span data-i18n="ios.step2"></span>
+      </li>
+      <li class="ios__step">
+        <span class="ios__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><use href="#icon-check"></use></svg>
+        </span>
+        <span data-i18n="ios.step3"></span>
+      </li>
+    </ol>
+
+    <p class="note" id="ios-note" data-i18n="ios.safariOnly" hidden></p>
+  </div>
+</dialog>
+
 <!-- ============ Diálogo de ubicación ============ -->
 <dialog id="dlg-location" class="dialog">
   <form id="form-location" method="dialog">
@@ -372,6 +458,9 @@
   <symbol id="icon-reset" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" d="M20 12a8 8 0 1 1-2.6-5.9M20 4v4h-4"/></symbol>
   <symbol id="icon-ruler" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" d="M3 12h18M12 3v18"/></symbol>
   <symbol id="icon-map" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3zM9 3v15M15 6v15"/></symbol>
+  <symbol id="icon-share-ios" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" d="M12 3.2 12 15M8.6 6.6 12 3.2l3.4 3.4M6.5 10.5H5.2A1.2 1.2 0 0 0 4 11.7v7.1A1.2 1.2 0 0 0 5.2 20h13.6a1.2 1.2 0 0 0 1.2-1.2v-7.1a1.2 1.2 0 0 0-1.2-1.2h-1.3"/></symbol>
+  <symbol id="icon-add-square" viewBox="0 0 24 24"><rect x="3.4" y="3.4" width="17.2" height="17.2" rx="4.4" fill="none" stroke="currentColor" stroke-width="1.7"/><path fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" d="M12 8.2v7.6M8.2 12h7.6"/></symbol>
+  <symbol id="icon-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.8" fill="none" stroke="currentColor" stroke-width="1.7"/><path fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" d="m8.2 12.2 2.7 2.7 5-5.2"/></symbol>
   <symbol id="icon-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="1.7"/><path fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 8.9 19.3a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.56-1.03H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.7 8.9a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34H9.1a1.7 1.7 0 0 0 1.03-1.56V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87v.01a1.7 1.7 0 0 0 1.56 1.03H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.56 1.03z"/></symbol>
   <symbol id="icon-calendar" viewBox="0 0 24 24"><rect x="3.2" y="5" width="17.6" height="16" rx="2.4" fill="none" stroke="currentColor" stroke-width="1.6"/><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" d="M3.2 10h17.6M8 3v4M16 3v4"/><circle cx="12" cy="15.5" r="1.6" fill="currentColor"/></symbol>
   <symbol id="icon-crosshair" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="2" fill="currentColor"/><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" d="M12 2v3M12 19v3M2 12h3M19 12h3"/></symbol>
