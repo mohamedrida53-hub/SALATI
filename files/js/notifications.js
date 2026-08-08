@@ -23,6 +23,7 @@ let soundOn = load(STORAGE_KEYS.adhan, false);
 let notifyOn = load(STORAGE_KEYS.notify, false);
 let element = null;
 let ctx = null;
+let unlocked = false;   // ¿ya se desbloqueó la reproducción automática?
 let lastFired = null;   // evita duplicados si se reprograma en el mismo minuto
 
 export function notificationsSupported() {
@@ -201,6 +202,15 @@ function audioContext() {
   return ctx;
 }
 
+/* iOS suspende el AudioContext en cuanto la app pasa a segundo plano y NO lo
+   reanuda solo al volver. Sin esto, tras minimizar la app la campanilla de
+   reserva se quedaba muda para el resto de la sesión. */
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && ctx?.state === 'suspended') {
+    ctx.resume().catch(() => {});
+  }
+});
+
 /**
  * Al recargar la página el navegador vuelve a bloquear la reproducción
  * automática, aunque el interruptor del adhan siguiera encendido. Sin esto,
@@ -222,21 +232,48 @@ export function primeAudioOnFirstGesture() {
   document.addEventListener('keydown', once, true);
 }
 
-/** Prepara el audio durante un gesto del usuario para que luego pueda sonar solo. */
+/**
+ * Prepara el audio durante un gesto del usuario para que luego pueda sonar solo.
+ *
+ * iOS es el caso exigente: Safari sólo levanta el bloqueo de reproducción
+ * automática si el elemento se reproduce DENTRO del gesto, no después. Por eso
+ * aquí se llama a `play()` de inmediato y se pausa en cuanto arranca, en vez
+ * de esperar a que cargue. El `load()` previo fuerza a WebKit a empezar a
+ * traerse el archivo, que si no se queda en `preload="none"` en móvil.
+ */
 export function unlockAudio() {
   audioContext();
+
   if (!element) {
     element = new Audio(ADHAN_URL);
     element.preload = 'auto';
     element.volume = 0.9;
+    // iOS ignora `preload` hasta que hay interacción: esto la aprovecha.
+    try { element.load(); } catch { /* nada que hacer */ }
   }
+
   const played = element.play();
   if (played?.then) {
-    played.then(() => { element.pause(); element.currentTime = 0; }).catch(() => {});
+    played
+      .then(() => { element.pause(); element.currentTime = 0; unlocked = true; })
+      .catch(() => { unlocked = false; });
+  } else {
+    element.pause();
+    element.currentTime = 0;
+    unlocked = true;
   }
 }
 
+/** ¿Se ha conseguido desbloquear el audio con algún gesto del usuario? */
+export function audioUnlocked() {
+  return unlocked;
+}
+
 export async function playAdhan() {
+  // Si el contexto quedó suspendido (iOS lo hace al ir a segundo plano),
+  // se reanuda antes de nada: si no, la campanilla de reserva sería muda.
+  audioContext();
+
   try {
     if (!element) {
       element = new Audio(ADHAN_URL);

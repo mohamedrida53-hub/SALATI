@@ -96,7 +96,17 @@ body {
   font-size: 16px;
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
-  overscroll-behavior-y: contain;
+  overscroll-behavior: none;
+}
+
+/* Las zonas con scroll propio SÍ lo conservan: `contain` deja desplazarlas
+   con normalidad pero impide que el gesto se propague al documento y
+   reaparezca el rebote. */
+.mosques__list,
+.verses,
+.surahs,
+.leaflet-container {
+  overscroll-behavior: contain;
 }
 
 .sprite { display: none; }
