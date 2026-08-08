@@ -113,10 +113,12 @@ function currentPlace() {
 /** Aviso dentro de la vista, encima de la lista. Nunca sustituye al mapa. */
 function showNotice(mensaje, etiqueta, accion) {
   dom.notice.hidden = false;
-  dom.notice.replaceChildren(
-    el('p', { class: 'mosques__notice-txt', text: mensaje }),
-    etiqueta ? el('button', { class: 'btn btn--ghost', type: 'button', text: etiqueta, onclick: accion }) : null,
-  );
+  // Mismo cuidado que en el calendario: `replaceChildren` pintaría «null».
+  const partes = [el('p', { class: 'mosques__notice-txt', text: mensaje })];
+  if (etiqueta) {
+    partes.push(el('button', { class: 'btn btn--ghost', type: 'button', text: etiqueta, onclick: accion }));
+  }
+  dom.notice.replaceChildren(...partes);
 }
 
 function clearNotice() {

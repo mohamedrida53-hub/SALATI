@@ -12,6 +12,7 @@ export const state = {
   tomorrowFajr: null,
   loading: false,
   error: null,
+  errorKey: null,   // clave i18n del error, para poder retraducirlo
 };
 
 const listeners = new Set();

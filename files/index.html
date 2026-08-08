@@ -266,7 +266,7 @@
     <div id="quran-reader" hidden>
       <div class="reader__bar">
         <button id="btn-back" class="btn btn--ghost" type="button">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-back"></use></svg> Suras
+          <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-back"></use></svg><span data-i18n="quran.back">Suras</span>
         </button>
       </div>
       <header class="reader__head">
@@ -336,18 +336,18 @@
 <!-- ============ Diálogo de ubicación ============ -->
 <dialog id="dlg-location" class="dialog">
   <form id="form-location" method="dialog">
-    <h2>Elegir ubicación</h2>
-    <p class="dialog__lede">Escribe una ciudad y país, o usa el GPS del dispositivo.</p>
+    <h2 data-i18n="loc.title">Elegir ubicación</h2>
+    <p class="dialog__lede" data-i18n="loc.lede">Escribe una ciudad y país, o usa el GPS del dispositivo.</p>
     <label class="field">
-      <span>Ciudad</span>
+      <span data-i18n="loc.city">Ciudad</span>
       <input id="city-input" name="city" type="text" placeholder="Barcelona, España" autocomplete="address-level2" required>
     </label>
     <p class="error" id="dlg-error" hidden></p>
     <div class="dialog__actions">
-      <button type="button" id="btn-geo" class="btn btn--ghost">Usar mi GPS</button>
-      <button type="submit" class="btn">Buscar ciudad</button>
+      <button type="button" id="btn-geo" class="btn btn--ghost" data-i18n="loc.useGps">Usar mi GPS</button>
+      <button type="submit" class="btn" data-i18n="loc.search">Buscar ciudad</button>
     </div>
-    <button type="button" id="btn-close-dlg" class="dialog__close" aria-label="Cerrar">×</button>
+    <button type="button" id="btn-close-dlg" class="dialog__close" data-i18n-aria="loc.close">×</button>
   </form>
 </dialog>
 

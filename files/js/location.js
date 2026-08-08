@@ -1,15 +1,25 @@
-/* Acceso a la Geolocation API con mensajes claros para cada fallo posible. */
+/* Acceso a la Geolocation API con mensajes claros para cada fallo posible.
+   Los textos se resuelven al lanzarse el error, no al cargar el módulo, para
+   que salgan en el idioma que el usuario tenga puesto en ese momento. */
 
-const MESSAGES = {
-  1: 'Has denegado el acceso a tu ubicación. Puedes buscar tu ciudad a mano.',
-  2: 'No se ha podido determinar tu posición. Prueba a buscar tu ciudad.',
-  3: 'La búsqueda de ubicación ha tardado demasiado. Prueba a buscar tu ciudad.',
+import { t } from './i18n.js';
+
+const MESSAGE_KEYS = {
+  1: 'loc.denied',
+  2: 'loc.unavailable',
+  3: 'loc.timeout',
 };
 
+/**
+ * Guarda la CLAVE de traducción además del texto ya resuelto. Si sólo se
+ * guardara el texto, un error capturado en castellano seguiría en castellano
+ * después de que el usuario cambiara de idioma.
+ */
 export class LocationError extends Error {
-  constructor(message, code = 0) {
-    super(message);
+  constructor(key, code = 0) {
+    super(t(key));
     this.name = 'LocationError';
+    this.key = key;
     this.code = code;
   }
 }
@@ -21,11 +31,11 @@ export function geolocationAvailable() {
 export function requestPosition({ timeout = 12000 } = {}) {
   return new Promise((resolve, reject) => {
     if (!('geolocation' in navigator)) {
-      reject(new LocationError('Este navegador no ofrece geolocalización.'));
+      reject(new LocationError('loc.noGeo'));
       return;
     }
     if (!window.isSecureContext) {
-      reject(new LocationError('La geolocalización necesita HTTPS o localhost.'));
+      reject(new LocationError('loc.noSecure'));
       return;
     }
     navigator.geolocation.getCurrentPosition(
@@ -34,7 +44,7 @@ export function requestPosition({ timeout = 12000 } = {}) {
         lon: Number(coords.longitude.toFixed(5)),
         accuracy: coords.accuracy,
       }),
-      (err) => reject(new LocationError(MESSAGES[err.code] || 'No se ha podido obtener tu ubicación.', err.code)),
+      (err) => reject(new LocationError(MESSAGE_KEYS[err.code] ?? 'loc.generic', err.code)),
       { enableHighAccuracy: false, timeout, maximumAge: 5 * 60 * 1000 },
     );
   });

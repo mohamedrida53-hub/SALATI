@@ -44,6 +44,10 @@ export function enableAdhan() {
   soundOn = true;
   save(STORAGE_KEYS.adhan, true);
   unlockAudio();
+  // Ahora sí interesa tener el audio guardado para cuando no haya conexión.
+  navigator.serviceWorker?.ready
+    .then((reg) => reg.active?.postMessage('CACHE_ADHAN'))
+    .catch(() => {});
   return true;
 }
 

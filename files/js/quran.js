@@ -1,6 +1,6 @@
 import { getChapters, getTranslations, getVerses } from './api.js';
 import { $, el, icon, showState, hideState, sanitize } from './utils.js';
-import { getLang } from './i18n.js';
+import { t, getLang } from './i18n.js';
 
 /* La traducción ya no se elige a mano: sale del idioma de la app.
    Quran.com no publica traducción al catalán, así que el catalán lee en
@@ -13,6 +13,7 @@ let translations = [];
 let translationId = null;
 let openChapter = null;
 let loaded = false;
+let chaptersLang = null;   // idioma con el que se bajó la lista de suras
 
 export function initQuran() {
   dom.index = $('#quran-index');
@@ -35,6 +36,15 @@ export function initQuran() {
 /** La llama app.js al cambiar de idioma: recarga la sura abierta traducida. */
 export function refreshQuranTranslation() {
   if (!loaded) return;
+
+  // Los nombres de las suras vienen de la API en un idioma concreto: si el
+  // usuario ha cambiado de idioma hay que volver a pedirlos.
+  if (chaptersLang !== getLang()) {
+    loaded = false;
+    ensureQuranLoaded();
+    return;
+  }
+
   const previous = translationId;
   pickTranslation();
   if (translationId !== previous && openChapter) loadVerses(openChapter);
@@ -44,13 +54,18 @@ export function refreshQuranTranslation() {
 export async function ensureQuranLoaded() {
   if (loaded) return;
   loaded = true;
-  showState(dom.listState, { title: 'Cargando suras', message: 'Consultando la API de Quran.com…' });
+  showState(dom.listState, { title: t('quran.loading'), message: t('quran.loadingMsg') });
 
   try {
+    // Quran.com traduce los nombres de las suras: se piden en el idioma de la
+    // app. Antes iba fijo a 'es' y en inglés o árabe seguían saliendo en
+    // castellano. El catalán no está en su catálogo, así que cae al castellano.
+    const idioma = { ca: 'es', es: 'es', en: 'en', ar: 'ar' }[getLang()] ?? 'es';
     const [chapterList, translationList] = await Promise.all([
-      getChapters('es'),
+      getChapters(idioma),
       getTranslations().catch(() => []),
     ]);
+    chaptersLang = getLang();
     chapters = chapterList;
     translations = translationList;
     pickTranslation();
@@ -60,9 +75,9 @@ export async function ensureQuranLoaded() {
     loaded = false;
     showState(dom.listState, {
       kind: 'error',
-      title: 'No se han podido cargar las suras',
+      title: t('quran.failed'),
       message: err.message,
-      actionLabel: 'Reintentar',
+      actionLabel: t('state.retry'),
       onAction: () => ensureQuranLoaded(),
     });
   }
@@ -87,7 +102,7 @@ function renderList(query) {
 
   if (!items.length) {
     dom.list.replaceChildren();
-    showState(dom.listState, { title: 'Sin resultados', message: `Ninguna sura coincide con “${query}”.` });
+    showState(dom.listState, { title: t('quran.noResults'), message: t('quran.noResultsMsg', { q: query }) });
     return;
   }
   hideState(dom.listState);
@@ -99,7 +114,11 @@ function renderList(query) {
         c.name_simple,
         el('span', {
           class: 'surah__sub',
-          text: `${c.translated_name?.name || ''} · ${c.verses_count} versos · ${c.revelation_place === 'makkah' ? 'La Meca' : 'Medina'}`,
+          text: [
+            c.translated_name?.name || '',
+            t('quran.verses', { n: c.verses_count }),
+            t(c.revelation_place === 'makkah' ? 'quran.makkah' : 'quran.madinah'),
+          ].filter(Boolean).join(' · '),
         }),
       ]),
       el('span', { class: 'surah__ar', text: c.name_arabic }),
@@ -130,7 +149,7 @@ function closeReader() {
 }
 
 async function loadVerses(chapter) {
-  showState(dom.versesState, { title: 'Cargando versos', message: `Sura ${chapter.name_simple}…` });
+  showState(dom.versesState, { title: t('quran.loadingVerses'), message: `${chapter.name_simple}…` });
   const requestedFor = chapter.id;
 
   try {
@@ -142,9 +161,9 @@ async function loadVerses(chapter) {
     dom.verses.replaceChildren();
     showState(dom.versesState, {
       kind: 'error',
-      title: 'No se han podido cargar los versos',
+      title: t('quran.versesFailed'),
       message: err.message,
-      actionLabel: 'Reintentar',
+      actionLabel: t('state.retry'),
       onAction: () => loadVerses(chapter),
     });
   }

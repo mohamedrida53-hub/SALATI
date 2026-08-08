@@ -70,7 +70,7 @@ async function boot() {
     return;
   }
   if (!geolocationAvailable()) {
-    setState({ error: 'Este navegador no puede geolocalizarte (hace falta HTTPS). Busca tu ciudad a mano.' });
+    setState({ error: t('loc.noSecure'), errorKey: 'loc.noSecure' });
     return;
   }
   await useGeolocation({ silent: true });
@@ -79,7 +79,7 @@ async function boot() {
 /* ---------------- Datos ---------------- */
 
 async function loadTimes(place) {
-  setState({ loading: true, error: null, tomorrowFajr: null });
+  setState({ loading: true, error: null, errorKey: null, tomorrowFajr: null });
   try {
     const byCity = place.source === 'city';
     const today = byCity
@@ -94,7 +94,7 @@ async function loadTimes(place) {
       timezone: today.meta.timezone,
     };
 
-    setState({ place: resolved, today, loading: false, error: null });
+    setState({ place: resolved, today, loading: false, error: null, errorKey: null });
     cacheDay(resolved, today, null);
     armAdhan();
 
@@ -112,11 +112,11 @@ async function loadTimes(place) {
   } catch (err) {
     const cached = readCachedDay(place);
     if (cached) {
-      setState({ today: cached.today, tomorrowFajr: cached.tomorrowFajr ?? null, loading: false, error: null });
+      setState({ today: cached.today, tomorrowFajr: cached.tomorrowFajr ?? null, loading: false, error: null, errorKey: null });
       armAdhan();
-      toast('Sin conexión: mostrando los horarios guardados de hoy.');
+      toast(t('state.offlineCached'));
     } else {
-      setState({ loading: false, error: err.message || 'No se han podido cargar los horarios.' });
+      setState({ loading: false, error: err.message || t('state.timesFailed'), errorKey: err.key ?? null });
     }
   }
 }
@@ -151,7 +151,8 @@ async function useGeolocation({ silent = false } = {}) {
     if (name) setState({ place: { ...state.place, label: name } });
     return true;
   } catch (err) {
-    if (silent) setState({ error: err.message });
+    // `errorKey` permite volver a traducir el mensaje si cambia el idioma.
+    if (silent) setState({ error: err.message, errorKey: err.key ?? null });
     else showDialogError(err.message);
     return false;
   }
@@ -219,7 +220,7 @@ function wireSettings() {
     const { outcome } = await installEvent.userChoice;
     installEvent = null;
     $('#install-row').hidden = true;
-    if (outcome === 'accepted') toast('SALATI instalada.');
+    if (outcome === 'accepted') toast(t('state.installed'));
   });
 
   // Al volver del segundo plano los temporizadores pueden haberse retrasado: se rearman.
@@ -232,19 +233,20 @@ function wireSettings() {
 function announceAlerts() {
   const armed = armAdhan();
   const on = [
-    adhanEnabled() ? 'Adhan' : null,
-    notificationsEnabled() ? 'Notificaciones' : null,
+    adhanEnabled() ? t('prayer.adhanToggle') : null,
+    notificationsEnabled() ? t('prayer.notifyToggle') : null,
   ].filter(Boolean);
 
   if (!on.length) {
-    toast('Avisos desactivados.');
+    toast(t('state.alertsOff'));
     return;
   }
   // Se repite aquí lo de «con la app abierta» a propósito: es el momento en
   // que el usuario decide confiar en el aviso, y conviene que no se confunda.
+  const etiquetas = on.join(' · ');
   toast(armed
-    ? `${on.join(' y ')}: ${armed} rezo(s) hoy, con la app abierta.`
-    : `${on.join(' y ')}: desde el próximo Fajr, con la app abierta.`);
+    ? t('state.alertsOn', { on: etiquetas, n: armed })
+    : t('state.alertsOnNext', { on: etiquetas }));
 }
 
 /* ---------------- PWA ---------------- */
@@ -257,7 +259,7 @@ async function registerServiceWorker() {
       const worker = registration.installing;
       worker?.addEventListener('statechange', () => {
         if (worker.state === 'installed' && navigator.serviceWorker.controller) {
-          toast('Nueva versión lista: recarga para aplicarla.');
+          toast(t('state.newVersion'));
         }
       });
     });
@@ -394,7 +396,7 @@ function render(next) {
 
 /* ---------------- Red ---------------- */
 
-window.addEventListener('offline', () => toast('Sin conexión: se muestran los últimos datos guardados.'));
+window.addEventListener('offline', () => toast(t('state.offlineGeneric')));
 window.addEventListener('online', () => {
   if (state.place && !state.today) loadTimes(state.place);
 });

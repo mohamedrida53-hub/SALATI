@@ -84,6 +84,14 @@ Hay **dos** capas de caché, y hacen cosas distintas:
 Comprobado con la red caída: la app arranca, pinta los horarios guardados y avisa con un toast
 («Sin conexión: mostrando los horarios guardados de hoy»).
 
+**El archivo tiene que estar en la raíz.** Un service worker sólo puede controlar su propia carpeta
+y las de debajo: desde `js/` no puede gobernar `/` y el registro falla con `SecurityError`, con lo
+que la app deja de funcionar sin conexión sin dar ningún aviso visible. Las rutas relativas de
+`SHELL_FILES` se resuelven contra la ubicación del worker, así que moverlo también las rompe.
+
+El adhan (2,7 MB) **no** va en el precache: era el 76 % del peso de instalación. Se guarda bajo
+demanda cuando el usuario enciende su interruptor, mediante un mensaje `CACHE_ADHAN` al worker.
+
 Para subir versión, cambia `VERSION` en `service-worker.js`. Al detectar el worker nuevo la app
 muestra un toast; no recarga sola, para no interrumpir una lectura.
 

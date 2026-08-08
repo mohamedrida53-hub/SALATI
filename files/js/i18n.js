@@ -39,6 +39,136 @@ const STRINGS = {
     en: 'Choose a location', ar: 'اختر موقعًا',
   },
   'app.langLabel': { ca: 'Idioma', es: 'Idioma', en: 'Language', ar: 'اللغة' },
+
+  /* ---------------- Diálogo de ubicación ---------------- */
+  'loc.title': { ca: 'Tria una ubicació', es: 'Elegir ubicación', en: 'Choose a location', ar: 'اختر موقعًا' },
+  'loc.lede': {
+    ca: 'Escriu una ciutat i país, o fes servir el GPS del dispositiu.',
+    es: 'Escribe una ciudad y país, o usa el GPS del dispositivo.',
+    en: 'Type a city and country, or use your device’s GPS.',
+    ar: 'اكتب مدينة وبلدًا، أو استخدم نظام تحديد المواقع في جهازك.',
+  },
+  'loc.city': { ca: 'Ciutat', es: 'Ciudad', en: 'City', ar: 'المدينة' },
+  'loc.useGps': { ca: 'Fes servir el GPS', es: 'Usar mi GPS', en: 'Use my GPS', ar: 'استخدم GPS' },
+  'loc.search': { ca: 'Cerca la ciutat', es: 'Buscar ciudad', en: 'Search city', ar: 'ابحث عن المدينة' },
+  'loc.close': { ca: 'Tanca', es: 'Cerrar', en: 'Close', ar: 'إغلاق' },
+  'loc.denied': {
+    ca: 'Has denegat l’accés a la teva ubicació. Pots cercar la ciutat a mà.',
+    es: 'Has denegado el acceso a tu ubicación. Puedes buscar tu ciudad a mano.',
+    en: 'You denied access to your location. You can search for your city instead.',
+    ar: 'لقد رفضت الوصول إلى موقعك. يمكنك البحث عن مدينتك يدويًا.',
+  },
+  'loc.unavailable': {
+    ca: 'No s’ha pogut determinar la teva posició. Prova de cercar la ciutat.',
+    es: 'No se ha podido determinar tu posición. Prueba a buscar tu ciudad.',
+    en: 'Your position could not be determined. Try searching for your city.',
+    ar: 'تعذّر تحديد موقعك. جرّب البحث عن مدينتك.',
+  },
+  'loc.timeout': {
+    ca: 'La cerca d’ubicació ha trigat massa. Prova de cercar la ciutat.',
+    es: 'La búsqueda de ubicación ha tardado demasiado. Prueba a buscar tu ciudad.',
+    en: 'Finding your location took too long. Try searching for your city.',
+    ar: 'استغرق تحديد الموقع وقتًا طويلاً. جرّب البحث عن مدينتك.',
+  },
+  'loc.noSecure': {
+    ca: 'Aquest navegador no et pot geolocalitzar (cal HTTPS). Cerca la ciutat a mà.',
+    es: 'Este navegador no puede geolocalizarte (hace falta HTTPS). Busca tu ciudad a mano.',
+    en: 'This browser cannot locate you (HTTPS is required). Search for your city instead.',
+    ar: 'لا يمكن لهذا المتصفح تحديد موقعك (يتطلب HTTPS). ابحث عن مدينتك يدويًا.',
+  },
+  'loc.noGeo': {
+    ca: 'Aquest navegador no ofereix geolocalització.',
+    es: 'Este navegador no ofrece geolocalización.',
+    en: 'This browser does not provide geolocation.',
+    ar: 'هذا المتصفح لا يوفر تحديد الموقع.',
+  },
+  'loc.generic': {
+    ca: 'No s’ha pogut obtenir la teva ubicació.',
+    es: 'No se ha podido obtener tu ubicación.',
+    en: 'Your location could not be obtained.',
+    ar: 'تعذّر الحصول على موقعك.',
+  },
+
+  /* ---------------- Estados de carga y error ---------------- */
+  'state.loadingTimes': { ca: 'Carregant horaris', es: 'Cargando horarios', en: 'Loading times', ar: 'جارٍ تحميل المواقيت' },
+  'state.loadingTimesMsg': {
+    ca: 'Consultant l’API d’Aladhan…', es: 'Consultando la API de Aladhan…',
+    en: 'Querying the Aladhan API…', ar: 'جارٍ الاستعلام من واجهة Aladhan…',
+  },
+  'state.pickCity': { ca: 'Tria la teva ciutat', es: 'Elige tu ciudad', en: 'Choose your city', ar: 'اختر مدينتك' },
+  'state.needLocation': { ca: 'Tria una ubicació', es: 'Elige una ubicación', en: 'Choose a location', ar: 'اختر موقعًا' },
+  'state.needLocationMsg': {
+    ca: 'Els horaris depenen de les teves coordenades.',
+    es: 'Los horarios dependen de tus coordenadas.',
+    en: 'Prayer times depend on your coordinates.',
+    ar: 'تعتمد المواقيت على إحداثياتك.',
+  },
+  'state.timesFailed': {
+    ca: 'No s’han pogut carregar els horaris.',
+    es: 'No se han podido cargar los horarios.',
+    en: 'Prayer times could not be loaded.',
+    ar: 'تعذّر تحميل المواقيت.',
+  },
+  'state.retry': { ca: 'Torna-ho a provar', es: 'Reintentar', en: 'Try again', ar: 'إعادة المحاولة' },
+  'state.offlineCached': {
+    ca: 'Sense connexió: es mostren els horaris desats d’avui.',
+    es: 'Sin conexión: mostrando los horarios guardados de hoy.',
+    en: 'Offline: showing today’s saved times.',
+    ar: 'دون اتصال: تُعرض مواقيت اليوم المحفوظة.',
+  },
+  'state.offlineGeneric': {
+    ca: 'Sense connexió: es mostren les últimes dades desades.',
+    es: 'Sin conexión: se muestran los últimos datos guardados.',
+    en: 'Offline: showing the last saved data.',
+    ar: 'دون اتصال: تُعرض آخر البيانات المحفوظة.',
+  },
+  'state.installed': { ca: 'SALATI instal·lada.', es: 'SALATI instalada.', en: 'SALATI installed.', ar: 'تم تثبيت صلاتي.' },
+  'state.newVersion': {
+    ca: 'Nova versió a punt: recarrega per aplicar-la.',
+    es: 'Nueva versión lista: recarga para aplicarla.',
+    en: 'New version ready: reload to apply it.',
+    ar: 'إصدار جديد جاهز: أعد التحميل لتطبيقه.',
+  },
+  'state.alertsOff': { ca: 'Avisos desactivats.', es: 'Avisos desactivados.', en: 'Alerts turned off.', ar: 'تم إيقاف التنبيهات.' },
+  'state.alertsOn': {
+    ca: '{on}: {n} resos avui, amb l’app oberta.',
+    es: '{on}: {n} rezos hoy, con la app abierta.',
+    en: '{on}: {n} prayers today, while the app is open.',
+    ar: '{on}: {n} صلوات اليوم، والتطبيق مفتوح.',
+  },
+  'state.alertsOnNext': {
+    ca: '{on}: des del pròxim Fajr, amb l’app oberta.',
+    es: '{on}: desde el próximo Fajr, con la app abierta.',
+    en: '{on}: from the next Fajr, while the app is open.',
+    ar: '{on}: من الفجر القادم، والتطبيق مفتوح.',
+  },
+
+  /* ---------------- Corán ---------------- */
+  'quran.loading': { ca: 'Carregant sures', es: 'Cargando suras', en: 'Loading surahs', ar: 'جارٍ تحميل السور' },
+  'quran.loadingMsg': {
+    ca: 'Consultant l’API de Quran.com…', es: 'Consultando la API de Quran.com…',
+    en: 'Querying the Quran.com API…', ar: 'جارٍ الاستعلام من واجهة Quran.com…',
+  },
+  'quran.failed': {
+    ca: 'No s’han pogut carregar les sures',
+    es: 'No se han podido cargar las suras',
+    en: 'Surahs could not be loaded', ar: 'تعذّر تحميل السور',
+  },
+  'quran.noResults': { ca: 'Sense resultats', es: 'Sin resultados', en: 'No results', ar: 'لا توجد نتائج' },
+  'quran.noResultsMsg': {
+    ca: 'Cap sura coincideix amb «{q}».', es: 'Ninguna sura coincide con «{q}».',
+    en: 'No surah matches “{q}”.', ar: 'لا توجد سورة تطابق «{q}».',
+  },
+  'quran.loadingVerses': { ca: 'Carregant versos', es: 'Cargando versos', en: 'Loading verses', ar: 'جارٍ تحميل الآيات' },
+  'quran.versesFailed': {
+    ca: 'No s’han pogut carregar els versos',
+    es: 'No se han podido cargar los versos',
+    en: 'Verses could not be loaded', ar: 'تعذّر تحميل الآيات',
+  },
+  'quran.back': { ca: 'Sures', es: 'Suras', en: 'Surahs', ar: 'السور' },
+  'quran.verses': { ca: '{n} versets', es: '{n} versos', en: '{n} verses', ar: '{n} آيات' },
+  'quran.makkah': { ca: 'la Meca', es: 'La Meca', en: 'Mecca', ar: 'مكية' },
+  'quran.madinah': { ca: 'Medina', es: 'Medina', en: 'Medina', ar: 'مدنية' },
   'app.sections': { ca: 'Seccions', es: 'Secciones', en: 'Sections', ar: 'الأقسام' },
 
   /* ---------------- Panel de configuración ---------------- */
@@ -77,6 +207,12 @@ const STRINGS = {
   'cal.today': { ca: 'Avui', es: 'Hoy', en: 'Today', ar: 'اليوم' },
   'cal.gridLabel': { ca: 'Dies del mes', es: 'Días del mes', en: 'Days of the month', ar: 'أيام الشهر' },
   'cal.legendFeast': { ca: 'Festivitat', es: 'Festividad', en: 'Feast', ar: 'عيد' },
+  'cal.unsupported': {
+    ca: 'El teu navegador no pot convertir dates hijri.',
+    es: 'Tu navegador no puede convertir fechas hijri.',
+    en: 'Your browser cannot convert Hijri dates.',
+    ar: 'متصفحك لا يستطيع تحويل التواريخ الهجرية.',
+  },
   'cal.legendDay': { ca: 'Dia important', es: 'Día importante', en: 'Important day', ar: 'يوم مهم' },
 
   'cal.newYear': {

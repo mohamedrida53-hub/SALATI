@@ -42,7 +42,7 @@ export function renderPrayer(state) {
   if (state.loading && !state.today) {
     dom.hero.hidden = true;
     dom.list.replaceChildren();
-    showState(dom.state, { title: 'Cargando horarios', message: 'Consultando la API de Aladhan…' });
+    showState(dom.state, { title: t('state.loadingTimes'), message: t('state.loadingTimesMsg') });
     return;
   }
 
@@ -54,9 +54,10 @@ export function renderPrayer(state) {
     // invitaba a repetir algo que iba a volver a fallar.
     showState(dom.state, {
       kind: 'error',
-      title: 'Elige tu ciudad',
-      message: state.error,
-      actionLabel: 'Buscar ciudad',
+      title: t('state.pickCity'),
+      // Si el error trae clave, se retraduce; si no, se usa el texto tal cual.
+      message: state.errorKey ? t(state.errorKey) : state.error,
+      actionLabel: t('loc.search'),
       onAction: () => hooks.onRetry?.(),
     });
     stopClock();
@@ -66,9 +67,9 @@ export function renderPrayer(state) {
   if (!state.today) {
     dom.hero.hidden = true;
     showState(dom.state, {
-      title: 'Elige una ubicación',
-      message: 'Los horarios dependen de tus coordenadas.',
-      actionLabel: 'Elegir ubicación',
+      title: t('state.needLocation'),
+      message: t('state.needLocationMsg'),
+      actionLabel: t('loc.title'),
       onAction: () => hooks.onRetry?.(),
     });
     return;

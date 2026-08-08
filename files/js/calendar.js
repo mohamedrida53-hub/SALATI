@@ -143,6 +143,15 @@ function hijriParts(date) {
     hijriFmt = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura', {
       day: 'numeric', month: 'numeric', year: 'numeric', timeZone: 'UTC',
     });
+    /* Guardarraíl: si el navegador no conociera `islamic-umalqura`, Intl no
+       lanza error, cae al calendario por defecto y devolvería fechas
+       gregorianas etiquetadas como hijri — un fallo silencioso peor que uno
+       visible. `resolvedOptions()` dice qué calendario se aplicó de verdad. */
+    if (hijriFmt.resolvedOptions().calendar !== 'islamic-umalqura') {
+      console.error('[SALATI/calendario] Este navegador no soporta islamic-umalqura.');
+      hijriFmt = null;
+      return null;
+    }
     hijriFmtLang = getLang();
   }
   const p = {};
@@ -160,6 +169,16 @@ function holidayFor(h) {
 
 export function renderCalendar() {
   if (!dom.grid) return;
+
+  // Sin conversión fiable no se pinta una rejilla con fechas inventadas.
+  if (hijriParts(new Date()) === null) {
+    dom.grid.replaceChildren();
+    dom.head.replaceChildren();
+    dom.greg.textContent = t('cal.unsupported');
+    dom.hijri.textContent = '';
+    dom.detail.hidden = true;
+    return;
+  }
 
   const locale = getLocale();
   const firstDay = FIRST_DAY[getLang()] ?? 1;
@@ -271,9 +290,20 @@ function renderDetail(locale) {
   }).format(date);
 
   dom.detail.hidden = false;
-  dom.detail.replaceChildren(
+  /* Ojo con `replaceChildren`: es API del DOM, no el helper `el`, y convierte
+     un `null` suelto en un nodo de texto con la palabra «null». Por eso la
+     fila de la fiesta se filtra antes en vez de pasarla condicionalmente. */
+  const partes = [
     el('p', { class: 'cal__detail-h', text: `${h.day} ${hijriMonths()[h.month - 1]} ${h.year} ${hijriSuffix()}` }),
     el('p', { class: 'cal__detail-g', text: gregTxt.charAt(0).toUpperCase() + gregTxt.slice(1) }),
-    holiday ? el('p', { class: `cal__detail-fest cal__detail-fest--${holiday.tone}`, text: t(holiday.key) }) : null,
-  );
+  ];
+
+  if (holiday) {
+    partes.push(el('p', {
+      class: `cal__detail-fest cal__detail-fest--${holiday.tone}`,
+      text: t(holiday.key),
+    }));
+  }
+
+  dom.detail.replaceChildren(...partes);
 }
