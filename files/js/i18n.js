@@ -111,14 +111,6 @@ const STRINGS = {
     en: 'Get a notification at each prayer time',
     ar: 'تلقّي إشعار عند وقت كل صلاة',
   },
-  /* Aviso obligado: los navegadores no dejan reproducir audio con la app
-     cerrada, y prometer lo contrario haría que alguien se perdiera un rezo. */
-  'prayer.bgNote': {
-    ca: 'Els avisos funcionen amb SALATI oberta o fa poc en segon pla. El navegador no permet fer sonar l’adhan amb l’app tancada del tot.',
-    es: 'Los avisos funcionan con SALATI abierta o hace poco en segundo plano. El navegador no permite hacer sonar el adhan con la app cerrada del todo.',
-    en: 'Alerts work while SALATI is open or recently backgrounded. Browsers cannot play the adhan once the app is fully closed.',
-    ar: 'تعمل التنبيهات عندما يكون التطبيق مفتوحًا أو حديث الاستخدام في الخلفية. لا يمكن للمتصفح تشغيل الأذان بعد إغلاق التطبيق تمامًا.',
-  },
   'prayer.testTitle': { ca: 'Prova l’adhan', es: 'Probar adhan', en: 'Test adhan', ar: 'اختبار الأذان' },
   'prayer.testBtn': { ca: 'Escoltar', es: 'Escuchar', en: 'Play', ar: 'استمع' },
   'prayer.installTitle': { ca: 'Instal·la SALATI', es: 'Instalar SALATI', en: 'Install SALATI', ar: 'تثبيت صلاتي' },

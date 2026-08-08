@@ -25,15 +25,24 @@
   /* Mismo oro en rgb suelto, para sombras y destellos */
   --glow: 240 207 122;
 
-  /* Morado del calendario. Contrasta con el oro de la app sin pelearse con él.
-     `deep` es el tono base pedido (#6B21A8); `fest` sube algo la saturación
-     para que el relleno sólido despegue sobre el fondo casi negro, y `soft`
-     es el único que se usa como texto o borde: los tonos oscuros no llegan
-     al contraste mínimo sobre negro. */
-  --fest-deep:   #6b21a8;
-  --fest:        #7c3aed;
-  --fest-soft:   #c4a0f5;
-  --fest-glow:   167 85 247;
+  /* Dos familias para el calendario: verde para las festividades y morado
+     para los días importantes. En cada una, `deep` es el tono oscuro para
+     sombras y hover, el tono medio es el relleno sólido, y `soft` es el
+     único que se usa como texto o borde: los tonos oscuros no alcanzan el
+     contraste mínimo sobre el fondo casi negro. */
+  /* El verde de relleno va deliberadamente oscuro: con un verde más vivo
+     (#12a150) el número blanco encima se quedaba en 3,37:1, por debajo del
+     mínimo AA. Con éste sube a 5,4:1 y la celda sigue destacando sobre el
+     fondo negro. El verde claro se reserva para bordes y textos. */
+  --feast-deep:  #0a5730;
+  --feast:       #0f7a3f;
+  --feast-soft:  #7ee2a8;
+  --feast-glow:  34 197 94;
+
+  --key-deep:    #6b21a8;
+  --key:         #7c3aed;
+  --key-soft:    #c4a0f5;
+  --key-glow:    167 85 247;
 
   /* Texto de alto contraste */
   --ink:       #f0f5f2;   /* ~18:1 sobre --bg */
@@ -489,6 +498,23 @@ button, select, input { font: inherit; color: inherit; }
   background: var(--surface);
 }
 
+/* Ya sólo contiene «Instalar SALATI», que casi siempre va oculto: sin esto
+   quedaba una tarjeta vacía. En negativo a propósito: si un navegador no
+   soporta :has(), la regla se ignora y se ve como antes, en vez de esconder
+   el botón de instalar. */
+.settings:not(:has(> .settings__row:not([hidden]))) { display: none; }
+
+/* Nota del método de cálculo, bajo la tarjeta de rezos. Informa sin competir. */
+.times__meta {
+  margin: 12px 2px 0;
+  color: var(--ink-faint);
+  font-size: .76rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.times__meta:empty { display: none; }
+
 .settings__row {
   display: flex;
   align-items: center;
@@ -923,7 +949,7 @@ button, select, input { font: inherit; color: inherit; }
   height: 5px;
   translate: -50% 0;
   border-radius: 50%;
-  background: var(--fest-soft);
+  background: var(--key-soft);
 }
 
 /* ---- Días marcados: dos intensidades del mismo morado ----
@@ -931,26 +957,29 @@ button, select, input { font: inherit; color: inherit; }
    Día importante = perfilado, un escalón por debajo pero claramente distinto
    de un día normal. Ambos en negrita. */
 
+/* Festividad: verde sólido, el nivel más alto de énfasis. */
 .cal__day--feast {
-  background: var(--fest);
-  border-color: var(--fest-soft);
-  box-shadow: 0 0 0 1px var(--fest-deep) inset, 0 3px 10px rgb(var(--fest-glow) / 35%);
+  background: var(--feast);
+  border-color: var(--feast-soft);
+  box-shadow: 0 0 0 1px var(--feast-deep) inset, 0 3px 10px rgb(var(--feast-glow) / 35%);
 }
 
 .cal__day--feast .cal__g { color: #fff; font-weight: 800; }
-.cal__day--feast .cal__h { color: rgb(255 255 255 / 88%); font-weight: 600; }
+.cal__day--feast .cal__h { color: rgb(255 255 255 / 90%); font-weight: 600; }
 .cal__day--feast .cal__dot { background: #fff; }
-.cal__day--feast:hover { background: var(--fest-deep); border-color: #fff; }
+.cal__day--feast:hover { background: var(--feast-deep); border-color: #fff; }
 
+/* Día importante: morado perfilado, un escalón por debajo. */
 .cal__day--key {
-  background: color-mix(in srgb, var(--fest) 18%, var(--surface));
-  border-color: var(--fest-soft);
-  box-shadow: 0 0 0 1px rgb(var(--fest-glow) / 25%) inset;
+  background: color-mix(in srgb, var(--key) 20%, var(--surface));
+  border-color: var(--key-soft);
+  box-shadow: 0 0 0 1px rgb(var(--key-glow) / 25%) inset;
 }
 
-.cal__day--key .cal__g { color: var(--fest-soft); font-weight: 800; }
-.cal__day--key .cal__h { color: var(--fest-soft); font-weight: 600; }
-.cal__day--key:hover { background: color-mix(in srgb, var(--fest) 32%, var(--surface)); }
+.cal__day--key .cal__g { color: var(--key-soft); font-weight: 800; }
+.cal__day--key .cal__h { color: var(--key-soft); font-weight: 600; }
+.cal__day--key .cal__dot { background: var(--key-soft); }
+.cal__day--key:hover { background: color-mix(in srgb, var(--key) 34%, var(--surface)); }
 
 /* Los días normales bajan un punto para que los marcados manden.
    Se apaga el fondo y el borde, nunca el texto: bajar el color del número
@@ -982,8 +1011,8 @@ button, select, input { font: inherit; color: inherit; }
   font-weight: 600;
 }
 
-.cal__detail-fest--feast { background: var(--fest); color: #fff; }
-.cal__detail-fest--key   { background: rgb(var(--fest-glow) / 18%); color: var(--fest-soft); }
+.cal__detail-fest--feast { background: var(--feast); color: #fff; }
+.cal__detail-fest--key   { background: rgb(var(--key-glow) / 18%); color: var(--key-soft); }
 
 .cal__foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 
@@ -997,11 +1026,12 @@ button, select, input { font: inherit; color: inherit; }
   height: 16px;
   flex: none;
   border-radius: 5px;
-  border: 1px solid var(--fest-soft);
+  border: 1px solid currentColor;
 }
 
-.cal__chip--feast { background: var(--fest); }
-.cal__chip--key { background: color-mix(in srgb, var(--fest) 18%, var(--surface)); }
+/* Cada muestra copia el aspecto real de su celda, incluido el borde. */
+.cal__chip--feast { background: var(--feast); color: var(--feast-soft); }
+.cal__chip--key { background: color-mix(in srgb, var(--key) 20%, var(--surface)); color: var(--key-soft); }
 
 @media (max-width: 360px) {
   .cal__grid { gap: 3px; }
@@ -1442,29 +1472,135 @@ button, select, input { font: inherit; color: inherit; }
 
 /* ---------------- Escritorio ---------------- */
 
-@media (min-width: 800px) {
-  body { padding-bottom: 0; }
+/* =========================================================
+   Escritorio
 
-  .tabbar {
-    position: sticky;
-    inset: auto;
-    top: 0;
-    z-index: 25;
-    display: flex;
-    justify-content: center;
-    gap: 6px;
-    height: auto;
-    padding: 8px;
-    border-top: 0;
-    border-bottom: 1px solid var(--line);
+   Todo lo de aquí abajo vive dentro de media queries `min-width`, así que
+   el móvil no se toca: por debajo de 768 px no se aplica ni una sola de
+   estas reglas.
+
+   En vez de estirar la columna de 640 px por un monitor de 27 pulgadas, la
+   barra inferior pasa a ser una barra lateral y el contenido gana ancho.
+   ========================================================= */
+
+@media (min-width: 768px) {
+  body {
+    display: grid;
+    grid-template-columns: 220px minmax(0, 1fr);
+    grid-template-rows: auto 1fr;
+    grid-template-areas:
+      "nav header"
+      "nav main";
+    min-height: 100vh;
+    padding-bottom: 0;   /* ya no hay barra inferior que esquivar */
   }
 
-  .tabbar__btn { flex-direction: row; gap: 8px; padding: 9px 20px; border-radius: 999px; font-size: .9rem; }
+  .topbar { grid-area: header; }
+  #main   { grid-area: main; }
+  .tabbar { grid-area: nav; }
+
+  /* La barra inferior se convierte en lateral fija */
+  .tabbar {
+    position: sticky;
+    /* `inset: auto` va ANTES que `top`: al revés anulaba el anclaje y la
+       barra se iba con el scroll en vez de quedarse fija. */
+    inset: auto;
+    top: 0;
+    align-self: start;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    height: 100vh;
+    padding: 16px 12px;
+    border-top: 0;
+    border-right: 1px solid var(--line);
+  }
+
+  .tabbar__btn {
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 12px;
+    padding: 11px 14px;
+    border-radius: 10px;
+    font-size: .92rem;
+    letter-spacing: .01em;
+  }
+
+  .tabbar__btn svg { width: 20px; height: 20px; }
+  .tabbar__btn span { max-width: none; }   /* ya hay sitio: sin recortes */
+  .tabbar__btn:hover { background: var(--surface); color: var(--ink); }
   .tabbar__btn[aria-selected="true"] { background: var(--accent-wash); }
 
-  .panel { padding-top: 26px; }
-  .tasbih { min-height: 62vh; }
-  .toast { bottom: 24px; }
+  .topbar { padding-inline: 28px; }
+  .panel { max-width: 760px; padding: 28px 28px 48px; }
+
+  .chip { max-width: 280px; }
+
+  /* El tasbih ya no compite con la barra inferior */
+  .tasbih { min-height: calc(100vh - 220px); }
+  .tasbih__pad { min-height: 46vh; }
+
+  .toast { bottom: 24px; left: calc(50% + 110px); }
+  .map { height: min(62vh, 520px); }
+}
+
+@media (min-width: 1024px) {
+  body { grid-template-columns: 248px minmax(0, 1fr); }
+
+  .topbar { padding-inline: 40px; }
+  .panel { max-width: 980px; padding: 32px 40px 56px; }
+  .toast { left: calc(50% + 124px); }
+
+  /* Rezos en dos columnas: el reloj a la izquierda, los horarios a la
+     derecha. En vertical obligaba a hacer scroll para ver ambas cosas. */
+  #panel-prayer {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas:
+      "state  state"
+      "hero   times"
+      "hero   meta"
+      "config config";
+    align-content: start;
+    gap: 0 32px;
+  }
+
+  #prayer-state { grid-area: state; }
+  .hero         { grid-area: hero; align-self: start; }
+  .times        { grid-area: times; margin-top: 0; }
+  .times__meta  { grid-area: meta; text-align: left; }
+  #panel-prayer .settings { grid-area: config; margin-top: 24px; }
+
+  /* La brújula puede crecer: hay sitio de sobra */
+  .qibla__stage { width: min(360px, 42vw); }
+
+  /* Mapa y lista de mezquitas, uno al lado del otro */
+  #panel-mosques .mosques {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+    grid-template-areas:
+      "bar     bar"
+      "map     summary"
+      "map     list"
+      "notice  notice";
+    gap: 0 24px;
+    align-content: start;
+  }
+
+  .mosques__bar     { grid-area: bar; }
+  #map              { grid-area: map; height: 520px; }
+  .mosques__notice  { grid-area: notice; }
+  .mosques__summary { grid-area: summary; margin-top: 0; }
+  .mosques__list    { grid-area: list; align-content: start; max-height: 470px; overflow-y: auto; }
+
+  /* El Corán se lee mejor en una medida corta, así que no se ensancha */
+  #panel-quran .verses, #panel-quran .reader__head { max-width: 720px; margin-inline: auto; }
+}
+
+@media (min-width: 1400px) {
+  /* Tope duro: más ancho que esto sólo estropea la lectura. */
+  .panel { max-width: 1120px; }
+  .topbar__tools { padding-inline-end: 8px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

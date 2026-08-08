@@ -84,8 +84,6 @@
       </div>
       <button id="btn-test-adhan" class="btn btn--ghost" type="button" data-i18n="prayer.testBtn">Escuchar</button>
     </div>
-
-    <p class="note" data-i18n="prayer.bgNote"></p>
   </div>
 </dialog>
 
@@ -115,6 +113,9 @@
 
     <ol class="times" id="times-list" data-i18n-aria="prayer.timesLabel"></ol>
 
+    <!-- Información contextual del cálculo, justo bajo la tarjeta de rezos. -->
+    <p class="times__meta" id="meta-note"></p>
+
     <div class="settings">
       <!-- El adhan, las notificaciones y la prueba de sonido se han movido al
            panel de configuración (icono de tuerca de la cabecera). El botón de
@@ -124,10 +125,6 @@
           <b data-i18n="prayer.installTitle">Instalar SALATI</b>
         </span>
         <button id="btn-install" class="btn" type="button" data-i18n="prayer.installBtn">Instalar</button>
-      </div>
-
-      <div class="settings__row">
-        <p class="note" id="meta-note"></p>
       </div>
     </div>
   </section>
