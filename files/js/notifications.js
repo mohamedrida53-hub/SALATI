@@ -1,6 +1,13 @@
 import { PRAYERS, STORAGE_KEYS, ADHAN_URL } from './config.js';
 import { cleanTime, timeToSeconds, secondsOfDayInZone, load, save, toast } from './utils.js';
 import { t, prayerName, getLang } from './i18n.js';
+import { writeFlag } from './prefs-db.js';
+import { isIOS, isStandalone } from './platform.js';
+
+/* ▼▼▼ PEGA AQUÍ TU CLAVE PÚBLICA VAPID CUANDO TENGAS SERVIDOR DE PUSH ▼▼▼
+   Mientras esté vacía, la app no intenta suscribirse y todo lo demás
+   funciona igual. Se genera con `npx web-push generate-vapid-keys`. */
+const VAPID_PUBLIC_KEY = '';
 
 /* =========================================================
    Avisos a la hora del rezo.
@@ -30,6 +37,50 @@ export function notificationsSupported() {
   return 'Notification' in window;
 }
 
+/* ---------------- Web Push ---------------- */
+
+/**
+ * Suscribe el navegador al servicio de push.
+ *
+ * Ojo con cómo funciona Web Push, porque condiciona todo lo demás: el
+ * navegador se suscribe a un servicio (FCM en Chrome, APNs en Safari) y
+ * devuelve un endpoint. **Los mensajes los envía un servidor tuyo a ese
+ * endpoint.** No existe forma de programar un push desde el propio cliente.
+ *
+ * Por eso esto no hace nada mientras `VAPID_PUBLIC_KEY` esté vacía: deja la
+ * app lista para el día que haya servidor, sin romper nada mientras tanto.
+ */
+export async function subscribePush() {
+  if (!VAPID_PUBLIC_KEY) return null;          // aún no hay servidor
+  if (!('PushManager' in window)) return null; // iOS sin PWA instalada, p. ej.
+
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    const yaSuscrito = await reg.pushManager.getSubscription();
+    if (yaSuscrito) return yaSuscrito;
+
+    const sub = await reg.pushManager.subscribe({
+      userVisibleOnly: true,   // obligatorio en Chrome: todo push debe verse
+      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+    });
+
+    // Aquí iría el envío del `sub` a tu servidor para que pueda avisarte.
+    // await fetch('/api/subscribe', { method:'POST', body: JSON.stringify(sub) });
+    return sub;
+  } catch (err) {
+    console.error('[SALATI/push] No se ha podido suscribir:', err);
+    return null;
+  }
+}
+
+/** La clave VAPID viaja en base64url y `subscribe` la exige como bytes. */
+function urlBase64ToUint8Array(base64) {
+  const pad = '='.repeat((4 - (base64.length % 4)) % 4);
+  const limpio = (base64 + pad).replace(/-/g, '+').replace(/_/g, '/');
+  const crudo = atob(limpio);
+  return Uint8Array.from([...crudo].map((c) => c.charCodeAt(0)));
+}
+
 export function permissionDenied() {
   return notificationsSupported() && Notification.permission === 'denied';
 }
@@ -44,6 +95,7 @@ export function adhanEnabled() {
 export function enableAdhan() {
   soundOn = true;
   save(STORAGE_KEYS.adhan, true);
+  writeFlag('adhan', true);   // copia que sí puede leer el service worker
   unlockAudio();
   // Ahora sí interesa tener el audio guardado para cuando no haya conexión.
   navigator.serviceWorker?.ready
@@ -55,6 +107,7 @@ export function enableAdhan() {
 export function disableAdhan() {
   soundOn = false;
   save(STORAGE_KEYS.adhan, false);
+  writeFlag('adhan', false);
   stopAdhan();
 }
 
@@ -65,6 +118,14 @@ export function notificationsEnabled() {
 }
 
 export async function enableNotifications() {
+  /* iOS 16.4+ sólo expone la API de notificaciones si la PWA está instalada
+     en la pantalla de inicio. Desde una pestaña de Safari `Notification` ni
+     existe, así que hay que decirlo en vez de dejar que falle en silencio. */
+  if (isIOS() && !isStandalone()) {
+    toast(t('notify.iosNeedsInstall'));
+    return false;
+  }
+
   if (!notificationsSupported()) {
     toast('Este navegador no admite notificaciones.');
     return false;
@@ -84,12 +145,15 @@ export async function enableNotifications() {
 
   notifyOn = true;
   save(STORAGE_KEYS.notify, true);
+  writeFlag('notify', true);   // copia que sí puede leer el service worker
+  await subscribePush();       // no hace nada si no hay clave VAPID configurada
   return true;
 }
 
 export function disableNotifications() {
   notifyOn = false;
   save(STORAGE_KEYS.notify, false);
+  writeFlag('notify', false);
 }
 
 /* ---------------- Programación ---------------- */
@@ -172,10 +236,15 @@ async function fire(prayer, clock, label) {
         icon: './icons/icon-192.png',
         badge: './icons/icon-192.png',
         lang: getLang(),
-        // `silent` deja el aviso sin sonido propio del sistema: si el usuario
-        // quiere oír algo, para eso está el interruptor del adhan.
-        silent: true,
+        /* `silent` SÓLO cuando el adhan va a sonar por su cuenta: así no se
+           pisan dos sonidos. Antes era incondicional, y eso hacía que en
+           Android la notificación llegara muda y sin banner emergente —
+           el usuario sólo la veía si bajaba la persiana. Con el adhan
+           apagado ahora suena el tono del sistema, que es lo que el usuario
+           espera de un aviso. */
+        silent: soundOn,
         vibrate: [220, 120, 220],
+        requireInteraction: !soundOn,   // sin sonido, que al menos no se esfume
         data: { url: './#prayer', prayer: prayer.key },
       };
       // En Android `new Notification()` lanza excepción: hay que pasar por el service worker.

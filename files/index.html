@@ -6,6 +6,26 @@
 <title>SALATI · Oración, Qibla y Corán</title>
 <meta name="description" content="Tiempos de rezo exactos, brújula Qibla, calendario hijri y más. Rápida, limpia y respetuosa con tu privacidad.">
 <meta name="theme-color" content="#070a09">
+
+<!-- Tema aplicado ANTES del primer pintado. Va en línea y sin `defer` a
+     propósito: si esperara a los módulos, quien tenga el modo claro vería
+     un fogonazo negro en cada arranque. -->
+<script>
+  (function () {
+    try {
+      var t = localStorage.getItem('salati.theme');
+      document.documentElement.dataset.theme =
+        (t === 'light' || t === 'dark' || t === 'auto') ? t : 'auto';
+    } catch (e) {
+      document.documentElement.dataset.theme = 'auto';
+    }
+    var claro = document.documentElement.dataset.theme === 'light'
+      || (document.documentElement.dataset.theme === 'auto'
+          && window.matchMedia('(prefers-color-scheme: light)').matches);
+    var meta = document.querySelector('meta[name="theme-color"]');
+    if (meta && claro) meta.setAttribute('content', '#faf8f3');
+  })();
+</script>
 <link rel="manifest" href="./manifest.json">
 
 <!-- ============ Vista previa al compartir (Open Graph / Twitter) ============
@@ -94,6 +114,14 @@
   </div>
 
   <div class="cfg">
+    <div class="cfg__row cfg__row--stack">
+      <div class="cfg__text">
+        <b data-i18n="cfg.theme">Apariencia</b>
+        <p data-i18n="cfg.themeHelp"></p>
+      </div>
+      <div class="segmented" id="theme-picker" role="radiogroup" data-i18n-aria="cfg.theme"></div>
+    </div>
+
     <div class="cfg__row">
       <div class="cfg__text">
         <b data-i18n="prayer.adhanToggle">Adhan</b>
@@ -458,6 +486,9 @@
   <symbol id="icon-reset" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" d="M20 12a8 8 0 1 1-2.6-5.9M20 4v4h-4"/></symbol>
   <symbol id="icon-ruler" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" d="M3 12h18M12 3v18"/></symbol>
   <symbol id="icon-map" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3zM9 3v15M15 6v15"/></symbol>
+  <symbol id="icon-auto" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.4" fill="none" stroke="currentColor" stroke-width="1.7"/><path fill="currentColor" d="M12 3.6a8.4 8.4 0 0 1 0 16.8z"/></symbol>
+  <symbol id="icon-sun-theme" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.4" fill="none" stroke="currentColor" stroke-width="1.7"/><path fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" d="M12 2.6v2.2M12 19.2v2.2M2.6 12h2.2M19.2 12h2.2M5.4 5.4l1.6 1.6M17 17l1.6 1.6M18.6 5.4 17 7M7 17l-1.6 1.6"/></symbol>
+  <symbol id="icon-moon-theme" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" d="M20.2 14.4A8.6 8.6 0 0 1 9.6 3.8a8.6 8.6 0 1 0 10.6 10.6z"/></symbol>
   <symbol id="icon-share-ios" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" d="M12 3.2 12 15M8.6 6.6 12 3.2l3.4 3.4M6.5 10.5H5.2A1.2 1.2 0 0 0 4 11.7v7.1A1.2 1.2 0 0 0 5.2 20h13.6a1.2 1.2 0 0 0 1.2-1.2v-7.1a1.2 1.2 0 0 0-1.2-1.2h-1.3"/></symbol>
   <symbol id="icon-add-square" viewBox="0 0 24 24"><rect x="3.4" y="3.4" width="17.2" height="17.2" rx="4.4" fill="none" stroke="currentColor" stroke-width="1.7"/><path fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" d="M12 8.2v7.6M8.2 12h7.6"/></symbol>
   <symbol id="icon-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.8" fill="none" stroke="currentColor" stroke-width="1.7"/><path fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" d="m8.2 12.2 2.7 2.7 5-5.2"/></symbol>

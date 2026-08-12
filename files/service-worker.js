@@ -11,7 +11,7 @@
    así que desde `js/` era imposible que gobernara `/` y el registro fallaba
    con SecurityError: la app nunca llegaba a funcionar sin conexión.
    Las rutas relativas de SHELL_FILES se resuelven contra ESTA ubicación. */
-const VERSION = 'v2.4.0';
+const VERSION = 'v2.7.0';
 const SHELL = `SALATI-shell-${VERSION}`;
 const DATA = `SALATI-data-${VERSION}`;
 const FONTS = `SALATI-fonts-${VERSION}`;
@@ -33,6 +33,8 @@ const SHELL_FILES = [
   './js/config.js',
   './js/analytics.js',
   './js/platform.js',
+  './js/prefs-db.js',
+  './js/theme.js',
   './js/calendar.js',
   './js/i18n.js',
   './js/langpicker.js',
@@ -198,6 +200,78 @@ async function staleWhileRevalidate(request, cacheName) {
 }
 
 /* ---------------- Notificaciones ---------------- */
+
+/* ---------------- Web Push ---------------- */
+
+/* Lectura de los flags del usuario desde IndexedDB.
+   El worker NO puede leer localStorage: es síncrono y sólo existe en el hilo
+   de la ventana. Por eso la app copia los dos interruptores a IndexedDB
+   (ver js/prefs-db.js) y aquí se consultan antes de mostrar nada. */
+function leerFlag(clave, porDefecto = false) {
+  return new Promise((resolve) => {
+    let db;
+    const req = indexedDB.open('salati-prefs', 1);
+    req.onupgradeneeded = () => {
+      if (!req.result.objectStoreNames.contains('flags')) req.result.createObjectStore('flags');
+    };
+    req.onerror = () => resolve(porDefecto);
+    req.onsuccess = () => {
+      db = req.result;
+      try {
+        const tx = db.transaction('flags', 'readonly');
+        const get = tx.objectStore('flags').get(clave);
+        get.onsuccess = () => { resolve(get.result === undefined ? porDefecto : get.result); db.close(); };
+        get.onerror = () => { resolve(porDefecto); db.close(); };
+      } catch {
+        resolve(porDefecto);
+        db?.close();
+      }
+    };
+  });
+}
+
+/**
+ * Llega un mensaje del servidor de push.
+ *
+ * `userVisibleOnly: true` obliga a mostrar SIEMPRE una notificación: si no
+ * se muestra, Chrome acaba revocando el permiso. Por eso, cuando el usuario
+ * tiene los avisos apagados, lo correcto no es callar sino no estar
+ * suscrito — la app se desuscribe al apagar el interruptor.
+ */
+self.addEventListener('push', (event) => {
+  event.waitUntil((async () => {
+    let datos = {};
+    try { datos = event.data ? event.data.json() : {}; } catch { datos = {}; }
+
+    // Tarea 3: se valida el estado del usuario ANTES de avisar de nada.
+    const avisosOn = await leerFlag('notify', false);
+    const adhanOn = await leerFlag('adhan', false);
+    if (!avisosOn) return;   // el usuario los tiene apagados: no se muestra
+
+    const titulo = datos.title || 'SALATI';
+    await self.registration.showNotification(titulo, {
+      body: datos.body || '',
+      tag: datos.tag || 'adhan',
+      renotify: true,
+      icon: './icons/icon-192.png',
+      badge: './icons/icon-192.png',
+      // Silencioso sólo si el adhan va a sonar por su cuenta al abrir la app.
+      silent: adhanOn,
+      requireInteraction: !adhanOn,
+      vibrate: [220, 120, 220],
+      data: { url: datos.url || './#prayer' },
+    });
+  })());
+});
+
+/* El servicio de push puede rotar la suscripción por su cuenta. Sin esto,
+   el usuario dejaría de recibir avisos sin enterarse. */
+self.addEventListener('pushsubscriptionchange', (event) => {
+  event.waitUntil((async () => {
+    const clientes = await self.clients.matchAll({ includeUncontrolled: true });
+    for (const c of clientes) c.postMessage({ type: 'PUSH_RESUBSCRIBE' });
+  })());
+});
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();

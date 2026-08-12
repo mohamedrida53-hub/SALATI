@@ -223,6 +223,17 @@ const STRINGS = {
     en: 'Suggestions or bug reports',
     ar: 'اقتراحات أو الإبلاغ عن أخطاء',
   },
+  'cfg.theme': { ca: 'Aparença', es: 'Apariencia', en: 'Appearance', ar: 'المظهر' },
+  'cfg.themeHelp': {
+    ca: 'Tria el mode clar o fosc. Amb «Sistema» s’adapta sola a la configuració del teu dispositiu.',
+    es: 'Elige el modo claro u oscuro. Con «Sistema» se adapta sola a la configuración de tu dispositivo.',
+    en: 'Choose light or dark mode. With “System” it follows your device settings automatically.',
+    ar: 'اختر الوضع الفاتح أو الداكن. مع «النظام» يتبع إعدادات جهازك تلقائيًا.',
+  },
+  'cfg.themeAuto':  { ca: 'Sistema', es: 'Sistema', en: 'System', ar: 'النظام' },
+  'cfg.themeLight': { ca: 'Clar', es: 'Claro', en: 'Light', ar: 'فاتح' },
+  'cfg.themeDark':  { ca: 'Fosc', es: 'Oscuro', en: 'Dark', ar: 'داكن' },
+
   'cfg.adhanHelp': {
     ca: 'Activa aquesta opció perquè l’aplicació reprodueixi automàticament la crida a l’oració quan arribi l’hora exacta de cada res.',
     es: 'Activa esta opción para que la aplicación reproduzca automáticamente la llamada a la oración cuando sea la hora exacta de cada rezo.',
@@ -302,6 +313,12 @@ const STRINGS = {
   'prayer.metaMethod': { ca: 'Mètode: {name}.', es: 'Método: {name}.', en: 'Method: {name}.', ar: 'الطريقة: {name}.' },
   'prayer.metaZone': { ca: 'Hores a {zone}.', es: 'Horas en {zone}.', en: 'Times in {zone}.', ar: 'التوقيت في {zone}.' },
 
+  'notify.iosNeedsInstall': {
+    ca: 'A l’iPhone els avisos només funcionen amb l’app instal·lada a la pantalla d’inici. Fes-ho des de «Instal·lar SALATI».',
+    es: 'En iPhone los avisos solo funcionan con la app instalada en la pantalla de inicio. Hazlo desde «Instalar SALATI».',
+    en: 'On iPhone, alerts only work when the app is installed on the home screen. Use “Install SALATI” first.',
+    ar: 'على iPhone تعمل التنبيهات فقط عند تثبيت التطبيق على الشاشة الرئيسية. استخدم «تثبيت صلاتي» أولاً.',
+  },
   'notify.body': {
     ca: 'És l’hora del {name} ({time})', es: 'Es la hora de {name} ({time})',
     en: 'It’s time for {name} ({time})', ar: 'حان وقت {name} ({time})',

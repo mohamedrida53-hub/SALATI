@@ -11,16 +11,26 @@ import { initCalendar, renderCalendar } from './calendar.js';
 import { initI18n, onLangChange, applyStatic, t } from './i18n.js';
 import { track, trackScreen } from './analytics.js';
 import { needsManualInstall, isIOSSafari } from './platform.js';
+import { initTheme, getTheme, setTheme, THEMES } from './theme.js';
 import { initLangPicker, render as renderLangPicker } from './langpicker.js';
 import {
   notificationsSupported, notificationsEnabled, permissionDenied,
   enableNotifications, disableNotifications,
   adhanEnabled, enableAdhan, disableAdhan,
-  scheduleAdhan, playAdhan, primeAudioOnFirstGesture, primeAudioNow,
+  scheduleAdhan, playAdhan, primeAudioOnFirstGesture, primeAudioNow, subscribePush,
 } from './notifications.js';
-import { $, $$, apiDate, tomorrow, load, save, toast } from './utils.js';
+import { $, $$, el, icon, apiDate, tomorrow, load, save, toast } from './utils.js';
 
 const PANELS = ['prayer', 'qibla', 'mosques', 'calendar', 'quran', 'tasbih'];
+
+/* Icono y etiqueta de cada modo de apariencia. Se declara aquí arriba y no
+   junto a `buildThemePicker` a propósito: `wireSettings()` corre en el cuerpo
+   del módulo y un `const` declarado más abajo aún estaría en zona muerta. */
+const THEME_META = {
+  auto:  { icon: 'icon-auto',       key: 'cfg.themeAuto' },
+  light: { icon: 'icon-sun-theme',  key: 'cfg.themeLight' },
+  dark:  { icon: 'icon-moon-theme', key: 'cfg.themeDark' },
+};
 let activeTab = 'prayer';
 let installEvent = null;
 
@@ -29,6 +39,9 @@ let installEvent = null;
 // El idioma se resuelve antes que nada: el resto de módulos ya traduce al pintar.
 initI18n();
 applyStatic();
+// El tema ya lo aplicó el script del <head>; esto sólo engancha el modo
+// automático para que siga al sistema si el usuario lo cambia en caliente.
+initTheme();
 
 initPrayer({
   onRetry: openLocationDialog,
@@ -62,6 +75,7 @@ function wireLanguage() {
     refreshTasbih();
     refreshMosquesText();
     refreshQuranTranslation();
+    buildThemePicker();
     if (activeTab === 'calendar') renderCalendar();
   });
 }
@@ -189,6 +203,8 @@ function wireSettings() {
   // El enlace navega solo; la métrica va aparte y nunca lo interrumpe.
   $('#btn-donate')?.addEventListener('click', () => track('donate_click'));
 
+  buildThemePicker();
+
   const dlgIos = $('#dlg-ios');
   $('#btn-close-ios').addEventListener('click', () => dlgIos.close());
   dlgIos.addEventListener('click', (event) => {
@@ -262,6 +278,31 @@ function wireSettings() {
   });
 }
 
+/* ---------------- Apariencia ---------------- */
+
+/** Control segmentado de tres opciones. Se repinta al cambiar de idioma. */
+function buildThemePicker() {
+  const box = $('#theme-picker');
+  if (!box) return;
+
+  const actual = getTheme();
+  box.replaceChildren(...THEMES.map((valor) => {
+    const meta = THEME_META[valor];
+    return el('button', {
+      class: 'segmented__opt',
+      type: 'button',
+      role: 'radio',
+      'aria-checked': String(valor === actual),
+      dataset: { theme: valor },
+      onclick: () => {
+        setTheme(valor);
+        buildThemePicker();
+        track('theme_change', { theme: valor });
+      },
+    }, [icon(meta.icon), el('span', { text: t(meta.key) })]);
+  }));
+}
+
 /** Reprograma los avisos y confirma en un toast, ya que las filas no llevan texto. */
 function announceAlerts() {
   const armed = armAdhan();
@@ -315,6 +356,8 @@ window.addEventListener('appinstalled', () => {
 });
 
 navigator.serviceWorker?.addEventListener('message', (event) => {
+  // El servicio de push ha rotado la suscripción: hay que rehacerla.
+  if (event.data?.type === 'PUSH_RESUBSCRIBE') subscribePush();
   if (event.data?.type === 'NOTIFICATION_CLICK') switchTab('prayer');
 });
 

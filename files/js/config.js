@@ -70,6 +70,7 @@ export const STORAGE_KEYS = {
   tasbih: 'salati.tasbih',
   today: 'salati.today',
   lang: 'salati.lang',
+  theme: 'salati.theme',     // 'auto' | 'light' | 'dark'
   radius: 'salati.radius',
 };
 

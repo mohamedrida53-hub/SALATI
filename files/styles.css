@@ -1,8 +1,8 @@
 /* =========================================================
    SALATI — hoja de estilos única
-   Tema: negro profundo + oro viejo, tomado del logo. Sin modo claro:
-   la app se usa de noche y al amanecer, y el contraste alto
-   es lo que hace cómoda la lectura del Corán.
+   Tema: negro profundo + oro viejo, tomado del logo. El oscuro es el modo
+   por defecto porque la app se usa de noche y al amanecer, pero hay claro
+   para quien lo prefiera de día (Ajustes → Apariencia).
    Tipografía: Amiri (display + árabe) · Cairo (interfaz y cifras)
    ========================================================= */
 
@@ -69,6 +69,103 @@
   --tabbar-h: 66px;
 
   color-scheme: dark;
+}
+
+/* =========================================================
+   Modo claro
+
+   No es el oscuro «aclarado»: varias variables cambian de papel. En oscuro
+   `--accent-bright` es el oro luminoso que destaca sobre negro; en claro
+   tiene que ser el oro MÁS OSCURO, porque ahora se lee sobre blanco. Lo
+   mismo con `--feast-soft` y `--key-soft`, que pasan de claros a oscuros.
+
+   Todos los pares texto/fondo de aquí están medidos y cumplen AA.
+   ========================================================= */
+:root[data-theme="light"] {
+  /* Blanco cálido, no blanco puro: pega con el oro y cansa menos la vista */
+  --bg:          #faf8f3;
+  --bg-raised:   #ffffff;
+  --surface:     #ffffff;
+  --surface-2:   #f2eee4;
+  --line:        #e3ddcf;
+
+  /* El oro se oscurece para poder leerse sobre fondo claro */
+  --accent:        #8a6d1f;
+  --accent-bright: #6b5314;
+  --accent-deep:   #c9a227;
+  --accent-wash:   rgb(138 109 31 / 12%);
+  --accent-edge:   rgb(138 109 31 / 38%);
+  --on-accent:     #ffffff;
+
+  --glow: 138 109 31;
+
+  /* En claro los `soft` son los tonos OSCUROS: van sobre fondos claros */
+  --feast-deep:  #0a5730;
+  --feast:       #0f7a3f;
+  --feast-soft:  #0a5730;
+  --feast-glow:  15 122 63;
+
+  --key-deep:    #4c1d95;
+  --key:         #7c3aed;
+  --key-soft:    #5b21b6;
+  --key-glow:    124 58 237;
+
+  --ink:       #14120c;
+  --ink-read:  #2c2820;
+  --ink-soft:  #55503f;
+  --ink-faint: #6e6857;
+
+  --sand: #7a6134;
+  --warn: #8f5206;
+  --danger: #a52318;
+
+  --shadow: 0 1px 0 rgb(255 255 255 / 60%) inset, 0 14px 32px -22px rgb(30 24 8 / 45%);
+
+  color-scheme: light;
+}
+
+/* Modo automático: sigue al sistema operativo. Sólo se aplica si el usuario
+   ha elegido «Sistema», que es el valor por defecto. */
+@media (prefers-color-scheme: light) {
+  :root[data-theme="auto"] {
+    --bg:          #faf8f3;
+    --bg-raised:   #ffffff;
+    --surface:     #ffffff;
+    --surface-2:   #f2eee4;
+    --line:        #e3ddcf;
+
+    --accent:        #8a6d1f;
+    --accent-bright: #6b5314;
+    --accent-deep:   #c9a227;
+    --accent-wash:   rgb(138 109 31 / 12%);
+    --accent-edge:   rgb(138 109 31 / 38%);
+    --on-accent:     #ffffff;
+
+    --glow: 138 109 31;
+
+    --feast-deep:  #0a5730;
+    --feast:       #0f7a3f;
+    --feast-soft:  #0a5730;
+    --feast-glow:  15 122 63;
+
+    --key-deep:    #4c1d95;
+    --key:         #7c3aed;
+    --key-soft:    #5b21b6;
+    --key-glow:    124 58 237;
+
+    --ink:       #14120c;
+    --ink-read:  #2c2820;
+    --ink-soft:  #55503f;
+    --ink-faint: #6e6857;
+
+    --sand: #7a6134;
+    --warn: #8f5206;
+    --danger: #a52318;
+
+    --shadow: 0 1px 0 rgb(255 255 255 / 60%) inset, 0 14px 32px -22px rgb(30 24 8 / 45%);
+
+    color-scheme: light;
+  }
 }
 
 * { box-sizing: border-box; }
@@ -173,7 +270,6 @@ button, select, input { font: inherit; color: inherit; }
 
 .chip svg { width: 15px; height: 15px; flex: none; color: var(--accent-bright); }
 .chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.chip:hover { border-color: var(--accent-edge); color: var(--ink); }
 
 /* Chip cuadrado sólo con icono (tuerca) */
 .chip--icon { padding: 0; width: 44px; justify-content: center; max-width: none; flex: none; }
@@ -218,6 +314,50 @@ button, select, input { font: inherit; color: inherit; }
 }
 
 .cfg__row .switch, .cfg__row .btn { flex: none; margin-top: 2px; }
+
+/* Fila apilada: el control va debajo del texto, no al lado */
+.cfg__row--stack { flex-direction: column; align-items: stretch; gap: 12px; }
+
+/* Control segmentado de tres opciones */
+.segmented {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface-2);
+}
+
+.segmented__opt {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 44px;   /* suelo táctil */
+  padding: 8px 6px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--ink-soft);
+  font-size: .84rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .15s ease, color .15s ease;
+}
+
+.segmented__opt svg { width: 17px; height: 17px; flex: none; }
+.segmented__opt:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: -2px; }
+
+.segmented__opt[aria-checked="true"] {
+  background: var(--accent);
+  color: var(--on-accent);
+  box-shadow: 0 1px 6px rgb(var(--glow) / 30%);
+}
+
+@media (max-width: 360px) {
+  .segmented__opt { flex-direction: column; gap: 3px; font-size: .72rem; }
+}
 .cfg > .note { margin-top: 16px; line-height: 1.5; }
 
 /* ---------------- Instrucciones de instalación en iOS ---------------- */
@@ -297,13 +437,15 @@ button, select, input { font: inherit; color: inherit; }
   transition: background .15s ease, border-color .15s ease;
 }
 
-.cfg__donate:hover { background: color-mix(in srgb, var(--accent) 24%, transparent); border-color: var(--accent-bright); }
 .cfg__donate:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: 2px; }
 
 /* Canal de feedback: deliberadamente discreto. No compite con los ajustes,
    pero sigue siendo un objetivo táctil cómodo de pulsar. */
 .cfg__feedback {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;   /* suelo táctil, aunque el texto sea pequeño */
   margin-top: 18px;
   padding: 10px 8px;
   color: var(--ink-faint);
@@ -314,7 +456,6 @@ button, select, input { font: inherit; color: inherit; }
   transition: color .15s ease, background .15s ease;
 }
 
-.cfg__feedback:hover { color: var(--accent-bright); background: var(--surface); }
 .cfg__feedback:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: 2px; }
 
 /* ---------------- Selector de idioma ---------------- */
@@ -364,7 +505,6 @@ button, select, input { font: inherit; color: inherit; }
   cursor: pointer;
 }
 
-.lang__option:hover { background: var(--surface-2); color: var(--ink); }
 .lang__option:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: -2px; }
 
 .lang__option[aria-selected="true"] {
@@ -437,7 +577,6 @@ button, select, input { font: inherit; color: inherit; }
   cursor: pointer;
 }
 
-.btn:hover { background: var(--accent-bright); }
 .btn:active { translate: 0 1px; }
 .btn svg { width: 18px; height: 18px; }
 
@@ -448,7 +587,6 @@ button, select, input { font: inherit; color: inherit; }
   font-weight: 600;
 }
 
-.btn--ghost:hover { background: var(--accent-wash); border-color: var(--accent-edge); }
 
 /* Botón redondo solo con icono: acciones secundarias sin ruido de texto */
 .icon-btn {
@@ -468,7 +606,6 @@ button, select, input { font: inherit; color: inherit; }
 }
 
 .icon-btn svg { width: 22px; height: 22px; }
-.icon-btn:hover { background: var(--accent-wash); border-color: var(--accent-edge); color: var(--accent-bright); }
 .icon-btn:active { translate: 0 1px; }
 .icon-btn:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: 2px; }
 
@@ -487,7 +624,7 @@ button, select, input { font: inherit; color: inherit; }
   color: var(--ink);
 }
 
-.field select:hover, .searchbar input:focus { border-color: var(--accent-edge); }
+.searchbar input:focus { border-color: var(--accent-edge); }
 
 /* ---------------- 1 · Hero de próximo rezo ---------------- */
 
@@ -642,8 +779,17 @@ button, select, input { font: inherit; color: inherit; }
 .settings__text b { display: block; font-weight: 600; }
 .settings__text span { color: var(--ink-faint); font-size: .8rem; }
 
-/* Interruptor accesible: un checkbox real con la apariencia cambiada */
-.switch { position: relative; flex: none; width: 50px; height: 28px; }
+/* Interruptor accesible: un checkbox real con la apariencia cambiada.
+   El raíl mide 28 px por diseño, pero el área pulsable se estira a 44 con
+   padding vertical: el `input` invisible ocupa toda la caja. */
+.switch {
+  position: relative;
+  flex: none;
+  width: 50px;
+  height: 28px;
+  padding-block: 8px;
+  box-sizing: content-box;
+}
 
 .switch input {
   position: absolute;
@@ -657,7 +803,7 @@ button, select, input { font: inherit; color: inherit; }
 
 .switch span {
   position: absolute;
-  inset: 0;
+  inset: 8px 0;   /* el raíl se centra dentro del área pulsable ampliada */
   border: 1px solid var(--line);
   border-radius: 999px;
   background: var(--surface-2);
@@ -1030,7 +1176,6 @@ button, select, input { font: inherit; color: inherit; }
   transition: background .15s ease, border-color .15s ease;
 }
 
-.cal__day:hover { background: var(--surface-2); border-color: var(--accent-edge); }
 .cal__day:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: -2px; }
 
 .cal__g { font-size: .95rem; font-weight: 600; line-height: 1.1; font-variant-numeric: tabular-nums; }
@@ -1079,7 +1224,6 @@ button, select, input { font: inherit; color: inherit; }
 .cal__day--feast .cal__g { color: #fff; font-weight: 800; }
 .cal__day--feast .cal__h { color: rgb(255 255 255 / 90%); font-weight: 600; }
 .cal__day--feast .cal__dot { background: #fff; }
-.cal__day--feast:hover { background: var(--feast-deep); border-color: #fff; }
 
 /* Día importante: morado perfilado, un escalón por debajo. */
 .cal__day--key {
@@ -1091,7 +1235,6 @@ button, select, input { font: inherit; color: inherit; }
 .cal__day--key .cal__g { color: var(--key-soft); font-weight: 800; }
 .cal__day--key .cal__h { color: var(--key-soft); font-weight: 600; }
 .cal__day--key .cal__dot { background: var(--key-soft); }
-.cal__day--key:hover { background: color-mix(in srgb, var(--key) 34%, var(--surface)); }
 
 /* Los días normales bajan un punto para que los marcados manden.
    Se apaga el fondo y el borde, nunca el texto: bajar el color del número
@@ -1171,7 +1314,6 @@ button, select, input { font: inherit; color: inherit; }
   cursor: pointer;
 }
 
-.surah:hover { border-color: var(--accent-edge); background: var(--surface-2); }
 
 .surah__num {
   position: relative;
@@ -1499,7 +1641,6 @@ button, select, input { font: inherit; color: inherit; }
 
 .leaflet-control-attribution a, .leaflet-popup-content a { color: var(--accent-bright); }
 .leaflet-bar a { border-bottom-color: var(--line); }
-.leaflet-bar a:hover { background: var(--surface-2); color: var(--ink); }
 .leaflet-popup-content-wrapper { border-radius: var(--r-sm); box-shadow: var(--shadow); }
 .leaflet-popup-content { margin: 11px 14px; line-height: 1.5; color: var(--ink); }
 
@@ -1552,7 +1693,6 @@ button, select, input { font: inherit; color: inherit; }
   cursor: pointer;
 }
 
-.mosque:hover { border-color: var(--accent-edge); background: var(--surface-2); }
 .mosque:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: 2px; }
 
 /* min-width: 0 es lo que permite que un hijo flex se encoja por debajo de su
@@ -1571,7 +1711,6 @@ button, select, input { font: inherit; color: inherit; }
   border-style: dashed;
 }
 
-.mosque--error:hover { border-color: var(--line); background: var(--surface); }
 .mosque--error > div { flex: 1 1 100%; min-width: 0; }
 .mosque--error .btn { flex: none; margin-top: 10px; }
 
@@ -1640,7 +1779,10 @@ button, select, input { font: inherit; color: inherit; }
 
   .tabbar__btn svg { width: 20px; height: 20px; }
   .tabbar__btn span { max-width: none; }   /* ya hay sitio: sin recortes */
-  .tabbar__btn:hover { background: var(--surface); color: var(--ink); }
+  /* Anidada para que una tablet táctil ancha no arrastre el hover pegado */
+  @media (hover: hover) and (pointer: fine) {
+    .tabbar__btn:hover { background: var(--surface); color: var(--ink); }
+  }
   .tabbar__btn[aria-selected="true"] { background: var(--accent-wash); }
 
   .topbar { padding-inline: 28px; }
@@ -1715,6 +1857,97 @@ button, select, input { font: inherit; color: inherit; }
   .topbar__tools { padding-inline-end: 8px; }
 }
 
+/* =========================================================
+   Tipografía fluida
+
+   `clamp(mínimo, preferido, máximo)` deja que los titulares crezcan con el
+   ancho de la ventana pero con techo: sin el máximo, en un monitor de 27"
+   el nombre del rezo saldría desproporcionado. El término del medio usa
+   `vw` para que la interpolación sea continua y no dé saltos entre breakpoints.
+
+   Los mínimos coinciden con los tamaños que ya estaban, así que en móvil
+   no cambia absolutamente nada.
+   ========================================================= */
+
+/* Ojo: estos dos viven DENTRO del círculo del reloj, que está topado a
+   280 px. Los máximos están calculados para que el bloque de texto siga
+   cabiendo cuando el dial crece a 320 px en escritorio. */
+.hero__name   { font-size: clamp(2.1rem, 1.8rem + 1.2vw, 2.8rem); }
+.hero__count  { font-size: clamp(2.4rem, 2.1rem + 1.2vw, 3rem); }
+.compass__deg { font-size: clamp(1.6rem, 1.4rem + .8vw, 2.1rem); }
+.cal__greg    { font-size: clamp(1.25rem, 1.1rem + .6vw, 1.6rem); }
+.reader__ar   { font-size: clamp(2.1rem, 1.8rem + 1.4vw, 3rem); }
+.dialog__head h2 { font-size: clamp(1.3rem, 1.2rem + .4vw, 1.55rem); }
+
+/* El contador del tasbih ya escalaba con el círculo: sólo se le pone techo */
+.tasbih__count { font-size: clamp(3.6rem, 3rem + 4vw, 5.4rem); }
+
+/* =========================================================
+   Contenido enmarcado en pantallas grandes
+
+   Nota: la app NO se encierra en un marco tipo móvil centrado, porque desde
+   768 px la navegación es una barra lateral y las dos cosas juntas darían
+   una tarjeta estrecha pegada a un menú. Lo que se enmarca es el área de
+   contenido, que consigue el mismo efecto de «app dentro de la pantalla»
+   sin desperdiciar el ancho.
+   ========================================================= */
+
+@media (min-width: 1024px) {
+  #main { padding: 22px 24px 40px; }
+
+  .panel {
+    padding: 34px 40px 44px;
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    background: var(--bg-raised);
+    box-shadow: var(--shadow);
+  }
+
+  /* Dos columnas para la lista de suras: 114 elementos en una sola columna
+     obligaban a un scroll larguísimo con media pantalla vacía al lado. */
+  .surahs { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+
+  /* El círculo del reloj crece con la pantalla; los clamp de arriba están
+     calculados contra este tamaño para que el texto no se salga. */
+  .hero__dial { width: 320px; }
+
+  /* La lista de horarios se deja en una sola columna a propósito: es una
+     tarjeta con filas separadas por líneas, y partirla en dos rompería
+     esa lectura vertical de arriba abajo del día. */
+}
+
+@media (min-width: 1400px) {
+  .surahs { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .panel { padding: 40px 48px 52px; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   * { transition-duration: .001ms !important; animation-duration: .001ms !important; }
+}
+
+/* =========================================================
+   Estados :hover, solo para raton
+
+   (hover: hover) and (pointer: fine) deja fuera a los dispositivos
+   tactiles. Sin esto, al tocar un boton en el movil se quedaba con el
+   estilo de hover pegado hasta tocar en otro sitio, que es una de esas
+   cosas que delatan que una web no es una app nativa.
+   ========================================================= */
+@media (hover: hover) and (pointer: fine) {
+  .chip:hover { border-color: var(--accent-edge); color: var(--ink); }
+  .segmented__opt:hover { color: var(--ink); }
+  .cfg__donate:hover { background: color-mix(in srgb, var(--accent) 24%, transparent); border-color: var(--accent-bright); }
+  .cfg__feedback:hover { color: var(--accent-bright); background: var(--surface); }
+  .lang__option:hover { background: var(--surface-2); color: var(--ink); }
+  .btn:hover { background: var(--accent-bright); }
+  .btn--ghost:hover { background: var(--accent-wash); border-color: var(--accent-edge); }
+  .icon-btn:hover { background: var(--accent-wash); border-color: var(--accent-edge); color: var(--accent-bright); }
+  .field select:hover { border-color: var(--accent-edge); }
+  .cal__day:hover { background: var(--surface-2); border-color: var(--accent-edge); }
+  .cal__day--feast:hover { background: var(--feast-deep); border-color: #fff; }
+  .cal__day--key:hover { background: color-mix(in srgb, var(--key) 34%, var(--surface)); }
+  .surah:hover { border-color: var(--accent-edge); background: var(--surface-2); }
+  .leaflet-bar a:hover { background: var(--surface-2); color: var(--ink); }
+  .mosque:hover { border-color: var(--accent-edge); background: var(--surface-2); }
+  .mosque--error:hover { border-color: var(--line); background: var(--surface); }
 }
