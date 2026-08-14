@@ -11,7 +11,7 @@
    así que desde `js/` era imposible que gobernara `/` y el registro fallaba
    con SecurityError: la app nunca llegaba a funcionar sin conexión.
    Las rutas relativas de SHELL_FILES se resuelven contra ESTA ubicación. */
-const VERSION = 'v2.7.0';
+const VERSION = 'v2.8.0';
 const SHELL = `SALATI-shell-${VERSION}`;
 const DATA = `SALATI-data-${VERSION}`;
 const FONTS = `SALATI-fonts-${VERSION}`;
@@ -34,6 +34,7 @@ const SHELL_FILES = [
   './js/analytics.js',
   './js/platform.js',
   './js/prefs-db.js',
+  './js/native-notifications.js',
   './js/theme.js',
   './js/calendar.js',
   './js/i18n.js',

@@ -3,6 +3,9 @@ import { cleanTime, timeToSeconds, secondsOfDayInZone, load, save, toast } from 
 import { t, prayerName, getLang } from './i18n.js';
 import { writeFlag } from './prefs-db.js';
 import { isIOS, isStandalone } from './platform.js';
+import {
+  nativeAvailable, requestNativePermission, scheduleNativeAdhan, cancelNativeAdhan,
+} from './native-notifications.js';
 
 /* ▼▼▼ PEGA AQUÍ TU CLAVE PÚBLICA VAPID CUANDO TENGAS SERVIDOR DE PUSH ▼▼▼
    Mientras esté vacía, la app no intenta suscribirse y todo lo demás
@@ -118,6 +121,19 @@ export function notificationsEnabled() {
 }
 
 export async function enableNotifications() {
+  // En la app nativa el permiso lo pide Capacitor, no la API del navegador.
+  if (nativeAvailable()) {
+    const ok = await requestNativePermission();
+    if (!ok) {
+      toast('Permiso de notificaciones denegado. Puedes cambiarlo en los ajustes del navegador.');
+      return false;
+    }
+    notifyOn = true;
+    save(STORAGE_KEYS.notify, true);
+    writeFlag('notify', true);
+    return true;
+  }
+
   /* iOS 16.4+ sólo expone la API de notificaciones si la PWA está instalada
      en la pantalla de inicio. Desde una pestaña de Safari `Notification` ni
      existe, así que hay que decirlo en vez de dejar que falle en silencio. */
@@ -184,6 +200,18 @@ function clearTimers() {
  */
 export function scheduleAdhan({ timings, timezone, label } = {}) {
   clearTimers();
+
+  /* Dentro de Capacitor manda el sistema operativo: se delegan las alarmas
+     en LocalNotifications y NO se arma el temporizador del navegador, que
+     sólo vive mientras la página esté abierta. Es la diferencia entre que
+     el adhan suene con la app cerrada o no suene. */
+  if (nativeAvailable()) {
+    if (!timings || (!soundOn && !notifyOn)) { cancelNativeAdhan(); return 0; }
+    scheduleNativeAdhan({ timings, timezone, label, conAdhan: soundOn });
+    // Se devuelve el número de rezos pendientes para el toast de confirmación.
+    return contarPendientes(timings, timezone);
+  }
+
   // Basta con que uno de los dos avisos esté encendido.
   if (!timings || (!soundOn && !notificationsEnabled())) return 0;
 
@@ -200,6 +228,16 @@ export function scheduleAdhan({ timings, timezone, label } = {}) {
 
   if (pending.length) ticker = setInterval(check, CHECK_MS);
   return pending.length;
+}
+
+/** Cuántos rezos quedan hoy. Sólo para informar al usuario en el toast. */
+function contarPendientes(timings, timezone) {
+  const nowSec = secondsOfDayInZone(timezone);
+  return PRAYERS.filter((p) => {
+    if (p.info) return false;
+    const sec = timeToSeconds(timings[p.key]);
+    return Number.isFinite(sec) && sec > nowSec;
+  }).length;
 }
 
 function check() {

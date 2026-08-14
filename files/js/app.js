@@ -327,6 +327,10 @@ function announceAlerts() {
 
 async function registerServiceWorker() {
   if (!('serviceWorker' in navigator)) return;
+  /* En la app nativa no hay service worker: los archivos ya van dentro del
+     APK y build-www.mjs lo deja fuera a propósito. Registrarlo sólo
+     provocaría un 404 sobre capacitor:// sin ganar nada. */
+  if (globalThis.Capacitor?.isNativePlatform?.()) return;
   try {
     const registration = await navigator.serviceWorker.register('./service-worker.js');
     registration.addEventListener('updatefound', () => {
