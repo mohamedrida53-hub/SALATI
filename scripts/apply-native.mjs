@@ -16,7 +16,7 @@
    Se ejecuta con:  node scripts/apply-native.mjs
    ========================================================= */
 
-import { cp, mkdir, readFile, writeFile } from 'node:fs/promises';
+import { cp, mkdir, readFile, writeFile, readdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -34,6 +34,11 @@ const PERMISOS = [
   'android.permission.USE_EXACT_ALARM',
   'android.permission.RECEIVE_BOOT_COMPLETED',
   'android.permission.VIBRATE',
+  // Geolocalización: FINE da precisión de GPS, COARSE sirve de reserva si el
+  // usuario sólo concede ubicación aproximada (Android 12+ deja elegir).
+  'android.permission.ACCESS_FINE_LOCATION',
+  'android.permission.ACCESS_COARSE_LOCATION',
+  'android.permission.INTERNET',
 ];
 
 async function main() {
@@ -62,14 +67,30 @@ async function copiarSonido() {
   console.log('  · res/raw/adhan.mp3');
 }
 
+/**
+ * Copia TODO native/android/res sobre el res/ generado por Capacitor.
+ *
+ * Ahí van tres cosas distintas:
+ *   · drawable-*  → icono blanco de la barra de estado (notificaciones)
+ *   · mipmap-*    → icono del cajón de aplicaciones (launcher), incluidos
+ *                   los adaptativos de Android 8+
+ *   · values/     → el color de fondo del icono adaptativo
+ *
+ * `cp` con `force` sobrescribe los ic_launcher de ejemplo que trae la
+ * plantilla de Capacitor, que si no se quedarían con el logo de Capacitor.
+ */
 async function copiarIconos() {
   const origen = join(RAIZ, 'native', 'android', 'res');
   if (!existsSync(origen)) {
     console.warn('  · aviso: no hay native/android/res, se omiten los iconos');
     return;
   }
-  await cp(origen, join(MAIN, 'res'), { recursive: true });
-  console.log('  · iconos de notificación en todas las densidades');
+  await cp(origen, join(MAIN, 'res'), { recursive: true, force: true });
+
+  const carpetas = await readdir(origen, { withFileTypes: true });
+  const mipmaps = carpetas.filter((d) => d.isDirectory() && d.name.startsWith('mipmap')).length;
+  const drawables = carpetas.filter((d) => d.isDirectory() && d.name.startsWith('drawable')).length;
+  console.log(`  · iconos: ${drawables} densidades de notificación, ${mipmaps} de launcher`);
 }
 
 /**

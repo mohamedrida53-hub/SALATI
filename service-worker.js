@@ -11,7 +11,7 @@
    así que desde `js/` era imposible que gobernara `/` y el registro fallaba
    con SecurityError: la app nunca llegaba a funcionar sin conexión.
    Las rutas relativas de SHELL_FILES se resuelven contra ESTA ubicación. */
-const VERSION = 'v2.8.0';
+const VERSION = 'v3.0.0';
 const SHELL = `SALATI-shell-${VERSION}`;
 const DATA = `SALATI-data-${VERSION}`;
 const FONTS = `SALATI-fonts-${VERSION}`;
@@ -37,6 +37,7 @@ const SHELL_FILES = [
   './js/native-notifications.js',
   './js/theme.js',
   './js/calendar.js',
+  './js/city-search.js',
   './js/i18n.js',
   './js/langpicker.js',
   './js/location.js',
@@ -69,6 +70,7 @@ const ADHAN_URL = './audio/adhan.mp3';
 const API_HOSTS = [
   'api.aladhan.com', 'api.quran.com', 'api.bigdatacloud.net',
   'overpass-api.de', 'overpass.kumi.systems',
+  'nominatim.openstreetmap.org',
 ];
 const FONT_HOSTS = ['fonts.googleapis.com', 'fonts.gstatic.com'];
 const TILE_HOSTS = ['tile.openstreetmap.org', 'a.tile.openstreetmap.org', 'b.tile.openstreetmap.org', 'c.tile.openstreetmap.org'];

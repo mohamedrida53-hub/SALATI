@@ -12,6 +12,7 @@ import { initI18n, onLangChange, applyStatic, t } from './i18n.js';
 import { track, trackScreen } from './analytics.js';
 import { needsManualInstall, isIOSSafari } from './platform.js';
 import { initTheme, getTheme, setTheme, THEMES } from './theme.js';
+import { buscarCiudades, cancelarBusqueda, MIN_CARACTERES } from './city-search.js';
 import { initLangPicker, render as renderLangPicker } from './langpicker.js';
 import {
   notificationsSupported, notificationsEnabled, permissionDenied,
@@ -97,16 +98,22 @@ async function boot() {
 async function loadTimes(place) {
   setState({ loading: true, error: null, errorKey: null, tomorrowFajr: null });
   try {
-    const byCity = place.source === 'city';
-    const today = byCity
-      ? await getTimingsByAddress(place.query, state.method)
-      : await getTimingsByCoords(place.lat, place.lon, state.method);
+    /* Siempre por coordenadas. El buscador de ciudades ya las obtiene de
+       Nominatim, así que no hace falta que Aladhan adivine nada a partir de
+       texto: era justo lo que producía horarios equivocados. `place.query`
+       sólo puede existir en datos guardados por versiones antiguas. */
+    const tieneCoords = Number.isFinite(place.lat) && Number.isFinite(place.lon);
+    const today = tieneCoords
+      ? await getTimingsByCoords(place.lat, place.lon, state.method)
+      : await getTimingsByAddress(place.query, state.method);
 
-    // Coordenadas y zona horaria confirmadas por la API (imprescindible al buscar por ciudad).
+    /* Las nuestras mandan: sólo se aceptan las de la API cuando no teníamos.
+       Antes se sobrescribían siempre, y eso tiraba a la basura las
+       coordenadas exactas que acababa de elegir el usuario. */
     const resolved = {
       ...place,
-      lat: Number.isFinite(today.meta.lat) ? today.meta.lat : place.lat,
-      lon: Number.isFinite(today.meta.lon) ? today.meta.lon : place.lon,
+      lat: tieneCoords ? place.lat : (Number.isFinite(today.meta.lat) ? today.meta.lat : place.lat),
+      lon: tieneCoords ? place.lon : (Number.isFinite(today.meta.lon) ? today.meta.lon : place.lon),
       timezone: today.meta.timezone,
     };
 
@@ -141,9 +148,12 @@ async function loadTimes(place) {
    de hoy al instante y sin red, incluso antes de que responda ningún fetch. */
 
 function placeKey(place) {
-  return place.source === 'city'
-    ? `c:${place.query}`
-    : `g:${Number(place.lat).toFixed(2)},${Number(place.lon).toFixed(2)}`;
+  // Ahora todo lugar tiene coordenadas, así que la clave sale siempre de
+  // ellas; el ramal por texto queda sólo para caché de versiones antiguas.
+  if (Number.isFinite(place.lat) && Number.isFinite(place.lon)) {
+    return `g:${Number(place.lat).toFixed(2)},${Number(place.lon).toFixed(2)}`;
+  }
+  return `c:${place.query}`;
 }
 
 function cacheDay(place, today, tomorrowFajr) {
@@ -381,28 +391,142 @@ function wireLocationUi() {
     if (ok) dialog.close();
   });
 
+  wireCitySearch(dialog, input, form);
+}
+
+/* ---------------- Buscador de ciudades ---------------- */
+
+let ciudadElegida = null;   // el único sitio del que salen las coordenadas
+
+/**
+ * Autocompletado contra Nominatim.
+ *
+ * La regla que arregla el bug: el botón de confirmar sólo se habilita cuando
+ * `ciudadElegida` tiene valor, y eso sólo pasa al pulsar una sugerencia real.
+ * Escribir «asdfgh» y darle a intro ya no genera horarios inventados.
+ */
+function wireCitySearch(dialog, input, form) {
+  const lista = $('#city-results');
+  const pista = $('#city-hint');
+  const confirmar = $('#btn-city-ok');
+  let resultados = [];
+  let resaltado = -1;
+
+  const marcarSinElegir = () => {
+    ciudadElegida = null;
+    confirmar.disabled = true;
+  };
+
+  const cerrarLista = () => {
+    lista.hidden = true;
+    lista.replaceChildren();
+    input.setAttribute('aria-expanded', 'false');
+    resaltado = -1;
+  };
+
+  const pintar = () => {
+    if (!resultados.length) { cerrarLista(); return; }
+    lista.replaceChildren(...resultados.map((sitio, i) => el('li', {
+      class: `ac__item${i === resaltado ? ' ac__item--on' : ''}`,
+      role: 'option',
+      'aria-selected': String(i === resaltado),
+      onclick: () => elegir(sitio),
+    }, [
+      el('span', { class: 'ac__name', text: sitio.label }),
+      sitio.tipo ? el('span', { class: 'ac__type', text: sitio.tipo }) : null,
+    ].filter(Boolean))));
+    lista.hidden = false;
+    input.setAttribute('aria-expanded', 'true');
+  };
+
+  const elegir = (sitio) => {
+    ciudadElegida = sitio;
+    input.value = sitio.label;
+    confirmar.disabled = false;
+    pista.textContent = '';
+    cerrarLista();
+    input.focus();
+  };
+
+  input.addEventListener('input', async () => {
+    marcarSinElegir();
+    const texto = input.value.trim();
+
+    if (texto.length < MIN_CARACTERES) {
+      resultados = [];
+      cerrarLista();
+      pista.textContent = texto ? t('loc.typeMore') : '';
+      return;
+    }
+
+    pista.textContent = t('loc.searching');
+    const encontrados = await buscarCiudades(texto);
+
+    // Si el usuario ha seguido escribiendo, esta respuesta ya no vale.
+    if (input.value.trim() !== texto) return;
+
+    resultados = encontrados;
+    resaltado = -1;
+    pintar();
+    pista.textContent = encontrados.length ? t('loc.pickOne') : t('loc.noMatches');
+  });
+
+  // Flechas y Enter sobre la lista, sin obligar a soltar el teclado.
+  input.addEventListener('keydown', (event) => {
+    if (lista.hidden || !resultados.length) return;
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      event.preventDefault();
+      const paso = event.key === 'ArrowDown' ? 1 : -1;
+      resaltado = (resaltado + paso + resultados.length) % resultados.length;
+      pintar();
+    } else if (event.key === 'Enter' && resaltado >= 0) {
+      event.preventDefault();
+      elegir(resultados[resaltado]);
+    } else if (event.key === 'Escape') {
+      cerrarLista();
+    }
+  });
+
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
-    const query = input.value.trim();
-    if (!query) return;
+    if (!ciudadElegida) { pista.textContent = t('loc.pickOne'); return; }
 
-    showDialogError('Buscando…');
-    const place = { query, label: query, source: 'city', lat: NaN, lon: NaN };
+    showDialogError(t('loc.searching'));
+
+    /* Se guardan las COORDENADAS, no el texto. Antes se mandaba la cadena a
+       Aladhan y ésta resolvía lo que buenamente podía; ahora los horarios
+       salen del punto exacto que el usuario ha señalado en la lista. */
+    const place = {
+      lat: ciudadElegida.lat,
+      lon: ciudadElegida.lon,
+      label: ciudadElegida.label,
+      source: 'city',
+    };
     setState({ place });
     await loadTimes(place);
 
     if (state.error) {
-      showDialogError(state.error);
+      showDialogError(state.errorKey ? t(state.errorKey) : state.error);
     } else {
       showDialogError('');
       dialog.close();
     }
   });
+
+  dialog.addEventListener('close', () => {
+    cancelarBusqueda();
+    cerrarLista();
+    pista.textContent = '';
+  });
 }
 
 function openLocationDialog() {
   showDialogError('');
-  if (state.place?.query) $('#city-input').value = state.place.query;
+  ciudadElegida = null;
+  const input = $('#city-input');
+  $('#btn-city-ok').disabled = true;
+  $('#city-hint').textContent = '';
+  input.value = state.place?.label ?? '';
   $('#dlg-location').showModal();
 }
 

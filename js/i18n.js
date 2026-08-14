@@ -51,6 +51,25 @@ const STRINGS = {
   'loc.city': { ca: 'Ciutat', es: 'Ciudad', en: 'City', ar: 'المدينة' },
   'loc.useGps': { ca: 'Fes servir el GPS', es: 'Usar mi GPS', en: 'Use my GPS', ar: 'استخدم GPS' },
   'loc.search': { ca: 'Cerca la ciutat', es: 'Buscar ciudad', en: 'Search city', ar: 'ابحث عن المدينة' },
+  'loc.use': { ca: 'Fes servir aquesta ciutat', es: 'Usar esta ciudad', en: 'Use this city', ar: 'استخدم هذه المدينة' },
+  'loc.results': { ca: 'Ciutats trobades', es: 'Ciudades encontradas', en: 'Cities found', ar: 'المدن الموجودة' },
+  'loc.typeMore': {
+    ca: 'Escriu almenys 3 lletres…', es: 'Escribe al menos 3 letras…',
+    en: 'Type at least 3 letters…', ar: 'اكتب 3 أحرف على الأقل…',
+  },
+  'loc.searching': { ca: 'Cercant…', es: 'Buscando…', en: 'Searching…', ar: 'جارٍ البحث…' },
+  'loc.pickOne': {
+    ca: 'Tria una ciutat de la llista perquè els horaris siguin exactes.',
+    es: 'Elige una ciudad de la lista para que los horarios sean exactos.',
+    en: 'Pick a city from the list so the times are accurate.',
+    ar: 'اختر مدينة من القائمة لتكون المواقيت دقيقة.',
+  },
+  'loc.noMatches': {
+    ca: 'Cap resultat. Prova amb el nom en l’idioma local.',
+    es: 'Sin resultados. Prueba con el nombre en el idioma local.',
+    en: 'No matches. Try the name in the local language.',
+    ar: 'لا نتائج. جرّب الاسم باللغة المحلية.',
+  },
   'loc.close': { ca: 'Tanca', es: 'Cerrar', en: 'Close', ar: 'إغلاق' },
   'loc.denied': {
     ca: 'Has denegat l’accés a la teva ubicació. Pots cercar la ciutat a mà.',

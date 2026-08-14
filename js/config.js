@@ -6,6 +6,11 @@ export const ALADHAN_BASE = 'https://api.aladhan.com/v1';
 export const QURAN_BASE = 'https://api.quran.com/api/v4';
 export const GEOCODE_BASE = 'https://api.bigdatacloud.net/data/reverse-geocode-client';
 
+/* Nominatim (OpenStreetMap) para el buscador de ciudades. Sin clave de API.
+   Su política limita a 1 petición por segundo: city-search.js lo respeta con
+   un retardo de 450 ms y cancelando la petición anterior en cada tecla. */
+export const NOMINATIM_BASE = 'https://nominatim.openstreetmap.org';
+
 /* Método de cálculo de Aladhan. Ya no se elige desde la interfaz: se usa
    siempre el de la Muslim World League, que es el más extendido en Europa.
    Para cambiarlo, edita este número. Lista: https://aladhan.com/calculation-methods */

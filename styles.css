@@ -177,6 +177,10 @@ html {
   -webkit-text-size-adjust: 100%;
   background: var(--bg);
   scrollbar-gutter: stable;
+  /* Cierre del desbordamiento horizontal también en la raíz: `body` solo no
+     basta, porque html conserva su propio scroll. `clip` no crea contenedor
+     de scroll, así que no rompe el `position: sticky` de la cabecera. */
+  overflow-x: clip;
   /* Corta el rebote elástico de iOS. Sin esto, al llegar al final del scroll
      asomaba el fondo del navegador y se rompía la ilusión de app nativa.
      También desactiva el «tirar para recargar», que en una PWA es un
@@ -194,6 +198,21 @@ body {
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
   overscroll-behavior: none;
+  /* Cierre agresivo del desbordamiento horizontal: `clip` no crea contenedor
+     de scroll (a diferencia de `hidden`), así que corta el arrastre lateral
+     sin romper el `position: sticky` de la cabecera ni de la barra lateral. */
+  overflow-x: clip;
+  /* dvh sigue a las barras del navegador en móvil, así que el contenido no
+     queda tapado por la barra inferior de Safari ni la de Chrome Android.
+     El `min-height` va aquí y no en un contenedor interno para que la app
+     ocupe la pantalla completa aunque haya poco contenido. */
+  min-height: 100dvh;
+}
+
+/* Reserva para navegadores sin dvh (iOS 15 y anteriores): se aplica primero
+   y la regla de arriba la pisa donde sí está soportada. */
+@supports not (height: 100dvh) {
+  body { min-height: 100vh; }
 }
 
 /* Las zonas con scroll propio SÍ lo conservan: `contain` deja desplazarlas
@@ -251,12 +270,16 @@ button, select, input { font: inherit; color: inherit; }
   .topbar__brand img { height: 38px; }
 }
 
-.topbar__tools { display: flex; align-items: center; gap: 8px; min-width: 0; }
+/* `min-width: 0` en la barra Y en el chip: sin lo segundo el chip se niega a
+   bajar del ancho de su texto y empujaba la tuerca fuera de la pantalla. */
+.topbar__tools { display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1; justify-content: flex-end; }
 
 .chip {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  min-width: 0;       /* deja que el texto se recorte en vez de desbordar */
+  flex-shrink: 1;
   max-width: 46vw;
   min-height: 44px;   /* suelo táctil: antes quedaban en 34 px de alto */
   padding: 6px 12px;
@@ -457,6 +480,48 @@ button, select, input { font: inherit; color: inherit; }
 }
 
 .cfg__feedback:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: 2px; }
+
+/* ---------------- Autocompletado de ciudades ---------------- */
+
+.field--search { position: relative; }
+
+.ac {
+  max-height: 240px;
+  margin: 6px 0 0;
+  padding: 4px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  list-style: none;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--bg-raised);
+  box-shadow: var(--shadow);
+}
+
+.ac[hidden] { display: none; }
+
+.ac__item {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 44px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.ac__item--on { background: var(--accent-wash); }
+.ac__name { color: var(--ink); font-size: .9rem; overflow-wrap: anywhere; }
+.ac__type { flex: none; color: var(--ink-faint); font-size: .72rem; text-transform: capitalize; }
+
+.ac__hint { margin: 8px 2px 0; color: var(--ink-faint); font-size: .78rem; line-height: 1.45; }
+.ac__hint:empty { display: none; }
+
+/* El botón deshabilitado tiene que verse deshabilitado: es la señal de que
+   falta elegir una ciudad de la lista. */
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn:disabled:hover { background: var(--accent); }
 
 /* ---------------- Selector de idioma ---------------- */
 
@@ -1584,13 +1649,27 @@ button, select, input { font: inherit; color: inherit; }
 .mosques__bar .icon-btn { width: 44px; height: 44px; flex: none; }
 .mosques__bar .icon-btn svg { width: 20px; height: 20px; }
 
+/* Contenedor rígido del mapa.
+   Leaflet mide su contenedor al nacer, así que si la altura fuera elástica
+   el mapa empujaría el contenido de debajo cada vez que remidiera. Con
+   `flex: none` y alturas mínima y máxima explícitas, la caja no se mueve
+   pase lo que pase dentro. `dvh` evita que la barra del navegador lo tape. */
 .map {
   position: relative;
-  height: min(58vh, 420px);
+  flex: none;
+  height: clamp(280px, 58dvh, 420px);
+  min-height: 280px;
+  max-height: 420px;
   border: 1px solid var(--line);
   border-radius: var(--r-md);
   overflow: hidden;
   background: var(--surface);
+  /* Aísla el cálculo de layout: los cambios dentro del mapa no repropagan */
+  contain: layout size paint;
+}
+
+@supports not (height: 100dvh) {
+  .map { height: clamp(280px, 58vh, 420px); }
 }
 
 /* Barra de progreso mientras Overpass responde: sin esto el mapa parece

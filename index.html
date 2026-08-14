@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>SALATI · Oración, Qibla y Corán</title>
 <meta name="description" content="Tiempos de rezo exactos, brújula Qibla, calendario hijri y más. Rápida, limpia y respetuosa con tu privacidad.">
 <meta name="theme-color" content="#070a09">
@@ -452,14 +452,24 @@
   <form id="form-location" method="dialog">
     <h2 data-i18n="loc.title">Elegir ubicación</h2>
     <p class="dialog__lede" data-i18n="loc.lede">Escribe una ciudad y país, o usa el GPS del dispositivo.</p>
-    <label class="field">
+    <!-- Autocompletado real: el usuario DEBE elegir un sitio de la lista.
+         Sin selección no hay coordenadas y el botón sigue deshabilitado, que
+         es lo que impide generar horarios a partir de texto inventado. -->
+    <label class="field field--search">
       <span data-i18n="loc.city">Ciudad</span>
-      <input id="city-input" name="city" type="text" placeholder="Barcelona, España" autocomplete="address-level2" required>
+      <input id="city-input" name="city" type="text"
+             placeholder="Barcelona" autocomplete="off" autocapitalize="words"
+             role="combobox" aria-expanded="false" aria-autocomplete="list"
+             aria-controls="city-results" required>
     </label>
+
+    <ul class="ac" id="city-results" role="listbox" data-i18n-aria="loc.results" hidden></ul>
+    <p class="ac__hint" id="city-hint" aria-live="polite"></p>
+
     <p class="error" id="dlg-error" hidden></p>
     <div class="dialog__actions">
       <button type="button" id="btn-geo" class="btn btn--ghost" data-i18n="loc.useGps">Usar mi GPS</button>
-      <button type="submit" class="btn" data-i18n="loc.search">Buscar ciudad</button>
+      <button type="submit" id="btn-city-ok" class="btn" data-i18n="loc.use" disabled>Usar esta ciudad</button>
     </div>
     <button type="button" id="btn-close-dlg" class="dialog__close" data-i18n-aria="loc.close">×</button>
   </form>
