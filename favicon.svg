@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Favicon de SALATI: la luna creciente del logo, sin el texto.
+       A 16 px la palabra no se leería, así que aquí sólo va la marca. -->
+  <defs>
+    <linearGradient id="oro" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f0cf7a"/>
+      <stop offset=".5" stop-color="#c9a227"/>
+      <stop offset="1" stop-color="#8a6d1f"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="#070a09"/>
+  <path d="M41.5 12.5a22 22 0 1 0 0 39 26 26 0 0 1 0-39z" fill="url(#oro)"/>
+  <path d="M45.5 20.2 47.9 25l5.3.8-3.8 3.7.9 5.3-4.8-2.5-4.7 2.5.9-5.3-3.9-3.7 5.3-.8z" fill="#f0cf7a"/>
+</svg>

@@ -1,0 +1,1953 @@
+/* =========================================================
+   SALATI — hoja de estilos única
+   Tema: negro profundo + oro viejo, tomado del logo. El oscuro es el modo
+   por defecto porque la app se usa de noche y al amanecer, pero hay claro
+   para quien lo prefiera de día (Ajustes → Apariencia).
+   Tipografía: Amiri (display + árabe) · Cairo (interfaz y cifras)
+   ========================================================= */
+
+:root {
+  /* Fondos, del más profundo al más elevado */
+  --bg:          #070a09;
+  --bg-raised:   #0b100e;
+  --surface:     #101714;
+  --surface-2:   #161f1b;
+  --line:        #1f2b26;
+
+  /* Acento: oro viejo, tomado del logo de SALATI */
+  --accent:        #c9a227;
+  --accent-bright: #f0cf7a;
+  --accent-deep:   #8a6d1f;
+  --accent-wash:   rgb(201 162 39 / 14%);
+  --accent-edge:   rgb(240 207 122 / 30%);
+  --on-accent:     #1a1204;
+
+  /* Mismo oro en rgb suelto, para sombras y destellos */
+  --glow: 240 207 122;
+
+  /* Dos familias para el calendario: verde para las festividades y morado
+     para los días importantes. En cada una, `deep` es el tono oscuro para
+     sombras y hover, el tono medio es el relleno sólido, y `soft` es el
+     único que se usa como texto o borde: los tonos oscuros no alcanzan el
+     contraste mínimo sobre el fondo casi negro. */
+  /* El verde de relleno va deliberadamente oscuro: con un verde más vivo
+     (#12a150) el número blanco encima se quedaba en 3,37:1, por debajo del
+     mínimo AA. Con éste sube a 5,4:1 y la celda sigue destacando sobre el
+     fondo negro. El verde claro se reserva para bordes y textos. */
+  --feast-deep:  #0a5730;
+  --feast:       #0f7a3f;
+  --feast-soft:  #7ee2a8;
+  --feast-glow:  34 197 94;
+
+  --key-deep:    #6b21a8;
+  --key:         #7c3aed;
+  --key-soft:    #c4a0f5;
+  --key-glow:    167 85 247;
+
+  /* Texto de alto contraste */
+  --ink:       #f0f5f2;   /* ~18:1 sobre --bg */
+  --ink-read:  #dbe5e0;   /* cuerpos de texto largos */
+  --ink-soft:  #a3b2ac;
+  --ink-faint: #7b8a84;
+
+  /* Arena apagada: fecha hijri y basmala. Queda por debajo del oro
+     para que el acento siga siendo lo más brillante de la pantalla. */
+  --sand: #c7a87a;
+  /* Ámbar del aviso de inclinación: tiene que distinguirse del oro */
+  --warn: #e2a14f;
+  --danger: #e2725b;
+
+  --r-sm: 10px;
+  --r-md: 16px;
+  --r-lg: 26px;
+  --shadow: 0 1px 0 rgb(255 255 255 / 4%) inset, 0 18px 40px -26px rgb(0 0 0 / 90%);
+
+  --f-ui: "Cairo", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --f-display: "Amiri", "Iowan Old Style", Georgia, serif;
+  --f-ar: "Amiri", "Scheherazade New", "Geeza Pro", "Traditional Arabic", serif;
+
+  --tabbar-h: 66px;
+
+  color-scheme: dark;
+}
+
+/* =========================================================
+   Modo claro
+
+   No es el oscuro «aclarado»: varias variables cambian de papel. En oscuro
+   `--accent-bright` es el oro luminoso que destaca sobre negro; en claro
+   tiene que ser el oro MÁS OSCURO, porque ahora se lee sobre blanco. Lo
+   mismo con `--feast-soft` y `--key-soft`, que pasan de claros a oscuros.
+
+   Todos los pares texto/fondo de aquí están medidos y cumplen AA.
+   ========================================================= */
+:root[data-theme="light"] {
+  /* Blanco cálido, no blanco puro: pega con el oro y cansa menos la vista */
+  --bg:          #faf8f3;
+  --bg-raised:   #ffffff;
+  --surface:     #ffffff;
+  --surface-2:   #f2eee4;
+  --line:        #e3ddcf;
+
+  /* El oro se oscurece para poder leerse sobre fondo claro */
+  --accent:        #8a6d1f;
+  --accent-bright: #6b5314;
+  --accent-deep:   #c9a227;
+  --accent-wash:   rgb(138 109 31 / 12%);
+  --accent-edge:   rgb(138 109 31 / 38%);
+  --on-accent:     #ffffff;
+
+  --glow: 138 109 31;
+
+  /* En claro los `soft` son los tonos OSCUROS: van sobre fondos claros */
+  --feast-deep:  #0a5730;
+  --feast:       #0f7a3f;
+  --feast-soft:  #0a5730;
+  --feast-glow:  15 122 63;
+
+  --key-deep:    #4c1d95;
+  --key:         #7c3aed;
+  --key-soft:    #5b21b6;
+  --key-glow:    124 58 237;
+
+  --ink:       #14120c;
+  --ink-read:  #2c2820;
+  --ink-soft:  #55503f;
+  --ink-faint: #6e6857;
+
+  --sand: #7a6134;
+  --warn: #8f5206;
+  --danger: #a52318;
+
+  --shadow: 0 1px 0 rgb(255 255 255 / 60%) inset, 0 14px 32px -22px rgb(30 24 8 / 45%);
+
+  color-scheme: light;
+}
+
+/* Modo automático: sigue al sistema operativo. Sólo se aplica si el usuario
+   ha elegido «Sistema», que es el valor por defecto. */
+@media (prefers-color-scheme: light) {
+  :root[data-theme="auto"] {
+    --bg:          #faf8f3;
+    --bg-raised:   #ffffff;
+    --surface:     #ffffff;
+    --surface-2:   #f2eee4;
+    --line:        #e3ddcf;
+
+    --accent:        #8a6d1f;
+    --accent-bright: #6b5314;
+    --accent-deep:   #c9a227;
+    --accent-wash:   rgb(138 109 31 / 12%);
+    --accent-edge:   rgb(138 109 31 / 38%);
+    --on-accent:     #ffffff;
+
+    --glow: 138 109 31;
+
+    --feast-deep:  #0a5730;
+    --feast:       #0f7a3f;
+    --feast-soft:  #0a5730;
+    --feast-glow:  15 122 63;
+
+    --key-deep:    #4c1d95;
+    --key:         #7c3aed;
+    --key-soft:    #5b21b6;
+    --key-glow:    124 58 237;
+
+    --ink:       #14120c;
+    --ink-read:  #2c2820;
+    --ink-soft:  #55503f;
+    --ink-faint: #6e6857;
+
+    --sand: #7a6134;
+    --warn: #8f5206;
+    --danger: #a52318;
+
+    --shadow: 0 1px 0 rgb(255 255 255 / 60%) inset, 0 14px 32px -22px rgb(30 24 8 / 45%);
+
+    color-scheme: light;
+  }
+}
+
+* { box-sizing: border-box; }
+
+/* scrollbar-gutter: el panel de rezos tiene scroll y el de la Qibla no.
+   Sin esto, al cambiar de pestaña desaparece la barra y todo el contenido
+   salta unos píxeles en horizontal. */
+html {
+  -webkit-text-size-adjust: 100%;
+  background: var(--bg);
+  scrollbar-gutter: stable;
+  /* Corta el rebote elástico de iOS. Sin esto, al llegar al final del scroll
+     asomaba el fondo del navegador y se rompía la ilusión de app nativa.
+     También desactiva el «tirar para recargar», que en una PWA es un
+     accidente esperando a pasar. */
+  overscroll-behavior: none;
+}
+
+body {
+  margin: 0;
+  padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--f-ui);
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
+}
+
+/* Las zonas con scroll propio SÍ lo conservan: `contain` deja desplazarlas
+   con normalidad pero impide que el gesto se propague al documento y
+   reaparezca el rebote. */
+.mosques__list,
+.verses,
+.surahs,
+.leaflet-container {
+  overscroll-behavior: contain;
+}
+
+.sprite { display: none; }
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+}
+
+button, select, input { font: inherit; color: inherit; }
+
+:where(button, select, input, a, [tabindex]):focus-visible {
+  outline: 2px solid var(--accent-bright);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* ---------------- Cabecera ---------------- */
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: calc(10px + env(safe-area-inset-top)) 16px 10px;
+  background: color-mix(in srgb, var(--bg-raised) 92%, transparent);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--line);
+}
+
+/* El logo ya trae el nombre dentro, así que la cabecera no lleva texto.
+   Se sirve a 360 px y se muestra a 44: nítido en pantallas 2x y 3x. */
+.topbar__brand { display: flex; align-items: center; flex: none; }
+
+.topbar__brand img {
+  width: auto;
+  height: 44px;
+  display: block;
+}
+
+@media (max-width: 360px) {
+  .topbar__brand img { height: 38px; }
+}
+
+.topbar__tools { display: flex; align-items: center; gap: 8px; min-width: 0; }
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 46vw;
+  min-height: 44px;   /* suelo táctil: antes quedaban en 34 px de alto */
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink-soft);
+  font-size: .82rem;
+  cursor: pointer;
+}
+
+.chip svg { width: 15px; height: 15px; flex: none; color: var(--accent-bright); }
+.chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Chip cuadrado sólo con icono (tuerca) */
+.chip--icon { padding: 0; width: 44px; justify-content: center; max-width: none; flex: none; }
+.chip--icon svg { width: 19px; height: 19px; }
+
+/* ---------------- Panel de configuración ---------------- */
+
+.dialog--settings { width: min(460px, calc(100vw - 24px)); }
+
+.dialog__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 20px 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.dialog__head h2 { margin: 0; font-family: var(--f-display); font-size: 1.3rem; }
+.dialog__head .dialog__close { position: static; }
+
+.cfg { padding: 6px 20px 20px; }
+
+.cfg__row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.cfg__text { flex: 1; min-width: 0; }
+.cfg__text b { display: block; font-size: 1rem; font-weight: 600; }
+
+/* La explicación es el motivo de existir de este panel: que se lea bien. */
+.cfg__text p {
+  margin: 4px 0 0;
+  color: var(--ink-soft);
+  font-size: .82rem;
+  line-height: 1.5;
+}
+
+.cfg__row .switch, .cfg__row .btn { flex: none; margin-top: 2px; }
+
+/* Fila apilada: el control va debajo del texto, no al lado */
+.cfg__row--stack { flex-direction: column; align-items: stretch; gap: 12px; }
+
+/* Control segmentado de tres opciones */
+.segmented {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface-2);
+}
+
+.segmented__opt {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 44px;   /* suelo táctil */
+  padding: 8px 6px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--ink-soft);
+  font-size: .84rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .15s ease, color .15s ease;
+}
+
+.segmented__opt svg { width: 17px; height: 17px; flex: none; }
+.segmented__opt:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: -2px; }
+
+.segmented__opt[aria-checked="true"] {
+  background: var(--accent);
+  color: var(--on-accent);
+  box-shadow: 0 1px 6px rgb(var(--glow) / 30%);
+}
+
+@media (max-width: 360px) {
+  .segmented__opt { flex-direction: column; gap: 3px; font-size: .72rem; }
+}
+.cfg > .note { margin-top: 16px; line-height: 1.5; }
+
+/* ---------------- Instrucciones de instalación en iOS ---------------- */
+
+.dialog--ios { width: min(440px, calc(100vw - 24px)); }
+.ios { padding: 6px 20px 22px; }
+.ios__lede { margin: 6px 0 18px; color: var(--ink-soft); font-size: .9rem; line-height: 1.55; }
+
+.ios__steps {
+  display: grid;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: paso;
+}
+
+.ios__step {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+  color: var(--ink-read);
+  font-size: .9rem;
+  line-height: 1.5;
+}
+
+/* El número del paso se genera con CSS: no ensucia el HTML ni el i18n. */
+.ios__step::before {
+  counter-increment: paso;
+  content: counter(paso);
+  grid-row: 1;
+  grid-column: 1;
+  justify-self: center;
+  align-self: start;
+  margin-top: -6px;
+  margin-left: -30px;
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: .7rem;
+  font-weight: 800;
+}
+
+.ios__icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--accent-edge);
+  border-radius: 12px;
+  background: var(--accent-wash);
+  color: var(--accent-bright);
+}
+
+.ios__icon svg { width: 22px; height: 22px; }
+.ios .note { margin-top: 18px; line-height: 1.5; }
+
+/* Apoyar el proyecto: un punto por encima del feedback, pero sin llegar a
+   competir con los ajustes. Perfilado en oro en vez de relleno sólido. */
+.cfg__donate {
+  display: block;
+  margin-top: 20px;
+  padding: 11px 16px;
+  border: 1px solid var(--accent-edge);
+  border-radius: 999px;
+  background: var(--accent-wash);
+  color: var(--accent-bright);
+  font-size: .88rem;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+  transition: background .15s ease, border-color .15s ease;
+}
+
+.cfg__donate:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: 2px; }
+
+/* Canal de feedback: deliberadamente discreto. No compite con los ajustes,
+   pero sigue siendo un objetivo táctil cómodo de pulsar. */
+.cfg__feedback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;   /* suelo táctil, aunque el texto sea pequeño */
+  margin-top: 18px;
+  padding: 10px 8px;
+  color: var(--ink-faint);
+  font-size: .8rem;
+  text-align: center;
+  text-decoration: none;
+  border-radius: 8px;
+  transition: color .15s ease, background .15s ease;
+}
+
+.cfg__feedback:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: 2px; }
+
+/* ---------------- Selector de idioma ---------------- */
+
+.lang { position: relative; flex: none; }
+
+.chip--lang { gap: 5px; padding: 6px 9px; max-width: none; }
+.chip--lang svg { color: inherit; }
+
+.lang__flag {
+  width: 21px;
+  height: 14px;
+  flex: none;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px rgb(255 255 255 / 14%);
+}
+
+.lang__code { font-weight: 600; letter-spacing: .04em; }
+.lang__chevron { width: 13px; height: 13px; opacity: .6; transition: rotate .18s ease; }
+.lang--open .lang__chevron { rotate: 180deg; }
+
+.lang__list {
+  position: absolute;
+  top: calc(100% + 8px);
+  inset-inline-end: 0;
+  z-index: 40;
+  min-width: 176px;
+  margin: 0;
+  padding: 5px;
+  list-style: none;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--bg-raised);
+  box-shadow: var(--shadow);
+}
+
+.lang__list[hidden] { display: none; }
+
+.lang__option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: 7px;
+  color: var(--ink-soft);
+  font-size: .88rem;
+  cursor: pointer;
+}
+
+.lang__option:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: -2px; }
+
+.lang__option[aria-selected="true"] {
+  background: var(--accent-wash);
+  color: var(--accent-bright);
+  font-weight: 600;
+}
+
+/* El árabe necesita más cuerpo para leerse al mismo tamaño */
+.lang__option[lang="ar"] span { font-family: var(--f-ar); font-size: 1.05rem; }
+
+/* ---------------- Layout ---------------- */
+
+.panel { padding: 18px 16px 32px; max-width: 640px; margin-inline: auto; }
+.panel[hidden] { display: none; }
+
+.eyebrow {
+  margin: 0;
+  font-size: .74rem;
+  font-weight: 600;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--sand);
+}
+
+/* Fecha hijri y occidental una al lado de la otra */
+.eyebrow__sep { margin: 0 .5em; opacity: .45; }
+.eyebrow__greg { color: var(--ink-faint); font-weight: 500; }
+
+@media (max-width: 380px) {
+  .eyebrow { letter-spacing: .1em; font-size: .68rem; }
+}
+
+/* ---------------- Estados y avisos ---------------- */
+
+.state {
+  max-width: 100%;
+  padding: 16px;
+  border: 1px dashed var(--line);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  color: var(--ink-soft);
+  font-size: .92rem;
+  /* Los mensajes de error traen a veces URLs o cadenas sin espacios:
+     sin esto se salían de la tarjeta y rompían el ancho de la página. */
+  overflow-wrap: anywhere;
+}
+
+.state--error { border-style: solid; border-color: color-mix(in srgb, var(--danger) 50%, transparent); }
+.state strong { display: block; margin-bottom: 4px; color: var(--ink); font-weight: 600; }
+.state .btn { margin-top: 12px; }
+
+.note { margin: 10px 0 0; color: var(--ink-faint); font-size: .78rem; }
+.error { margin: 4px 0 0; color: var(--danger); font-size: .85rem; }
+
+/* ---------------- Botones y campos ---------------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 11px 18px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 700;
+  font-size: .92rem;
+  cursor: pointer;
+}
+
+.btn:active { translate: 0 1px; }
+.btn svg { width: 18px; height: 18px; }
+
+.btn--ghost {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--ink);
+  font-weight: 600;
+}
+
+
+/* Botón redondo solo con icono: acciones secundarias sin ruido de texto */
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink-soft);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background .15s ease, border-color .15s ease, color .15s ease;
+}
+
+.icon-btn svg { width: 22px; height: 22px; }
+.icon-btn:active { translate: 0 1px; }
+.icon-btn:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: 2px; }
+
+.field { display: block; }
+.field > span { display: block; margin-bottom: 6px; font-size: .8rem; color: var(--ink-soft); }
+.field--inline > span { margin: 0; }
+
+.field select,
+.field input,
+.searchbar input {
+  width: 100%;
+  padding: 11px 13px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.searchbar input:focus { border-color: var(--accent-edge); }
+
+/* ---------------- 1 · Hero de próximo rezo ---------------- */
+
+.hero {
+  position: relative;
+  margin: 0 0 18px;
+  padding: 22px 18px 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background:
+    radial-gradient(130% 80% at 50% -10%, var(--accent-wash) 0%, transparent 62%),
+    var(--surface);
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+
+.hero[hidden] { display: none; }
+
+.hero__dial { position: relative; width: min(280px, 78vw); margin: 10px auto 6px; aspect-ratio: 1; }
+
+.arc { position: absolute; inset: 0; }
+
+.arc circle {
+  fill: none;
+  stroke-width: 3;
+  stroke-linecap: round;
+  transform: rotate(-90deg);
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.arc__track { stroke: var(--line); }
+
+.arc__fill {
+  stroke: var(--accent-bright);
+  filter: drop-shadow(0 0 6px rgb(var(--glow) / 45%));
+  transition: stroke-dashoffset .6s ease;
+}
+
+.hero__inner {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+.hero__label { margin: 0; font-size: .72rem; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-faint); }
+.hero__name { margin: 0; font-family: var(--f-display); font-size: 2.1rem; font-weight: 400; line-height: 1.1; }
+.hero__time { margin: 0; color: var(--ink-soft); font-size: .9rem; }
+
+.hero__count {
+  margin: 8px 0 0;
+  color: var(--accent-bright);
+  font-size: 1.6rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .04em;
+}
+
+.hero__foot { margin: 2px 0 0; color: var(--ink-faint); font-size: .82rem; }
+
+/* ---------------- 1 · Lista de horarios ---------------- */
+
+.times {
+  margin: 0 0 20px;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.time {
+  display: grid;
+  grid-template-columns: 34px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 16px;
+  border-top: 1px solid var(--line);
+}
+
+.time:first-child { border-top: 0; }
+.time svg { width: 22px; height: 22px; color: var(--accent); }
+.time__name { font-weight: 600; }
+.time__ar { font-family: var(--f-ar); font-size: 1rem; color: var(--ink-faint); }
+.time__clock { font-variant-numeric: tabular-nums; font-weight: 600; font-size: 1.05rem; }
+
+.time--info { color: var(--ink-soft); }
+.time--info .time__name { font-weight: 400; }
+.time--info svg { color: var(--ink-faint); }
+
+.time--past { opacity: .42; }
+
+.time--next {
+  background: var(--accent-wash);
+  box-shadow: inset 3px 0 0 var(--accent-bright);
+}
+
+.time--next .time__clock, .time--next .time__name { color: var(--ink); }
+
+.time__tag {
+  display: block;
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--accent-bright);
+}
+
+/* ---------------- 1 · Ajustes ---------------- */
+
+.settings {
+  padding: 4px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--surface);
+}
+
+/* Ya sólo contiene «Instalar SALATI», que casi siempre va oculto: sin esto
+   quedaba una tarjeta vacía. En negativo a propósito: si un navegador no
+   soporta :has(), la regla se ignora y se ve como antes, en vez de esconder
+   el botón de instalar. */
+.settings:not(:has(> .settings__row:not([hidden]))) { display: none; }
+
+/* Nota del método de cálculo, bajo la tarjeta de rezos. Informa sin competir. */
+.times__meta {
+  margin: 12px 2px 0;
+  color: var(--ink-faint);
+  font-size: .76rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.times__meta:empty { display: none; }
+
+.settings__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px 0;
+  border-top: 1px solid var(--line);
+}
+
+.settings__row:first-child { border-top: 0; }
+.settings__row .field { flex: 1; }
+.settings__text { flex: 1; }
+.settings__text b { display: block; font-weight: 600; }
+.settings__text span { color: var(--ink-faint); font-size: .8rem; }
+
+/* Interruptor accesible: un checkbox real con la apariencia cambiada.
+   El raíl mide 28 px por diseño, pero el área pulsable se estira a 44 con
+   padding vertical: el `input` invisible ocupa toda la caja. */
+.switch {
+  position: relative;
+  flex: none;
+  width: 50px;
+  height: 28px;
+  padding-block: 8px;
+  box-sizing: content-box;
+}
+
+.switch input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.switch span {
+  position: absolute;
+  inset: 8px 0;   /* el raíl se centra dentro del área pulsable ampliada */
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface-2);
+  transition: background .2s ease, border-color .2s ease;
+  pointer-events: none;
+}
+
+.switch span::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--ink-faint);
+  transition: translate .2s ease, background .2s ease;
+}
+
+/* Encendido: el raíl se llena de oro y el botón desprende brillo, para que
+   el estado ON se distinga de un vistazo sin necesidad de leer nada. */
+.switch input:checked + span {
+  background: var(--accent);
+  border-color: var(--accent-bright);
+  box-shadow: 0 0 12px rgb(var(--glow) / 35%);
+}
+
+.switch input:checked + span::after {
+  translate: 22px 0;
+  background: #fff;
+  box-shadow: 0 0 8px rgb(var(--glow) / 80%);
+}
+
+.switch input:focus-visible + span { outline: 2px solid var(--accent-bright); outline-offset: 2px; }
+.switch input:disabled + span { opacity: .4; }
+.switch input:disabled { cursor: not-allowed; }
+
+/* Sin subtítulo, la etiqueta es lo único que se lee: que tenga cuerpo. */
+.settings__text b { font-size: 1rem; }
+
+/* Nota al pie de los dos interruptores, no un subtítulo de cada fila. */
+.settings__row--note { padding-top: 0; border-top: 0; }
+.settings__row--note .note { margin: 0; line-height: 1.45; }
+
+/* ---------------- 2 · Qibla ---------------- */
+
+/* Rejilla de tres bandas. `auto` en las dos primeras suena flexible, pero cada
+   una tiene su propia altura fija más abajo, así que en la práctica las tres
+   filas son inmutables y ningún cambio de contenido reflota nada.
+   `align-content: start` impide que la rejilla recoloque las bandas si sobra
+   espacio, que era otra fuente de descuadre entre pestañas. */
+.qibla {
+  display: grid;
+  grid-template-rows: auto auto auto;
+  align-content: start;
+  gap: 12px;
+  width: 100%;
+  text-align: center;
+}
+
+.qibla[hidden] { display: none; }
+
+/* Banda 1 · escenario. Es un cuadrado perfecto y recortado: pase lo que pase
+   dentro (la brújula crece al alinearse, el halo se expande), no puede
+   empujar ni un píxel hacia fuera. Aquí es donde se corta el CLS de raíz. */
+.qibla__stage {
+  position: relative;
+  overflow: hidden;
+  width: min(300px, 78vw);
+  aspect-ratio: 1 / 1;
+  margin-inline: auto;
+  /* place-items centra la brújula en los dos ejes sin márgenes que ajustar */
+  display: grid;
+  place-items: center;
+  /* Aísla el cálculo de layout de este subárbol del resto de la página */
+  contain: layout paint;
+}
+
+/* La brújula ocupa el escenario entero y se ancla a él, no al flujo. */
+.compass {
+  position: absolute;
+  inset: 0;
+  /* El glow de --aligned se dibuja hacia dentro, nunca desplaza */
+  transform-origin: center;
+}
+
+/* Banda 2 · aviso y botón, con altura reservada para el peor caso:
+   dos líneas de texto + el botón de permiso de iOS. Así da igual que el
+   mensaje cambie de una a dos líneas o que el botón aparezca y desaparezca. */
+.qibla__status {
+  display: grid;
+  grid-template-rows: 2lh 44px;
+  align-items: center;
+  justify-items: center;
+  gap: 6px;
+}
+
+/* Respaldo para navegadores sin la unidad `lh` (2 líneas ≈ 44 px) */
+@supports not (height: 1lh) {
+  .qibla__status { grid-template-rows: 44px 44px; }
+}
+
+/* Brújula ya activa: la fila del botón se colapsa a cero. Es una transición
+   única (ocurre al conceder el permiso, no se repite), así que no reintroduce
+   el salto de layout que se corrigió reservando el hueco. */
+.qibla__status--live { grid-template-rows: 2lh 0; gap: 0; }
+
+@supports not (height: 1lh) {
+  .qibla__status--live { grid-template-rows: 44px 0; }
+}
+
+.qibla__status--live .qibla__action { display: none; }
+
+.qibla__action { display: flex; align-items: center; justify-content: center; }
+
+.compass__ring { position: absolute; inset: 0; transition: transform .18s linear; }
+.compass__ring svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.compass__edge { fill: var(--surface); stroke: var(--line); stroke-width: 1.5; }
+.compass__ticks line { stroke: var(--ink-faint); stroke-width: 1.4; opacity: .55; }
+.compass__ticks line.major { stroke: var(--accent); stroke-width: 2.2; opacity: 1; }
+
+.compass__card {
+  fill: var(--ink-soft);
+  font-family: var(--f-display);
+  font-size: 11px;
+  text-anchor: middle;
+  dominant-baseline: middle;
+}
+
+.compass__qibla { position: absolute; inset: 0; transform-origin: center; }
+
+.compass__qibla svg {
+  position: absolute;
+  top: 4%;
+  left: 50%;
+  width: 13%;
+  height: 13%;
+  translate: -50% 0;
+  color: var(--accent-bright);
+  filter: drop-shadow(0 0 8px rgb(var(--glow) / 55%));
+}
+
+.compass__qibla::after {
+  content: "";
+  position: absolute;
+  top: 17%;
+  left: 50%;
+  width: 2px;
+  height: 33%;
+  translate: -50% 0;
+  background: linear-gradient(180deg, var(--accent-bright), transparent);
+}
+
+.compass__hub {
+  position: absolute;
+  inset: 34%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--bg-raised);
+}
+
+.compass__deg { margin: 0; font-family: var(--f-display); font-size: 1.6rem; font-variant-numeric: tabular-nums; }
+.compass__dir { margin: 0; font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-faint); }
+
+/* La altura ya la impone la rejilla .qibla__status, así que aquí el párrafo
+   sólo se centra dentro de su banda y se recorta si algún idioma se pasara. */
+.qibla__hint {
+  margin: 0;
+  max-width: 34ch;
+  overflow: hidden;
+  color: var(--ink-soft);
+  font-size: .88rem;
+  transition: color .2s ease;
+}
+.qibla__hint--ok { color: var(--accent-bright); font-weight: 600; }
+.qibla__hint--warn { color: var(--warn); }
+
+.facts {
+  display: grid;
+  gap: 1px;
+  margin: 0;   /* el espaciado lo pone el `gap` de la rejilla .qibla */
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--line);
+  overflow: hidden;
+  text-align: left;
+}
+
+.facts > div { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 13px 16px; background: var(--surface); }
+.facts dt { display: flex; align-items: center; gap: 9px; color: var(--ink-soft); font-size: .85rem; }
+.facts dt svg { width: 16px; height: 16px; flex: none; color: var(--accent); }
+.facts dd { margin: 0; font-weight: 600; font-variant-numeric: tabular-nums; text-align: right; }
+
+/* Nivel de burbuja: el punto se descentra según la inclinación del móvil */
+.level {
+  position: absolute;
+  bottom: 13%;
+  left: 50%;
+  width: 26px;
+  height: 26px;
+  translate: -50% 0;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+}
+
+.level[hidden] { display: none; }
+
+.level__dot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background: var(--ink-faint);
+  transition: translate .1s linear, background .2s ease;
+}
+
+.level--flat { border-color: var(--accent-edge); }
+.level--flat .level__dot { background: var(--accent-bright); }
+
+/* Apuntando a la Kaaba: la brújula entera se enciende */
+.compass--aligned .compass__edge {
+  stroke: var(--accent-bright);
+  stroke-width: 2.5;
+}
+
+.compass--aligned .compass__ticks line.major { stroke: var(--accent-bright); }
+
+.compass--aligned .compass__qibla svg {
+  scale: 1.15;
+  filter: drop-shadow(0 0 18px rgb(var(--glow) / 95%));
+}
+
+.compass--aligned .compass__hub {
+  border-color: var(--accent-bright);
+  background: color-mix(in srgb, var(--accent) 22%, var(--bg-raised));
+}
+
+.compass--aligned .compass__deg { color: var(--accent-bright); }
+.compass--aligned .compass__dir { color: var(--accent); }
+
+.compass--aligned { animation: qibla-lock 1.2s ease-in-out infinite; }
+
+@keyframes qibla-lock {
+  0%, 100% { filter: drop-shadow(0 0 2px rgb(var(--glow) / 25%)); }
+  50%      { filter: drop-shadow(0 0 20px rgb(var(--glow) / 60%)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .compass--aligned { animation: none; filter: drop-shadow(0 0 14px rgb(var(--glow) / 50%)); }
+}
+
+/* ---------------- 2c · Calendario islámico ---------------- */
+
+.cal { display: grid; gap: 14px; }
+
+.cal__bar {
+  display: grid;
+  grid-template-columns: 52px 1fr 52px;   /* columnas fijas: el título no mueve los botones */
+  align-items: center;
+  gap: 10px;
+}
+
+.cal__titles { text-align: center; min-width: 0; }
+
+.cal__greg {
+  margin: 0;
+  font-family: var(--f-display);
+  font-size: 1.25rem;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cal__hijri {
+  margin: 2px 0 0;
+  color: var(--accent-bright);
+  font-size: .82rem;
+  letter-spacing: .04em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cal__next svg { rotate: 180deg; }   /* se reutiliza la flecha de «atrás» */
+
+/* Zona de deslizamiento. `overflow-x: clip` recorta la animación de entrada
+   sin crear un contenedor de scroll, así que el gesto no genera barra
+   horizontal. `pan-y` le dice al navegador que el scroll vertical es suyo y
+   el horizontal nuestro, que es lo que hace que el gesto se sienta fluido. */
+.cal__swipe {
+  display: grid;
+  gap: 4px;
+  overflow-x: clip;
+  touch-action: pan-y;
+}
+
+/* Entrada del mes nuevo: sólo transform y opacidad, cero coste de layout. */
+.cal__grid--from-right { animation: cal-in-right .22s ease-out; }
+.cal__grid--from-left  { animation: cal-in-left .22s ease-out; }
+
+@keyframes cal-in-right {
+  from { transform: translateX(9%); opacity: 0; }
+  to   { transform: none; opacity: 1; }
+}
+
+@keyframes cal-in-left {
+  from { transform: translateX(-9%); opacity: 0; }
+  to   { transform: none; opacity: 1; }
+}
+
+/* Cabecera y rejilla comparten las mismas 7 columnas iguales, así nunca
+   se desalinean por mucho que cambie el ancho del texto. */
+.cal__weekdays,
+.cal__grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.cal__wd {
+  padding: 4px 0;
+  color: var(--ink-faint);
+  font-size: .68rem;
+  font-weight: 600;
+  letter-spacing: .04em;
+  text-align: center;
+  text-transform: uppercase;
+  overflow: hidden;
+}
+
+/* 6 filas SIEMPRE, tenga el mes 28 o 31 días y empiece donde empiece.
+   Ésta es la línea que impide cualquier salto de altura al cambiar de mes. */
+.cal__grid {
+  /* minmax(44px, …) es el suelo táctil recomendado: a 320 px las celdas se
+     quedaban en 39×43 y se fallaba el toque a menudo. La proporción 1:1 da
+     el alto necesario, y el tope evita que en escritorio salgan enormes. */
+  grid-template-rows: repeat(6, minmax(44px, 1fr));
+  aspect-ratio: 7 / 7;
+  max-height: 420px;
+  /* `layout` a secas y no `layout paint`: paint recortaría las filas si el
+     suelo de 44 px llegara a superar la altura de la caja. */
+  contain: layout;
+}
+
+.cal__grid:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: 4px; border-radius: 8px; }
+
+.cal__day {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  min-width: 0;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+  overflow: hidden;
+  transition: background .15s ease, border-color .15s ease;
+}
+
+.cal__day:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: -2px; }
+
+.cal__g { font-size: .95rem; font-weight: 600; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.cal__h { font-size: .66rem; line-height: 1.1; color: var(--accent); font-variant-numeric: tabular-nums; }
+
+/* Días del mes anterior o siguiente: presentes para no romper la rejilla,
+   pero apagados para que no compitan con el mes que se está mirando.
+
+   Aquí había `opacity: .45` sobre un color ya tenue y el contraste real
+   caía a 1,98:1, por debajo incluso del mínimo de texto grande. Se atenúan
+   por color en vez de por opacidad, manteniendo la legibilidad. */
+.cal__day--out { background: transparent; }
+.cal__day--out .cal__g { color: var(--ink-faint); font-weight: 500; }
+.cal__day--out .cal__h { color: var(--ink-faint); }
+.cal__day--out .cal__dot { opacity: .5; }
+
+.cal__day--today { border-color: var(--accent-bright); background: var(--accent-wash); }
+.cal__day--today .cal__g { color: var(--accent-bright); }
+
+.cal__day--sel { border-color: var(--accent-bright); box-shadow: 0 0 0 2px rgb(var(--glow) / 30%) inset; }
+
+/* Punto de festividad, anclado en absoluto para que no altere la altura */
+.cal__dot {
+  position: absolute;
+  bottom: 5px;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  translate: -50% 0;
+  border-radius: 50%;
+  background: var(--key-soft);
+}
+
+/* ---- Días marcados: dos intensidades del mismo morado ----
+   Festividad = relleno sólido y número en blanco, imposible de pasar por alto.
+   Día importante = perfilado, un escalón por debajo pero claramente distinto
+   de un día normal. Ambos en negrita. */
+
+/* Festividad: verde sólido, el nivel más alto de énfasis. */
+.cal__day--feast {
+  background: var(--feast);
+  border-color: var(--feast-soft);
+  box-shadow: 0 0 0 1px var(--feast-deep) inset, 0 3px 10px rgb(var(--feast-glow) / 35%);
+}
+
+.cal__day--feast .cal__g { color: #fff; font-weight: 800; }
+.cal__day--feast .cal__h { color: rgb(255 255 255 / 90%); font-weight: 600; }
+.cal__day--feast .cal__dot { background: #fff; }
+
+/* Día importante: morado perfilado, un escalón por debajo. */
+.cal__day--key {
+  background: color-mix(in srgb, var(--key) 20%, var(--surface));
+  border-color: var(--key-soft);
+  box-shadow: 0 0 0 1px rgb(var(--key-glow) / 25%) inset;
+}
+
+.cal__day--key .cal__g { color: var(--key-soft); font-weight: 800; }
+.cal__day--key .cal__h { color: var(--key-soft); font-weight: 600; }
+.cal__day--key .cal__dot { background: var(--key-soft); }
+
+/* Los días normales bajan un punto para que los marcados manden.
+   Se apaga el fondo y el borde, nunca el texto: bajar el color del número
+   rompería el contraste que se corrigió en la auditoría. */
+.cal__day:not(.cal__day--fest):not(.cal__day--today) {
+  background: color-mix(in srgb, var(--surface) 70%, transparent);
+}
+
+/* Tarjeta del día elegido. Sin altura reservada porque aparece bajo la
+   rejilla y sólo empuja la leyenda, que es lo último de la vista. */
+.cal__detail {
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+}
+
+.cal__detail[hidden] { display: none; }
+.cal__detail-h { margin: 0; font-family: var(--f-display); font-size: 1.1rem; color: var(--accent-bright); }
+.cal__detail-g { margin: 2px 0 0; color: var(--ink-soft); font-size: .85rem; }
+
+.cal__detail-fest {
+  display: inline-block;
+  margin: 8px 0 0;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: .8rem;
+  font-weight: 600;
+}
+
+.cal__detail-fest--feast { background: var(--feast); color: #fff; }
+.cal__detail-fest--key   { background: rgb(var(--key-glow) / 18%); color: var(--key-soft); }
+
+.cal__foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+
+.cal__legend { display: flex; gap: 14px; margin: 0; padding: 0; list-style: none; }
+.cal__legend li { display: flex; align-items: center; gap: 6px; color: var(--ink-soft); font-size: .76rem; }
+
+/* La muestra de la leyenda replica el aspecto real de la celda, no un punto:
+   así se reconoce de un vistazo a qué corresponde cada estilo. */
+.cal__chip {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  border-radius: 5px;
+  border: 1px solid currentColor;
+}
+
+/* Cada muestra copia el aspecto real de su celda, incluido el borde. */
+.cal__chip--feast { background: var(--feast); color: var(--feast-soft); }
+.cal__chip--key { background: color-mix(in srgb, var(--key) 20%, var(--surface)); color: var(--key-soft); }
+
+@media (max-width: 360px) {
+  .cal__grid { gap: 3px; }
+  .cal__g { font-size: .86rem; }
+  .cal__h { font-size: .6rem; }
+}
+
+/* ---------------- 3 · Corán ---------------- */
+
+.searchbar { margin-bottom: 14px; }
+
+.surahs { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+
+.surah {
+  display: grid;
+  grid-template-columns: 42px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 11px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  text-align: left;
+  cursor: pointer;
+}
+
+
+.surah__num {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  color: var(--accent-bright);
+  font-size: .82rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.surah__num svg { position: absolute; inset: 0; width: 100%; height: 100%; color: var(--accent-wash); }
+.surah__num span { position: relative; }
+
+.surah__name { font-weight: 600; }
+.surah__sub { display: block; color: var(--ink-faint); font-size: .78rem; font-weight: 400; }
+.surah__ar { font-family: var(--f-ar); font-size: 1.35rem; color: var(--accent-bright); }
+
+/* Sólo lleva el botón de volver: la traducción sigue al idioma de la app. */
+.reader__bar { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+
+.reader__head { padding-bottom: 14px; margin-bottom: 8px; border-bottom: 1px solid var(--line); text-align: center; }
+.reader__ar { margin: 6px 0 2px; font-family: var(--f-ar); font-size: 2.1rem; font-weight: 400; color: var(--accent-bright); }
+.reader__meta { margin: 0; color: var(--ink-soft); font-size: .85rem; }
+
+.bismillah {
+  margin: 16px 0 0;
+  font-family: var(--f-ar);
+  font-size: 1.4rem;
+  line-height: 2;
+  color: var(--sand);
+  direction: rtl;
+}
+
+.verses { margin: 0; padding: 0; list-style: none; }
+.verse { padding: 20px 0; border-bottom: 1px solid var(--line); }
+
+.verse__ar {
+  margin: 0;
+  direction: rtl;
+  text-align: right;
+  color: var(--ink);
+  font-family: var(--f-ar);
+  font-size: 1.72rem;
+  line-height: 2.3;
+}
+
+.verse__tr { margin: 12px 0 0; color: var(--ink-read); font-size: .98rem; }
+.verse__tr sup { font-size: .7em; color: var(--accent-bright); }
+
+.verse__no {
+  display: inline-block;
+  min-width: 2.2em;
+  margin-bottom: 8px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--accent-wash);
+  color: var(--accent-bright);
+  font-size: .72rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+/* ---------------- 4 · Tasbih ---------------- */
+
+.tasbih {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 14px;
+  min-height: calc(100dvh - var(--tabbar-h) - env(safe-area-inset-bottom) - 110px);
+}
+
+.tasbih__targets { display: flex; justify-content: center; gap: 8px; }
+
+.tasbih__target {
+  padding: 7px 15px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-soft);
+  font-size: .85rem;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+
+.tasbih__target[aria-pressed="true"] {
+  border-color: var(--accent-edge);
+  background: var(--accent-wash);
+  color: var(--accent-bright);
+  font-weight: 700;
+}
+
+/* La zona de conteo ocupa todo el hueco disponible: se toca sin mirar */
+.tasbih__pad {
+  position: relative;
+  display: grid;
+  place-items: center;
+  align-self: stretch;
+  width: 100%;
+  min-height: 48vh;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: radial-gradient(80% 60% at 50% 40%, var(--accent-wash) 0%, transparent 70%), var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.tasbih__pad:active { background: radial-gradient(80% 60% at 50% 40%, var(--accent-wash) 0%, transparent 55%), var(--surface-2); }
+
+.tasbih__ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
+  width: min(300px, 74vw);
+  aspect-ratio: 1;
+}
+
+.tasbih__ring circle {
+  fill: none;
+  stroke-width: 4;
+  stroke-linecap: round;
+  transform: rotate(-90deg);
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.tasbih__ring .track { stroke: var(--line); }
+.tasbih__ring .fill { stroke: var(--accent-bright); transition: stroke-dashoffset .25s ease; }
+
+.tasbih__inner { position: relative; text-align: center; }
+
+.tasbih__count {
+  display: block;
+  font-family: var(--f-display);
+  font-size: clamp(4.5rem, 22vw, 7rem);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.tasbih__of { display: block; margin-top: 2px; color: var(--ink-faint); font-size: .9rem; font-variant-numeric: tabular-nums; }
+.tasbih__dhikr { display: block; margin-top: 10px; font-family: var(--f-ar); font-size: 1.5rem; color: var(--accent-bright); }
+.tasbih__rounds { display: block; margin-top: 10px; font-size: .62rem; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-faint); }
+
+.tasbih__actions { display: flex; justify-content: center; gap: 10px; }
+
+/* Destello al completar una ronda */
+@keyframes pulse-round {
+  from { box-shadow: 0 0 0 0 rgb(var(--glow) / 45%); }
+  to   { box-shadow: 0 0 0 26px rgb(var(--glow) / 0%); }
+}
+
+.tasbih__pad--round { animation: pulse-round .6s ease-out; }
+
+/* ---------------- Barra de pestañas ---------------- */
+
+.tabbar {
+  position: fixed;
+  inset: auto 0 0;
+  z-index: 30;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  height: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+  border-top: 1px solid var(--line);
+  background: color-mix(in srgb, var(--bg-raised) 92%, transparent);
+  backdrop-filter: blur(12px);
+}
+
+.tabbar__btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  border: 0;
+  background: none;
+  color: var(--ink-faint);
+  font-size: .58rem;   /* seis pestañas: el rótulo tiene que encoger */
+  letter-spacing: 0;
+  cursor: pointer;
+}
+
+/* Con cinco pestañas las etiquetas no caben enteras en móviles estrechos */
+.tabbar__btn span {
+  max-width: 100%;
+  padding-inline: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tabbar__btn svg { width: 21px; height: 21px; }
+.tabbar__btn[aria-selected="true"] { color: var(--accent-bright); font-weight: 700; }
+
+/* ---------------- Diálogo ---------------- */
+
+.dialog {
+  width: min(420px, calc(100vw - 32px));
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 30px 70px -20px #000;
+}
+
+.dialog::backdrop { background: rgb(3 6 5 / 78%); backdrop-filter: blur(3px); }
+.dialog form { position: relative; padding: 22px; }
+.dialog h2 { margin: 0; font-family: var(--f-display); font-size: 1.4rem; font-weight: 400; }
+.dialog__lede { margin: 4px 0 16px; color: var(--ink-soft); font-size: .88rem; }
+.dialog__actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 18px; flex-wrap: wrap; }
+
+.dialog__close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  border: 0;
+  background: none;
+  color: var(--ink-faint);
+  font-size: 1.6rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* ---------------- Toast ---------------- */
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--tabbar-h) + 18px + env(safe-area-inset-bottom));
+  z-index: 40;
+  max-width: min(420px, calc(100vw - 32px));
+  margin: 0;
+  padding: 11px 16px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--ink);
+  font-size: .86rem;
+  translate: -50% 12px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .25s ease, translate .25s ease;
+}
+
+.toast--on { opacity: 1; translate: -50% 0; }
+
+/* ---------------- 2b · Mezquitas cercanas ---------------- */
+
+.mosques[hidden] { display: none; }
+
+.mosques__bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.mosques__bar .field { flex: 1; }
+.mosques__bar .icon-btn { width: 44px; height: 44px; flex: none; }
+.mosques__bar .icon-btn svg { width: 20px; height: 20px; }
+
+.map {
+  position: relative;
+  height: min(58vh, 420px);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  overflow: hidden;
+  background: var(--surface);
+}
+
+/* Barra de progreso mientras Overpass responde: sin esto el mapa parece
+   colgado durante los segundos que tarda la consulta. */
+.map--busy::after {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 500;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--accent-bright), transparent);
+  animation: map-busy 1.1s linear infinite;
+}
+
+@keyframes map-busy {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(100%); }
+}
+
+/* Globo de agrupación de marcadores */
+.cluster {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #12a150;
+  border: 2px solid #fff;
+  color: #fff;
+  font-weight: 700;
+  font-size: .85rem;
+  box-shadow: 0 2px 6px rgb(0 0 0 / 40%);
+}
+
+/* La librería trae sus propios fondos claros; los anulamos */
+.marker-cluster, .marker-cluster div { background: none !important; }
+
+/* Leaflet trae fondo blanco y enlaces azules: se adaptan al tema oscuro */
+.leaflet-container { background: var(--surface); font-family: var(--f-ui); }
+
+.leaflet-control-attribution,
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip,
+.leaflet-bar a {
+  background: var(--bg-raised);
+  color: var(--ink-soft);
+}
+
+.leaflet-control-attribution a, .leaflet-popup-content a { color: var(--accent-bright); }
+.leaflet-bar a { border-bottom-color: var(--line); }
+.leaflet-popup-content-wrapper { border-radius: var(--r-sm); box-shadow: var(--shadow); }
+.leaflet-popup-content { margin: 11px 14px; line-height: 1.5; color: var(--ink); }
+
+/* Marcadores: SVG en línea dentro de un divIcon, sin los PNG de Leaflet.
+   El dibujo vive en js/mosques.js; aquí sólo se quita el fondo del envoltorio
+   y se les da algo de sombra para que despeguen del mapa claro. */
+.pin-wrap { background: none; border: 0; }
+.pin-wrap svg { display: block; filter: drop-shadow(0 2px 3px rgb(0 0 0 / 35%)); }
+
+/* Aviso dentro de la vista: acompaña al mapa, nunca lo sustituye. */
+.mosques__notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--warn);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+}
+
+.mosques__notice[hidden] { display: none; }
+
+.mosques__notice-txt {
+  flex: 1 1 100%;
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: .85rem;
+  overflow-wrap: anywhere;
+}
+
+.mosques__notice .btn { flex: none; }
+
+.mosques__summary { margin: 14px 0 8px; color: var(--ink-soft); font-size: .85rem; }
+
+.mosques__list { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+
+.mosque {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  cursor: pointer;
+}
+
+.mosque:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: 2px; }
+
+/* min-width: 0 es lo que permite que un hijo flex se encoja por debajo de su
+   contenido; sin esto los nombres largos de OSM estiraban la fila. */
+.mosque__body { min-width: 0; }
+.mosque__name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mosque__meta { color: var(--ink-faint); font-size: .8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mosque__km { flex: none; color: var(--accent-bright); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+/* La fila de error no es una mezquita: el texto va completo y en varias
+   líneas, y el botón baja debajo si no cabe al lado. */
+.mosque--error {
+  flex-wrap: wrap;
+  align-items: flex-start;
+  cursor: default;
+  border-style: dashed;
+}
+
+.mosque--error > div { flex: 1 1 100%; min-width: 0; }
+.mosque--error .btn { flex: none; margin-top: 10px; }
+
+.mosque--error .mosque__name,
+.mosque--error .mosque__meta {
+  overflow: visible;
+  white-space: normal;
+  overflow-wrap: anywhere;   /* corta URLs o palabras sin espacios */
+}
+
+/* ---------------- Escritorio ---------------- */
+
+/* =========================================================
+   Escritorio
+
+   Todo lo de aquí abajo vive dentro de media queries `min-width`, así que
+   el móvil no se toca: por debajo de 768 px no se aplica ni una sola de
+   estas reglas.
+
+   En vez de estirar la columna de 640 px por un monitor de 27 pulgadas, la
+   barra inferior pasa a ser una barra lateral y el contenido gana ancho.
+   ========================================================= */
+
+@media (min-width: 768px) {
+  body {
+    display: grid;
+    grid-template-columns: 220px minmax(0, 1fr);
+    grid-template-rows: auto 1fr;
+    grid-template-areas:
+      "nav header"
+      "nav main";
+    min-height: 100vh;
+    padding-bottom: 0;   /* ya no hay barra inferior que esquivar */
+  }
+
+  .topbar { grid-area: header; }
+  #main   { grid-area: main; }
+  .tabbar { grid-area: nav; }
+
+  /* La barra inferior se convierte en lateral fija */
+  .tabbar {
+    position: sticky;
+    /* `inset: auto` va ANTES que `top`: al revés anulaba el anclaje y la
+       barra se iba con el scroll en vez de quedarse fija. */
+    inset: auto;
+    top: 0;
+    align-self: start;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    height: 100vh;
+    padding: 16px 12px;
+    border-top: 0;
+    border-right: 1px solid var(--line);
+  }
+
+  .tabbar__btn {
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 12px;
+    padding: 11px 14px;
+    border-radius: 10px;
+    font-size: .92rem;
+    letter-spacing: .01em;
+  }
+
+  .tabbar__btn svg { width: 20px; height: 20px; }
+  .tabbar__btn span { max-width: none; }   /* ya hay sitio: sin recortes */
+  /* Anidada para que una tablet táctil ancha no arrastre el hover pegado */
+  @media (hover: hover) and (pointer: fine) {
+    .tabbar__btn:hover { background: var(--surface); color: var(--ink); }
+  }
+  .tabbar__btn[aria-selected="true"] { background: var(--accent-wash); }
+
+  .topbar { padding-inline: 28px; }
+  .panel { max-width: 760px; padding: 28px 28px 48px; }
+
+  .chip { max-width: 280px; }
+
+  /* El tasbih ya no compite con la barra inferior */
+  .tasbih { min-height: calc(100vh - 220px); }
+  .tasbih__pad { min-height: 46vh; }
+
+  .toast { bottom: 24px; left: calc(50% + 110px); }
+  .map { height: min(62vh, 520px); }
+}
+
+@media (min-width: 1024px) {
+  body { grid-template-columns: 248px minmax(0, 1fr); }
+
+  .topbar { padding-inline: 40px; }
+  .panel { max-width: 980px; padding: 32px 40px 56px; }
+  .toast { left: calc(50% + 124px); }
+
+  /* Rezos en dos columnas: el reloj a la izquierda, los horarios a la
+     derecha. En vertical obligaba a hacer scroll para ver ambas cosas. */
+  #panel-prayer {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas:
+      "state  state"
+      "hero   times"
+      "hero   meta"
+      "config config";
+    align-content: start;
+    gap: 0 32px;
+  }
+
+  #prayer-state { grid-area: state; }
+  .hero         { grid-area: hero; align-self: start; }
+  .times        { grid-area: times; margin-top: 0; }
+  .times__meta  { grid-area: meta; text-align: left; }
+  #panel-prayer .settings { grid-area: config; margin-top: 24px; }
+
+  /* La brújula puede crecer: hay sitio de sobra */
+  .qibla__stage { width: min(360px, 42vw); }
+
+  /* Mapa y lista de mezquitas, uno al lado del otro */
+  #panel-mosques .mosques {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+    grid-template-areas:
+      "bar     bar"
+      "map     summary"
+      "map     list"
+      "notice  notice";
+    gap: 0 24px;
+    align-content: start;
+  }
+
+  .mosques__bar     { grid-area: bar; }
+  #map              { grid-area: map; height: 520px; }
+  .mosques__notice  { grid-area: notice; }
+  .mosques__summary { grid-area: summary; margin-top: 0; }
+  .mosques__list    { grid-area: list; align-content: start; max-height: 470px; overflow-y: auto; }
+
+  /* El Corán se lee mejor en una medida corta, así que no se ensancha */
+  #panel-quran .verses, #panel-quran .reader__head { max-width: 720px; margin-inline: auto; }
+}
+
+@media (min-width: 1400px) {
+  /* Tope duro: más ancho que esto sólo estropea la lectura. */
+  .panel { max-width: 1120px; }
+  .topbar__tools { padding-inline-end: 8px; }
+}
+
+/* =========================================================
+   Tipografía fluida
+
+   `clamp(mínimo, preferido, máximo)` deja que los titulares crezcan con el
+   ancho de la ventana pero con techo: sin el máximo, en un monitor de 27"
+   el nombre del rezo saldría desproporcionado. El término del medio usa
+   `vw` para que la interpolación sea continua y no dé saltos entre breakpoints.
+
+   Los mínimos coinciden con los tamaños que ya estaban, así que en móvil
+   no cambia absolutamente nada.
+   ========================================================= */
+
+/* Ojo: estos dos viven DENTRO del círculo del reloj, que está topado a
+   280 px. Los máximos están calculados para que el bloque de texto siga
+   cabiendo cuando el dial crece a 320 px en escritorio. */
+.hero__name   { font-size: clamp(2.1rem, 1.8rem + 1.2vw, 2.8rem); }
+.hero__count  { font-size: clamp(2.4rem, 2.1rem + 1.2vw, 3rem); }
+.compass__deg { font-size: clamp(1.6rem, 1.4rem + .8vw, 2.1rem); }
+.cal__greg    { font-size: clamp(1.25rem, 1.1rem + .6vw, 1.6rem); }
+.reader__ar   { font-size: clamp(2.1rem, 1.8rem + 1.4vw, 3rem); }
+.dialog__head h2 { font-size: clamp(1.3rem, 1.2rem + .4vw, 1.55rem); }
+
+/* El contador del tasbih ya escalaba con el círculo: sólo se le pone techo */
+.tasbih__count { font-size: clamp(3.6rem, 3rem + 4vw, 5.4rem); }
+
+/* =========================================================
+   Contenido enmarcado en pantallas grandes
+
+   Nota: la app NO se encierra en un marco tipo móvil centrado, porque desde
+   768 px la navegación es una barra lateral y las dos cosas juntas darían
+   una tarjeta estrecha pegada a un menú. Lo que se enmarca es el área de
+   contenido, que consigue el mismo efecto de «app dentro de la pantalla»
+   sin desperdiciar el ancho.
+   ========================================================= */
+
+@media (min-width: 1024px) {
+  #main { padding: 22px 24px 40px; }
+
+  .panel {
+    padding: 34px 40px 44px;
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    background: var(--bg-raised);
+    box-shadow: var(--shadow);
+  }
+
+  /* Dos columnas para la lista de suras: 114 elementos en una sola columna
+     obligaban a un scroll larguísimo con media pantalla vacía al lado. */
+  .surahs { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+
+  /* El círculo del reloj crece con la pantalla; los clamp de arriba están
+     calculados contra este tamaño para que el texto no se salga. */
+  .hero__dial { width: 320px; }
+
+  /* La lista de horarios se deja en una sola columna a propósito: es una
+     tarjeta con filas separadas por líneas, y partirla en dos rompería
+     esa lectura vertical de arriba abajo del día. */
+}
+
+@media (min-width: 1400px) {
+  .surahs { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .panel { padding: 40px 48px 52px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition-duration: .001ms !important; animation-duration: .001ms !important; }
+}
+
+/* =========================================================
+   Estados :hover, solo para raton
+
+   (hover: hover) and (pointer: fine) deja fuera a los dispositivos
+   tactiles. Sin esto, al tocar un boton en el movil se quedaba con el
+   estilo de hover pegado hasta tocar en otro sitio, que es una de esas
+   cosas que delatan que una web no es una app nativa.
+   ========================================================= */
+@media (hover: hover) and (pointer: fine) {
+  .chip:hover { border-color: var(--accent-edge); color: var(--ink); }
+  .segmented__opt:hover { color: var(--ink); }
+  .cfg__donate:hover { background: color-mix(in srgb, var(--accent) 24%, transparent); border-color: var(--accent-bright); }
+  .cfg__feedback:hover { color: var(--accent-bright); background: var(--surface); }
+  .lang__option:hover { background: var(--surface-2); color: var(--ink); }
+  .btn:hover { background: var(--accent-bright); }
+  .btn--ghost:hover { background: var(--accent-wash); border-color: var(--accent-edge); }
+  .icon-btn:hover { background: var(--accent-wash); border-color: var(--accent-edge); color: var(--accent-bright); }
+  .field select:hover { border-color: var(--accent-edge); }
+  .cal__day:hover { background: var(--surface-2); border-color: var(--accent-edge); }
+  .cal__day--feast:hover { background: var(--feast-deep); border-color: #fff; }
+  .cal__day--key:hover { background: color-mix(in srgb, var(--key) 34%, var(--surface)); }
+  .surah:hover { border-color: var(--accent-edge); background: var(--surface-2); }
+  .leaflet-bar a:hover { background: var(--surface-2); color: var(--ink); }
+  .mosque:hover { border-color: var(--accent-edge); background: var(--surface-2); }
+  .mosque--error:hover { border-color: var(--line); background: var(--surface); }
+}
