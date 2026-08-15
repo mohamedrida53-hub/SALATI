@@ -11,7 +11,9 @@
     "android:sync": "npm run build && npm run native:apply && npx cap sync android"
   },
   "dependencies": {
+    "@capgo/capacitor-navigation-bar": "^6.0.0",
     "@capacitor/android": "^6.2.0",
+    "@capacitor/browser": "^6.0.0",
     "@capacitor/core": "^6.2.0",
     "@capacitor/geolocation": "^6.1.0",
     "@capacitor/local-notifications": "^6.1.0"

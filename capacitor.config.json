@@ -2,8 +2,10 @@
   "appId": "com.salati.app",
   "appName": "SALATI",
   "webDir": "www",
+  "backgroundColor": "#070A09",
   "android": {
-    "allowMixedContent": false
+    "allowMixedContent": false,
+    "backgroundColor": "#070A09"
   },
   "plugins": {
     "LocalNotifications": {

@@ -19,6 +19,7 @@ import {
   enableNotifications, disableNotifications,
   adhanEnabled, enableAdhan, disableAdhan,
   scheduleAdhan, playAdhan, primeAudioOnFirstGesture, primeAudioNow, subscribePush,
+  syncNativePermission,
 } from './notifications.js';
 import { $, $$, el, icon, apiDate, tomorrow, load, save, toast } from './utils.js';
 
@@ -210,8 +211,8 @@ function wireSettings() {
 
   $('#btn-close-cfg').addEventListener('click', () => dlg.close());
 
-  // El enlace navega solo; la métrica va aparte y nunca lo interrumpe.
-  $('#btn-donate')?.addEventListener('click', () => track('donate_click'));
+  wireExternalLink('#btn-donate', 'donate_click');
+  wireExternalLink('#btn-gaza', 'gaza_click');
 
   buildThemePicker();
 
@@ -234,6 +235,14 @@ function wireSettings() {
 
   // Las notificaciones dependen de un permiso; el sonido del adhan, no.
   if (!notificationsSupported() || permissionDenied()) notifyToggle.disabled = true;
+
+  /* En el APK el estado del permiso llega de forma asíncrona desde el
+     plugin, así que al arrancar el interruptor se pinta con datos aún sin
+     confirmar. Esto lo corrige en cuanto Capacitor responde. */
+  syncNativePermission().then(() => {
+    notifyToggle.checked = notificationsEnabled();
+    notifyToggle.disabled = !notificationsSupported() || permissionDenied();
+  });
 
   adhanToggle.addEventListener('change', () => {
     // El gesto del usuario es lo que desbloquea el audio: hay que aprovecharlo aquí.
@@ -285,6 +294,40 @@ function wireSettings() {
   // Al volver del segundo plano los temporizadores pueden haberse retrasado: se rearman.
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden) armAdhan();
+  });
+}
+
+/**
+ * Enlace externo que funciona igual en la web y en el APK.
+ *
+ * En el navegador basta con `target="_blank"`. Dentro de Capacitor eso
+ * abriría la página en el propio WebView de la app, dejando al usuario
+ * atrapado sin barra de direcciones ni botón de atrás fiable. Con
+ * `@capacitor/browser` se abre una Custom Tab de Android: es el navegador
+ * de verdad del sistema, con sus cookies y sesiones, y al cerrarla se
+ * vuelve a SALATI donde estaba.
+ *
+ * La métrica va antes y por separado: `track` nunca lanza.
+ */
+function wireExternalLink(selector, evento) {
+  const enlace = $(selector);
+  if (!enlace) return;
+
+  enlace.addEventListener('click', async (event) => {
+    track(evento);
+
+    const Browser = globalThis.Capacitor?.isNativePlatform?.()
+      ? globalThis.Capacitor?.Plugins?.Browser
+      : null;
+    if (!Browser?.open) return;   // en web, que el ancla haga su trabajo
+
+    event.preventDefault();
+    try {
+      await Browser.open({ url: enlace.href, presentationStyle: 'popover' });
+    } catch (err) {
+      console.error('[SALATI] No se ha podido abrir el enlace:', err);
+      window.open(enlace.href, '_blank', 'noopener');   // reserva
+    }
   });
 }
 

@@ -18,7 +18,8 @@ export const DEFAULT_THEME = 'auto';
 
 const listeners = new Set();
 
-/** Color de la barra del navegador, distinto en cada tema. */
+/** Color de la barra del navegador y de la de gestos, distinto en cada tema.
+    Coincide con --bg de styles.css y con salatiBackground del tema Android. */
 const BAR_COLOR = { dark: '#070a09', light: '#faf8f3' };
 
 function read() {
@@ -56,8 +57,32 @@ export function onThemeChange(fn) {
 /** Vuelca el tema al DOM y ajusta el color de la barra del navegador. */
 export function apply() {
   document.documentElement.dataset.theme = read();
+  const color = BAR_COLOR[resolvedTheme()];
   const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.setAttribute('content', BAR_COLOR[resolvedTheme()]);
+  if (meta) meta.setAttribute('content', color);
+  pintarBarraNativa(color);
+}
+
+/**
+ * Pinta la barra de gestos de Android desde JavaScript.
+ *
+ * El tema nativo (scripts/apply-native.mjs) ya la deja oscura desde el
+ * primer fotograma, que es lo que evita el destello blanco al abrir. Esto es
+ * la capa de encima: hace falta porque el tema es fijo y la app tiene modo
+ * claro, así que al cambiarlo la barra debe seguirle.
+ *
+ * El plugin es de la comunidad: NO existe un `@capacitor/navigation-bar`
+ * oficial. Si no está instalado, no pasa nada y se queda el tema nativo.
+ */
+function pintarBarraNativa(color) {
+  const NB = globalThis.Capacitor?.Plugins?.NavigationBar;
+  if (!NB?.setNavigationBarColor && !NB?.setColor) return;
+  try {
+    const oscuro = resolvedTheme() === 'dark';
+    // Distintas versiones del plugin exponen un nombre u otro.
+    const fn = NB.setNavigationBarColor ?? NB.setColor;
+    fn.call(NB, { color, darkButtons: !oscuro });
+  } catch { /* la barra se queda como la dejó el tema nativo */ }
 }
 
 export function initTheme() {

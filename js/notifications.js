@@ -4,7 +4,8 @@ import { t, prayerName, getLang } from './i18n.js';
 import { writeFlag } from './prefs-db.js';
 import { isIOS, isStandalone } from './platform.js';
 import {
-  nativeAvailable, requestNativePermission, scheduleNativeAdhan, cancelNativeAdhan,
+  nativeAvailable, requestNativePermission, checkNativePermission,
+  scheduleNativeAdhan, cancelNativeAdhan,
 } from './native-notifications.js';
 
 /* ▼▼▼ PEGA AQUÍ TU CLAVE PÚBLICA VAPID CUANDO TENGAS SERVIDOR DE PUSH ▼▼▼
@@ -36,8 +37,34 @@ let ctx = null;
 let unlocked = false;   // ¿ya se desbloqueó la reproducción automática?
 let lastFired = null;   // evita duplicados si se reprograma en el mismo minuto
 
+/* Estado del permiso nativo, cacheado.
+   Hace falta porque las comprobaciones de la interfaz son síncronas y la API
+   de Capacitor es asíncrona; se refresca al arrancar y tras cada petición. */
+let permisoNativo = 'prompt';   // 'granted' | 'denied' | 'prompt'
+
+/**
+ * ¿Se pueden mostrar notificaciones?
+ *
+ * ESTE ERA EL BUG DEL APK: antes devolvía `'Notification' in window`, y el
+ * WebView de Android **no implementa la API Notification** del navegador.
+ * Resultado: en la app compilada el interruptor salía deshabilitado y era
+ * imposible activarlo, aunque las notificaciones nativas sí funcionaran.
+ */
 export function notificationsSupported() {
+  if (nativeAvailable()) return true;   // el plugin se encarga
   return 'Notification' in window;
+}
+
+/** Refresca el estado del permiso nativo. La llama app.js al arrancar. */
+export async function syncNativePermission() {
+  if (!nativeAvailable()) return;
+  permisoNativo = await checkNativePermission();
+  // Si el sistema lo revocó por fuera, el interruptor debe reflejarlo.
+  if (permisoNativo !== 'granted' && notifyOn) {
+    notifyOn = false;
+    save(STORAGE_KEYS.notify, false);
+    writeFlag('notify', false);
+  }
 }
 
 /* ---------------- Web Push ---------------- */
@@ -85,7 +112,8 @@ function urlBase64ToUint8Array(base64) {
 }
 
 export function permissionDenied() {
-  return notificationsSupported() && Notification.permission === 'denied';
+  if (nativeAvailable()) return permisoNativo === 'denied';
+  return ('Notification' in window) && Notification.permission === 'denied';
 }
 
 /* ---------------- Interruptor del adhan (sonido) ---------------- */
@@ -117,15 +145,20 @@ export function disableAdhan() {
 /* ---------------- Interruptor de notificaciones ---------------- */
 
 export function notificationsEnabled() {
-  return notifyOn && notificationsSupported() && Notification.permission === 'granted';
+  if (!notifyOn) return false;
+  // En el APK el permiso lo gestiona el plugin, no `Notification.permission`,
+  // que en el WebView de Android ni existe.
+  if (nativeAvailable()) return permisoNativo === 'granted';
+  return ('Notification' in window) && Notification.permission === 'granted';
 }
 
 export async function enableNotifications() {
   // En la app nativa el permiso lo pide Capacitor, no la API del navegador.
   if (nativeAvailable()) {
     const ok = await requestNativePermission();
+    permisoNativo = ok ? 'granted' : 'denied';
     if (!ok) {
-      toast('Permiso de notificaciones denegado. Puedes cambiarlo en los ajustes del navegador.');
+      toast(t('notify.deniedNative'));
       return false;
     }
     notifyOn = true;

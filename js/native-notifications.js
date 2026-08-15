@@ -48,6 +48,18 @@ export function nativeAvailable() {
   return globalThis.Capacitor?.isNativePlatform?.() === true && plugin() !== null;
 }
 
+/** Estado actual del permiso: 'granted' | 'denied' | 'prompt'. */
+export async function checkNativePermission() {
+  const LN = plugin();
+  if (!LN) return 'prompt';
+  try {
+    const { display } = await LN.checkPermissions();
+    return display ?? 'prompt';
+  } catch {
+    return 'prompt';
+  }
+}
+
 /**
  * Pide permiso de notificaciones. En Android 13+ es obligatorio y sólo se
  * concede tras una acción del usuario, igual que en la web.

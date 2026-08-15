@@ -230,11 +230,31 @@ const STRINGS = {
     ar: 'هذا الخيار متاح في Safari فقط. إذا كنت تستخدم Chrome أو Firefox على iPhone، افتح هذه الصفحة في Safari.',
   },
 
-  'cfg.donate': {
+  'cfg.supportTitle': {
     ca: 'Dona suport al projecte',
-    es: 'Apoyar el proyecto',
+    es: 'Apoya el proyecto',
     en: 'Support the project',
     ar: 'ادعم المشروع',
+  },
+  /* Texto propio para el botón: repetir «Apoya el proyecto» debajo del
+     título de la misma sección no aportaba nada. */
+  'cfg.donate': {
+    ca: 'Convida’m a un café',
+    es: 'Invítame a un café',
+    en: 'Buy me a coffee',
+    ar: 'ادعمني بقهوة',
+  },
+  'cfg.gaza': {
+    ca: 'Ajuda a Gaza',
+    es: 'Ayuda a Gaza',
+    en: 'Help Gaza',
+    ar: 'ساعد غزة',
+  },
+  'cfg.gazaNote': {
+    ca: 'Les donacions a Gaza van directament a la PCRF, una ONG mèdica per a la infància. SALATI no rep res d’aquest botó.',
+    es: 'Las donaciones a Gaza van directamente a la PCRF, una ONG médica para la infancia. SALATI no recibe nada de este botón.',
+    en: 'Gaza donations go directly to the PCRF, a medical NGO for children. SALATI receives nothing from this button.',
+    ar: 'تذهب تبرعات غزة مباشرة إلى PCRF، وهي منظمة طبية للأطفال. لا يتلقى تطبيق صلاتي شيئًا من هذا الزر.',
   },
   'cfg.feedback': {
     ca: 'Suggeriments o report d’errors',
@@ -332,6 +352,12 @@ const STRINGS = {
   'prayer.metaMethod': { ca: 'Mètode: {name}.', es: 'Método: {name}.', en: 'Method: {name}.', ar: 'الطريقة: {name}.' },
   'prayer.metaZone': { ca: 'Hores a {zone}.', es: 'Horas en {zone}.', en: 'Times in {zone}.', ar: 'التوقيت في {zone}.' },
 
+  'notify.deniedNative': {
+    ca: 'Permís denegat. Actíva’l a Ajustos del mòbil → Aplicacions → SALATI → Notificacions.',
+    es: 'Permiso denegado. Actívalo en Ajustes del móvil → Aplicaciones → SALATI → Notificaciones.',
+    en: 'Permission denied. Enable it in phone Settings → Apps → SALATI → Notifications.',
+    ar: 'تم رفض الإذن. فعّله من إعدادات الهاتف ← التطبيقات ← صلاتي ← الإشعارات.',
+  },
   'notify.iosNeedsInstall': {
     ca: 'A l’iPhone els avisos només funcionen amb l’app instal·lada a la pantalla d’inici. Fes-ho des de «Instal·lar SALATI».',
     es: 'En iPhone los avisos solo funcionan con la app instalada en la pantalla de inicio. Hazlo desde «Instalar SALATI».',

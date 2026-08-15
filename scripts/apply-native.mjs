@@ -50,7 +50,62 @@ async function main() {
   await copiarSonido();
   await copiarIconos();
   await parchearManifiesto();
+  await escribirTema();
   console.log('Personalizaciones nativas aplicadas.');
+}
+
+/**
+ * Tema nativo con la barra de navegación y la de estado en oscuro.
+ *
+ * Ésta es la solución de fondo a la franja blanca de abajo. Un plugin de
+ * JavaScript también puede pintarla, pero corre DESPUÉS de que cargue el
+ * WebView: durante ese instante el usuario ve el destello blanco. El tema
+ * de Android se aplica desde el primer fotograma, antes incluso de que
+ * exista la vista web, así que no hay parpadeo posible.
+ *
+ * `windowLightNavigationBar=false` es lo que pone los iconos de los gestos
+ * en blanco; sin eso quedarían negros sobre negro e invisibles.
+ */
+async function escribirTema() {
+  const valores = join(MAIN, 'res', 'values');
+  await mkdir(valores, { recursive: true });
+
+  const xml = `<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <item name="android:background">@color/salatiBackground</item>
+    </style>
+
+    <style name="AppTheme.NoActionBar" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+        <item name="android:background">@color/salatiBackground</item>
+        <item name="android:statusBarColor">@color/salatiBackground</item>
+        <item name="android:navigationBarColor">@color/salatiBackground</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+    </style>
+
+    <!-- Pantalla de arranque en color plano y no con @drawable/splash: ese
+         recurso puede no existir según la versión de Capacitor y tumbaría la
+         compilación. Un fondo del color de la app es además más limpio. -->
+    <style name="AppTheme.NoActionBarLaunch" parent="AppTheme.NoActionBar">
+        <item name="android:background">@color/salatiBackground</item>
+    </style>
+</resources>
+`;
+  await writeFile(join(valores, 'styles.xml'), xml, 'utf8');
+
+  const colores = `<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="salatiBackground">#FF070A09</color>
+    <color name="colorPrimary">#FF070A09</color>
+    <color name="colorPrimaryDark">#FF070A09</color>
+    <color name="colorAccent">#FFC9A227</color>
+</resources>
+`;
+  await writeFile(join(valores, 'colors.xml'), colores, 'utf8');
+  console.log('  · tema nativo: barras de estado y navegación en oscuro');
 }
 
 /* El sonido tiene que llamarse en minúsculas y sin guiones: res/raw sólo

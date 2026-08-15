@@ -152,13 +152,31 @@
       <button id="btn-test-adhan" class="btn btn--ghost" type="button" data-i18n="prayer.testBtn">Escuchar</button>
     </div>
 
-    <!-- Sadaqah. `target="_blank"` abre Ko-fi en una pestaña nueva y
-         `rel="noopener noreferrer"` impide que esa pestaña pueda tocar la
-         nuestra vía window.opener, que es el motivo de seguridad real. -->
-    <a class="cfg__donate" id="btn-donate"
-       href="https://ko-fi.com/salati"
-       target="_blank" rel="noopener noreferrer"
-       data-i18n="cfg.donate">Apoyar el proyecto</a>
+    <!-- Sadaqah. `target="_blank"` abre en pestaña nueva y `rel="noopener
+         noreferrer"` impide que esa pestaña toque la nuestra vía
+         window.opener. En el APK, app.js intercepta el clic y los abre con
+         @capacitor/browser para que salgan al navegador del sistema. -->
+    <section class="support">
+      <h3 class="support__title" data-i18n="cfg.supportTitle">Apoya el proyecto</h3>
+
+      <div class="support__grid">
+        <a class="support__btn" id="btn-donate"
+           href="https://ko-fi.com/salati"
+           target="_blank" rel="noopener noreferrer">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-coffee"></use></svg>
+          <span data-i18n="cfg.donate">Invítame a un café</span>
+        </a>
+
+        <a class="support__btn support__btn--gaza" id="btn-gaza"
+           href="https://www.pcrf.net/"
+           target="_blank" rel="noopener noreferrer">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-solidarity"></use></svg>
+          <span data-i18n="cfg.gaza">Ayuda a Gaza</span>
+        </a>
+      </div>
+
+      <p class="support__note" data-i18n="cfg.gazaNote"></p>
+    </section>
 
     <a class="cfg__feedback"
        href="mailto:soporte.salati@gmail.com?subject=Feedback%20App%20Salati"
@@ -499,6 +517,8 @@
   <symbol id="icon-auto" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.4" fill="none" stroke="currentColor" stroke-width="1.7"/><path fill="currentColor" d="M12 3.6a8.4 8.4 0 0 1 0 16.8z"/></symbol>
   <symbol id="icon-sun-theme" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.4" fill="none" stroke="currentColor" stroke-width="1.7"/><path fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" d="M12 2.6v2.2M12 19.2v2.2M2.6 12h2.2M19.2 12h2.2M5.4 5.4l1.6 1.6M17 17l1.6 1.6M18.6 5.4 17 7M7 17l-1.6 1.6"/></symbol>
   <symbol id="icon-moon-theme" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" d="M20.2 14.4A8.6 8.6 0 0 1 9.6 3.8a8.6 8.6 0 1 0 10.6 10.6z"/></symbol>
+  <symbol id="icon-coffee" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" d="M4.2 10h12v5.4a4.2 4.2 0 0 1-4.2 4.2H8.4a4.2 4.2 0 0 1-4.2-4.2z"/><path fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" d="M16.2 11.4h1.6a2.4 2.4 0 0 1 0 4.8h-1.6M3 21.4h14.4M8 6.6c0-1 .9-1.3.9-2.3M11.6 6.6c0-1 .9-1.3.9-2.3"/></symbol>
+  <symbol id="icon-solidarity" viewBox="0 0 24 24"><path fill="currentColor" d="M12 20.4c-.3 0-.6-.1-.8-.3l-4.9-4.5a4.4 4.4 0 0 1 6-6.4l-.1.1a4.4 4.4 0 0 1 5.5 6.7l-4.9 4.1c-.2.2-.5.3-.8.3z" opacity=".9"/><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M4.6 12.6 2.8 14a1.8 1.8 0 0 0-.3 2.5l2.4 3a1.8 1.8 0 0 0 2.4.4M19.4 12.6l1.8 1.4a1.8 1.8 0 0 1 .3 2.5l-2.4 3a1.8 1.8 0 0 1-2.4.4"/></symbol>
   <symbol id="icon-share-ios" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" d="M12 3.2 12 15M8.6 6.6 12 3.2l3.4 3.4M6.5 10.5H5.2A1.2 1.2 0 0 0 4 11.7v7.1A1.2 1.2 0 0 0 5.2 20h13.6a1.2 1.2 0 0 0 1.2-1.2v-7.1a1.2 1.2 0 0 0-1.2-1.2h-1.3"/></symbol>
   <symbol id="icon-add-square" viewBox="0 0 24 24"><rect x="3.4" y="3.4" width="17.2" height="17.2" rx="4.4" fill="none" stroke="currentColor" stroke-width="1.7"/><path fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" d="M12 8.2v7.6M8.2 12h7.6"/></symbol>
   <symbol id="icon-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.8" fill="none" stroke="currentColor" stroke-width="1.7"/><path fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" d="m8.2 12.2 2.7 2.7 5-5.2"/></symbol>
