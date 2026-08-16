@@ -1,4 +1,4 @@
-name: Compilar APK
+name: Compilar Android
 
 on:
   push:
@@ -8,8 +8,19 @@ on:
 
 jobs:
   build:
-    name: APK de depuración
+    # La revisión va en el NOMBRE del job a propósito: aparece en el listado de
+    # Actions sin abrir los registros, así que de un vistazo se sabe si GitHub
+    # está ejecutando esta versión del archivo o una anterior que se quedó
+    # subida. Súbela cada vez que cambies este workflow.
+    name: APK de prueba + AAB para Play Store (rev. 2)
     runs-on: ubuntu-latest
+
+    env:
+      # Google Play rechaza cualquier subida cuyo versionCode no sea MAYOR
+      # que el de la anterior. Atarlo al contador de ejecuciones de Actions
+      # garantiza que siempre suba, sin llevar la cuenta a mano.
+      SALATI_VERSION_CODE: ${{ github.run_number }}
+      SALATI_VERSION_NAME: 1.0.${{ github.run_number }}
 
     steps:
       - name: Descargar el repositorio
@@ -20,10 +31,9 @@ jobs:
         with:
           node-version: '20'
           # Sin cache: 'npm' a propósito. Esa opción exige package-lock.json y
-          # aún no existe, porque no tienes entorno local para generarlo.
+          # aún no existe, porque no hay entorno local para generarlo.
 
       # `npm install` y no `npm ci`: ci exige un package-lock.json que no hay.
-      # En la primera ejecución npm resolverá y creará el lock dentro del runner.
       - name: Instalar dependencias
         run: npm install
 
@@ -41,40 +51,147 @@ jobs:
       - name: Preparar el SDK de Android
         uses: android-actions/setup-android@v3
 
-      # `cap add android` es idempotente: si la carpeta ya viniera commiteada
-      # avisa y no la toca, así que sirve en ambos escenarios.
       - name: Crear el proyecto Android
         run: npx cap add android || echo "android/ ya existía, se continúa"
 
-      # Reinyecta adhan.mp3, permisos e iconos. Imprescindible: cap add
-      # regenera la carpeta desde una plantilla limpia y se perderían.
+      # Reinyecta adhan.mp3, permisos, iconos, tema y la config de firma.
+      # Imprescindible: cap add regenera la carpeta desde una plantilla limpia.
       - name: Aplicar personalizaciones nativas
         run: node scripts/apply-native.mjs
 
       - name: Sincronizar Capacitor
         run: npx cap sync android
 
+      # Deja constancia en el registro de que la firma y el versionado se
+      # inyectaron de verdad. Si esto no aparece, `bundleRelease` saldría con
+      # los valores de la plantilla de Capacitor y Play lo rechazaría.
+      - name: Verificar el build.gradle generado
+        run: |
+          set -euo pipefail
+          echo "--- Firma y versionado en app/build.gradle ---"
+          grep -n -E 'salatiSigning|versionCode|versionName|signingConfig' \
+            android/app/build.gradle || {
+              echo "::error::apply-native.mjs no ha parcheado app/build.gradle."
+              exit 1
+            }
+
+      # ---- Firma ----
+      # El keystore viaja como secreto en base64 y se materializa aquí, fuera
+      # del árbol del repositorio, para no arriesgarse a commitearlo jamás.
+      # Si el secreto no existe, este paso no hace nada y el AAB sale sin
+      # firmar: exactamente lo que hace falta para la primera descarga.
+      - name: Preparar el keystore (si hay secretos)
+        id: keystore
+        env:
+          KEYSTORE_B64: ${{ secrets.SALATI_KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$KEYSTORE_B64" ]; then
+            echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/salati.keystore"
+            echo "SALATI_KEYSTORE_PATH=$RUNNER_TEMP/salati.keystore" >> "$GITHUB_ENV"
+            echo "firmado=si" >> "$GITHUB_OUTPUT"
+            echo "Keystore preparado: el AAB saldrá FIRMADO."
+          else
+            echo "firmado=no" >> "$GITHUB_OUTPUT"
+            echo "Sin secreto SALATI_KEYSTORE_BASE64: el AAB saldrá SIN FIRMAR."
+          fi
+
       - name: Dar permiso de ejecución a Gradle
         run: chmod +x android/gradlew
 
-      - name: Compilar el APK
+      # ---- 1. APK de prueba ----
+      # Va firmado con la clave de depuración de Android, así que SÍ se puede
+      # instalar en el móvil. Es la única forma de probar la app hoy, porque un
+      # AAB sin firmar no es instalable en ningún sitio.
+      #
+      # Se compila y se SUBE antes que el AAB a propósito: si el bundle falla,
+      # el APK ya está guardado y puedes seguir probando la app mientras se
+      # arregla el otro.
+      - name: Compilar el APK de prueba
         working-directory: android
         run: ./gradlew assembleDebug --no-daemon --stacktrace
 
-      - name: Renombrar el APK con la fecha
+      - name: Reunir el APK
         run: |
+          set -euo pipefail
           mkdir -p salida
-          cp android/app/build/outputs/apk/debug/app-debug.apk \
-             "salida/salati-$(date +%Y%m%d)-${GITHUB_SHA::7}.apk"
+
+          APK=$(find android/app/build/outputs/apk -type f -name '*.apk' -print -quit)
+          if [ -z "$APK" ]; then
+            echo "::error::Gradle terminó sin errores pero no hay ningún APK."
+            find android/app/build/outputs -type f || true
+            exit 1
+          fi
+
+          cp "$APK" "salida/salati-v${SALATI_VERSION_NAME}-$(date +%Y%m%d)-${GITHUB_SHA::7}-debug.apk"
           ls -lh salida/
 
-      - name: Subir el APK como artefacto
+      - name: Subir el APK de prueba
         uses: actions/upload-artifact@v4
         with:
-          name: salati-apk
+          name: salati-apk-debug
           path: salida/*.apk
           retention-days: 30
           if-no-files-found: error
+
+      # ---- 2. AAB para Play Store ----
+      # El formato que exige Google Play desde agosto de 2021.
+      - name: Compilar el AAB para Play Store
+        working-directory: android
+        env:
+          SALATI_KEYSTORE_PASSWORD: ${{ secrets.SALATI_KEYSTORE_PASSWORD }}
+          SALATI_KEY_ALIAS: ${{ secrets.SALATI_KEY_ALIAS }}
+          SALATI_KEY_PASSWORD: ${{ secrets.SALATI_KEY_PASSWORD }}
+        run: ./gradlew bundleRelease --no-daemon --stacktrace
+
+      - name: Reunir el AAB
+        run: |
+          set -euo pipefail
+          mkdir -p salida
+          FIRMA=${{ steps.keystore.outputs.firmado == 'si' && 'firmado' || 'sinfirmar' }}
+
+          echo "--- Todo lo que ha producido Gradle ---"
+          find android/app/build/outputs -type f \( -name '*.apk' -o -name '*.aab' \) || true
+
+          # Se busca en todo `bundle/`, no sólo en `bundle/release`: si algún día
+          # cambia el nombre de la variante, el archivo se sigue encontrando.
+          # `-print -quit` en vez de `| head -1` porque una tubería enmascara el
+          # código de salida de find y el fallo pasaba desapercibido.
+          AAB=$(find android/app/build/outputs/bundle -type f -name '*.aab' -print -quit)
+          if [ -z "$AAB" ]; then
+            echo "::error::bundleRelease terminó sin errores pero no hay ningún .aab."
+            exit 1
+          fi
+
+          cp "$AAB" "salida/salati-v${SALATI_VERSION_NAME}-$(date +%Y%m%d)-${GITHUB_SHA::7}-$FIRMA.aab"
+          ls -lh salida/
+
+      - name: Subir el AAB para Play Store
+        uses: actions/upload-artifact@v4
+        with:
+          name: salati-aab-release
+          path: salida/*.aab
+          retention-days: 90
+          if-no-files-found: error
+
+      - name: Resumen de la compilación
+        if: always()
+        run: |
+          {
+            echo "### Compilación de SALATI"
+            echo ""
+            echo "Workflow \`build-apk.yml\` rev. 2 — APK de prueba + AAB."
+            echo ""
+            echo "| Dato | Valor |"
+            echo "|---|---|"
+            echo "| versionName | \`${SALATI_VERSION_NAME}\` |"
+            echo "| versionCode | \`${SALATI_VERSION_CODE}\` |"
+            echo "| AAB firmado | ${{ steps.keystore.outputs.firmado == 'si' && 'sí' || 'NO — sólo para inspección' }} |"
+            echo ""
+            if [ "${{ steps.keystore.outputs.firmado }}" != "si" ]; then
+              echo "> El AAB no está firmado, así que Google Play lo rechazará."
+              echo "> Instala el APK de depuración para probar la app en el móvil."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
 
       # Si Gradle falla, estos informes dicen exactamente por qué.
       - name: Subir informes de Gradle si falla
