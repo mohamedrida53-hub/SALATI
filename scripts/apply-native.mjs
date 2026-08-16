@@ -51,7 +51,77 @@ async function main() {
   await copiarIconos();
   await parchearManifiesto();
   await escribirTema();
+  await parchearGradle();
   console.log('Personalizaciones nativas aplicadas.');
+}
+
+/**
+ * Prepara app/build.gradle para la firma y el versionado.
+ *
+ * La firma se lee de VARIABLES DE ENTORNO, no de un archivo con contraseñas
+ * dentro del repositorio. Esto tiene una consecuencia práctica muy cómoda:
+ * hoy, sin secretos configurados, `bundleRelease` produce un .aab SIN FIRMAR;
+ * el día que añadas los secretos a GitHub, el MISMO código produce un .aab
+ * firmado sin tocar ni una línea.
+ *
+ * El versionCode sale del número de ejecución de GitHub Actions. Google Play
+ * rechaza cualquier subida cuyo versionCode no sea mayor que el anterior, y
+ * llevarlo a mano es la forma más fácil de bloquearse una release.
+ */
+async function parchearGradle() {
+  const ruta = join(ANDROID, 'app', 'build.gradle');
+  if (!existsSync(ruta)) {
+    console.warn('  · aviso: no existe app/build.gradle, se omite la firma');
+    return;
+  }
+
+  let gradle = await readFile(ruta, 'utf8');
+  if (gradle.includes('salatiSigning')) {
+    console.log('  · build.gradle: ya estaba preparado');
+    return;
+  }
+
+  const bloque = `
+    // ---- Firma y versionado inyectados por scripts/apply-native.mjs ----
+    signingConfigs {
+        salatiSigning {
+            // Sólo se rellena si el entorno trae el keystore. Si no, este
+            // bloque queda vacío y Gradle genera un artefacto sin firmar.
+            if (System.getenv("SALATI_KEYSTORE_PATH")) {
+                storeFile file(System.getenv("SALATI_KEYSTORE_PATH"))
+                storePassword System.getenv("SALATI_KEYSTORE_PASSWORD")
+                keyAlias System.getenv("SALATI_KEY_ALIAS")
+                keyPassword System.getenv("SALATI_KEY_PASSWORD")
+            }
+        }
+    }
+`;
+
+  // Se inserta justo después de la apertura de `android {`.
+  gradle = gradle.replace(/android\s*\{/, (m) => `${m}\n${bloque}`);
+
+  /* Al buildType `release` se le asigna la firma sólo si hay keystore.
+     `signingConfig null` haría fallar la compilación, de ahí el `if`. */
+  gradle = gradle.replace(
+    /(buildTypes\s*\{[\s\S]*?release\s*\{)/,
+    `$1
+            if (System.getenv("SALATI_KEYSTORE_PATH")) {
+                signingConfig signingConfigs.salatiSigning
+            }`,
+  );
+
+  // versionCode y versionName desde el entorno, con reserva razonable.
+  gradle = gradle.replace(
+    /versionCode\s+\d+/,
+    'versionCode Integer.parseInt(System.getenv("SALATI_VERSION_CODE") ?: "1")',
+  );
+  gradle = gradle.replace(
+    /versionName\s+"[^"]*"/,
+    'versionName System.getenv("SALATI_VERSION_NAME") ?: "1.0.0"',
+  );
+
+  await writeFile(ruta, gradle, 'utf8');
+  console.log('  · build.gradle: firma por entorno y versionado dinámico');
 }
 
 /**

@@ -1,8 +1,9 @@
 /* =========================================================
    Service worker de SALATI
    · SHELL : la app entera, precargada en la instalación (cache-first)
+             incluye las tipografías, que ahora son locales
    · DATA  : respuestas de las APIs (network-first con reserva)
-   · FONTS : Google Fonts (stale-while-revalidate)
+   · TILES : teselas del mapa (cache-first con tope)
    Sube la versión para forzar la actualización en los dispositivos.
    ========================================================= */
 
@@ -11,12 +12,11 @@
    así que desde `js/` era imposible que gobernara `/` y el registro fallaba
    con SecurityError: la app nunca llegaba a funcionar sin conexión.
    Las rutas relativas de SHELL_FILES se resuelven contra ESTA ubicación. */
-const VERSION = 'v3.2.0';
+const VERSION = 'v3.4.0';
 const SHELL = `SALATI-shell-${VERSION}`;
 const DATA = `SALATI-data-${VERSION}`;
-const FONTS = `SALATI-fonts-${VERSION}`;
 const TILES = `SALATI-tiles-${VERSION}`;
-const CACHES = [SHELL, DATA, FONTS, TILES];
+const CACHES = [SHELL, DATA, TILES];
 
 /* Las teselas del mapa son muchas y pequeñas: se limita el cajón
    para no llenar la cuota del navegador con zonas que ya no se miran. */
@@ -25,6 +25,9 @@ const TILE_LIMIT = 300;
 const SHELL_FILES = [
   './',
   './index.html',
+  './privacidad.html',
+  './privacy.html',
+  './fonts.css',
   './styles.css',
   './manifest.json',
   './favicon.svg',
@@ -72,7 +75,8 @@ const API_HOSTS = [
   'overpass-api.de', 'overpass.kumi.systems',
   'nominatim.openstreetmap.org',
 ];
-const FONT_HOSTS = ['fonts.googleapis.com', 'fonts.gstatic.com'];
+/* Ya no hay FONT_HOSTS: las tipografías se sirven desde el propio origen y
+   las cubre la regla del final, junto al resto de archivos de la app. */
 const TILE_HOSTS = ['tile.openstreetmap.org', 'a.tile.openstreetmap.org', 'b.tile.openstreetmap.org', 'c.tile.openstreetmap.org'];
 
 /* ---------------- Ciclo de vida ---------------- */
@@ -127,11 +131,6 @@ self.addEventListener('fetch', (event) => {
 
   if (API_HOSTS.includes(url.hostname)) {
     event.respondWith(networkFirst(request, DATA));
-    return;
-  }
-
-  if (FONT_HOSTS.includes(url.hostname)) {
-    event.respondWith(staleWhileRevalidate(request, FONTS));
     return;
   }
 

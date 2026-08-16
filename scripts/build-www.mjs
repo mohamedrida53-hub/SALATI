@@ -26,6 +26,10 @@ const DESTINO = join(RAIZ, 'www');
    empaquetados, y un SW registrado sobre capacitor:// da problemas. */
 const INCLUIR = [
   'index.html',
+  'privacidad.html',
+  'privacy.html',
+  'fonts.css',
+  'assets',
   'styles.css',
   'manifest.json',
   'favicon.svg',

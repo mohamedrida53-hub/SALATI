@@ -1,0 +1,35 @@
+TIPOGRAFÍAS DE SALATI
+=====================
+
+Amiri  — Copyright (c) 2010-2024, Khaled Hosny
+Cairo  — Copyright (c) 2016-2024, The Cairo Project Authors
+
+Ambas se distribuyen bajo la SIL Open Font License, Version 1.1.
+Texto completo de la licencia: https://scripts.sil.org/OFL
+
+Qué permite la OFL 1.1
+----------------------
+· Usar las fuentes con cualquier fin, incluido comercial.
+· Alojarlas en tu propio servidor y redistribuirlas con la aplicación.
+· Incluirlas dentro de un APK o de una app empaquetada.
+
+Qué exige
+---------
+· Conservar este aviso de copyright y licencia junto a los archivos.
+· No vender las fuentes por separado.
+· Si se modifican y redistribuyen, no usar los nombres reservados
+  «Amiri» ni «Cairo» para las versiones modificadas.
+
+Aquí no se ha modificado ninguna: son los archivos woff2 tal cual los
+sirve Google Fonts, descargados para no depender de su CDN y evitar que
+la dirección IP de cada usuario llegue a Google en cada arranque.
+
+Cómo regenerarlas
+-----------------
+Los archivos .woff2 y el fonts.css de la raíz salen de la hoja de estilos
+que publica Google Fonts para esta combinación de familias y pesos:
+
+  https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@400;500;600;700&display=swap
+
+Hay que pedirla con un user-agent de navegador moderno; si no, Google
+devuelve formatos antiguos (ttf) en lugar de woff2.

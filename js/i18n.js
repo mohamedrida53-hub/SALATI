@@ -256,6 +256,12 @@ const STRINGS = {
     en: 'Gaza donations go directly to the PCRF, a medical NGO for children. SALATI receives nothing from this button.',
     ar: 'تذهب تبرعات غزة مباشرة إلى PCRF، وهي منظمة طبية للأطفال. لا يتلقى تطبيق صلاتي شيئًا من هذا الزر.',
   },
+  'cfg.privacy': {
+    ca: 'Política de Privacitat',
+    es: 'Política de Privacidad',
+    en: 'Privacy Policy',
+    ar: 'سياسة الخصوصية',
+  },
   'cfg.feedback': {
     ca: 'Suggeriments o report d’errors',
     es: 'Sugerencias o reporte de errores',

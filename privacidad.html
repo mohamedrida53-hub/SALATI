@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Política de Privacidad · SALATI</title>
+<meta name="description" content="Política de privacidad de SALATI: qué datos se usan, para qué y con quién se comparten.">
+<meta name="theme-color" content="#070a09">
+<meta name="robots" content="index, follow">
+<link rel="icon" href="./favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+<link rel="alternate" hreflang="es" href="./privacidad.html">
+<link rel="alternate" hreflang="en" href="./privacy.html">
+
+<!-- Mismo script que index.html: aplica el tema antes del primer pintado
+     para que no haya un fogonazo blanco al abrir esta página. -->
+<script>
+  (function () {
+    try {
+      var t = localStorage.getItem('salati.theme');
+      document.documentElement.dataset.theme =
+        (t === 'light' || t === 'dark' || t === 'auto') ? t : 'auto';
+    } catch (e) {
+      document.documentElement.dataset.theme = 'auto';
+    }
+    var claro = document.documentElement.dataset.theme === 'light'
+      || (document.documentElement.dataset.theme === 'auto'
+          && window.matchMedia('(prefers-color-scheme: light)').matches);
+    var meta = document.querySelector('meta[name="theme-color"]');
+    if (meta && claro) meta.setAttribute('content', '#faf8f3');
+  })();
+</script>
+
+<link rel="stylesheet" href="fonts.css">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body class="legal-page">
+
+<header class="topbar">
+  <a class="icon-btn" href="./index.html" aria-label="Volver a SALATI" title="Volver">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-back"></use></svg>
+  </a>
+  <div class="topbar__brand">
+    <img src="./icons/logo-salati.png" alt="SALATI" width="120" height="120" decoding="async">
+  </div>
+  <a class="legal__lang" href="./privacy.html" hreflang="en" lang="en">English</a>
+</header>
+
+<main class="panel legal">
+
+  <h1 class="legal__h1">Política de Privacidad</h1>
+  <p class="legal__meta">
+    Última actualización: <strong>15 de agosto de 2026</strong><br>
+    Responsable: <strong>Mohamed Rida Boujbel Ben Ali</strong>
+    (en adelante, «Salati» o «el Responsable») ·
+    Contacto: <a href="mailto:soporte.salati@gmail.com">soporte.salati@gmail.com</a>
+  </p>
+
+  <div class="legal__callout">
+    <p><strong>En una frase:</strong> SALATI no tiene servidores propios, no te pide registro,
+    no guarda datos personales y no vende nada a nadie. Todo lo que configuras se queda
+    en tu dispositivo.</p>
+  </div>
+
+  <h2>1. Quién es responsable</h2>
+  <p>
+    Esta política describe cómo funciona <strong>SALATI</strong>, una aplicación gratuita
+    para consultar horarios de oración, la dirección de la Qibla, mezquitas cercanas, el
+    calendario hijri y el Corán. La aplicación no contiene publicidad ni compras integradas.
+  </p>
+  <p>
+    Para cualquier duda sobre esta política o sobre tus datos, escribe a
+    <a href="mailto:soporte.salati@gmail.com">soporte.salati@gmail.com</a>.
+  </p>
+
+  <h2>2. Datos que NO recogemos</h2>
+  <p>SALATI no dispone de base de datos ni de servidor propio. En concreto:</p>
+  <ul>
+    <li>No hay registro, cuenta de usuario ni contraseña.</li>
+    <li>No se recoge tu nombre, correo, teléfono ni ningún identificador personal.</li>
+    <li>No se crean perfiles publicitarios ni se te asigna un identificador de seguimiento.</li>
+    <li>No se venden, alquilan ni ceden datos a terceros con fines comerciales.</li>
+    <li>No se accede a tus contactos, fotos, micrófono, cámara ni almacenamiento.</li>
+  </ul>
+
+  <h2>3. Permiso de ubicación (GPS)</h2>
+  <p>
+    La ubicación es <strong>opcional</strong>: puedes usar la aplicación buscando tu ciudad
+    a mano y no concederla nunca. Cuando la concedes, se utiliza <strong>única y
+    exclusivamente</strong> para tres cosas:
+  </p>
+  <ul>
+    <li><strong>Calcular los horarios de oración</strong> con exactitud para tu posición.</li>
+    <li><strong>Calcular la dirección de la Qibla</strong>, que se computa en tu propio
+        dispositivo sin enviar nada a ninguna parte.</li>
+    <li><strong>Buscar mezquitas cercanas</strong> en el mapa.</li>
+  </ul>
+  <p>
+    Tus coordenadas <strong>no se almacenan en ningún servidor nuestro</strong>, porque no
+    existe tal servidor. Se guardan en tu dispositivo para no tener que pedírtelas cada vez,
+    y se envían a los servicios de terceros descritos en el punto 6, que las necesitan para
+    devolver el resultado de la consulta.
+  </p>
+  <p>
+    Puedes revocar el permiso en cualquier momento desde los ajustes de tu sistema operativo.
+    La aplicación seguirá funcionando: te pedirá que elijas una ciudad manualmente.
+  </p>
+
+  <h2>4. Permiso de notificaciones</h2>
+  <p>
+    Se usa <strong>solo</strong> para avisarte a la hora de cada oración y, si lo activas,
+    reproducir el adhan. Son <strong>notificaciones locales</strong>: las programa tu propio
+    dispositivo a partir de los horarios ya calculados.
+  </p>
+  <p>
+    No hay notificaciones push desde un servidor, ni mensajes promocionales, ni forma alguna
+    de que enviemos avisos a tu dispositivo. Puedes desactivarlas desde los ajustes de la
+    aplicación o de tu sistema operativo.
+  </p>
+
+  <h2>5. Datos guardados en tu dispositivo</h2>
+  <p>
+    La aplicación usa el almacenamiento local del navegador o del dispositivo
+    (<code>localStorage</code> e <code>IndexedDB</code>) para recordar tus preferencias:
+    ubicación elegida, idioma, tema claro u oscuro, estado de los avisos, contador del tasbih
+    y una copia de los horarios del día para que funcione sin conexión.
+  </p>
+  <p>
+    Esta información <strong>nunca sale de tu dispositivo</strong> y desaparece por completo
+    al desinstalar la aplicación o borrar los datos del navegador.
+  </p>
+
+  <h2>6. Servicios de terceros</h2>
+  <p>
+    Para funcionar sin servidores propios, SALATI consulta servicios públicos externos. Al
+    hacerlo, esos servicios reciben inevitablemente tu <strong>dirección IP</strong> y, en los
+    casos indicados, tus <strong>coordenadas aproximadas</strong>. Cada uno se rige por su
+    propia política de privacidad:
+  </p>
+
+  <div class="legal__table-wrap">
+    <table class="legal__table">
+      <thead>
+        <tr><th>Servicio</th><th>Para qué</th><th>Qué recibe</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><a href="https://aladhan.com/privacy-policy" target="_blank" rel="noopener noreferrer">Aladhan</a></td>
+          <td>Horarios de oración y fecha hijri</td>
+          <td>Coordenadas, IP</td>
+        </tr>
+        <tr>
+          <td><a href="https://osmfoundation.org/wiki/Privacy_Policy" target="_blank" rel="noopener noreferrer">Nominatim (OSM)</a></td>
+          <td>Buscador de ciudades</td>
+          <td>Texto buscado, IP</td>
+        </tr>
+        <tr>
+          <td><a href="https://osmfoundation.org/wiki/Privacy_Policy" target="_blank" rel="noopener noreferrer">Overpass API</a></td>
+          <td>Mezquitas cercanas</td>
+          <td>Coordenadas, IP</td>
+        </tr>
+        <tr>
+          <td><a href="https://osmfoundation.org/wiki/Privacy_Policy" target="_blank" rel="noopener noreferrer">Teselas de OpenStreetMap</a></td>
+          <td>Imágenes del mapa</td>
+          <td>Zona del mapa, IP</td>
+        </tr>
+        <tr>
+          <td><a href="https://www.bigdatacloud.com/privacy-and-cookie-policy" target="_blank" rel="noopener noreferrer">BigDataCloud</a></td>
+          <td>Nombre de tu ciudad a partir del GPS</td>
+          <td>Coordenadas, IP</td>
+        </tr>
+        <tr>
+          <td><a href="https://quran.com/privacy" target="_blank" rel="noopener noreferrer">Quran.com</a></td>
+          <td>Texto y traducciones del Corán</td>
+          <td>IP</td>
+        </tr>
+        <tr>
+          <td><a href="https://umami.is/privacy" target="_blank" rel="noopener noreferrer">Umami</a></td>
+          <td>Estadísticas de uso anónimas</td>
+          <td>IP (no almacenada), país, tipo de dispositivo</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p class="legal__nota-buena">
+    <strong>Sin Google Fonts.</strong> Las tipografías de la aplicación se sirven desde
+    nuestro propio dominio, no desde el CDN de Google. Así, tu dirección IP no llega a
+    Google al abrir la aplicación.
+  </p>
+
+  <h2>7. Estadísticas de uso</h2>
+  <p>
+    SALATI utiliza <strong>Umami</strong>, una herramienta de analítica <strong>sin
+    cookies</strong>. No instala identificadores en tu dispositivo, no rastrea tu actividad
+    entre sesiones ni entre sitios web, y no permite identificar a ninguna persona.
+  </p>
+  <p>
+    Solo se registran datos agregados: número de visitas, país aproximado, tipo de dispositivo
+    y qué secciones de la aplicación se usan. Sirve para saber si la aplicación resulta útil,
+    nada más. Por su carácter anónimo y sin cookies, no requiere consentimiento previo.
+  </p>
+
+  <h2>8. Donaciones y enlaces externos</h2>
+  <p>
+    Los botones «Invítame a un café» y «Ayuda a Gaza» son <strong>enlaces externos</strong>
+    que abren <a href="https://ko-fi.com/salati" target="_blank" rel="noopener noreferrer">Ko-fi</a>
+    y <a href="https://www.pcrf.net/" target="_blank" rel="noopener noreferrer">PCRF</a> en tu
+    navegador. SALATI <strong>no procesa ningún pago</strong> ni tiene acceso a tus datos
+    bancarios. Al salir de la aplicación se te aplican las políticas de privacidad de esos
+    sitios.
+  </p>
+
+  <h2>9. Menores</h2>
+  <p>
+    La aplicación es apta para todos los públicos y no recoge datos personales, por lo que no
+    trata deliberadamente información de menores de edad.
+  </p>
+
+  <h2>10. Tus derechos</h2>
+  <p>
+    El Reglamento General de Protección de Datos (RGPD) te reconoce derechos de acceso,
+    rectificación, supresión, oposición, limitación y portabilidad.
+  </p>
+  <p>
+    Como no conservamos ningún dato tuyo, <strong>ejerces esos derechos directamente</strong>:
+    revocando los permisos en tu sistema operativo y desinstalando la aplicación o borrando
+    sus datos, con lo que toda la información almacenada desaparece de forma irreversible.
+    Si aun así tienes dudas, escríbenos a
+    <a href="mailto:soporte.salati@gmail.com">soporte.salati@gmail.com</a>.
+  </p>
+
+  <h2>11. Seguridad</h2>
+  <p>
+    Todas las comunicaciones con los servicios externos se realizan mediante conexiones
+    cifradas HTTPS. Al no existir servidores propios ni cuentas de usuario, no hay bases de
+    datos que puedan verse comprometidas.
+  </p>
+
+  <h2>12. Cambios en esta política</h2>
+  <p>
+    Si esta política cambia, se actualizará la fecha del encabezado y la nueva versión se
+    publicará en esta misma dirección. Te recomendamos revisarla de vez en cuando.
+  </p>
+
+  <p class="legal__back">
+    <a class="btn btn--ghost" href="./index.html">Volver a SALATI</a>
+  </p>
+</main>
+
+<svg class="sprite" aria-hidden="true">
+  <symbol id="icon-back" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="m14 6-6 6 6 6"/></symbol>
+</svg>
+
+</body>
+</html>

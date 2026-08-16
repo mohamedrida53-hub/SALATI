@@ -74,8 +74,10 @@
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="preconnect" href="https://api.aladhan.com" crossorigin>
 <link rel="preconnect" href="https://api.quran.com" crossorigin>
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@400;500;600;700&display=swap">
+
+<!-- Tipografías servidas desde este mismo dominio. Antes venían del CDN de
+     Google, que recibía la IP de cada usuario en cada arranque. -->
+<link rel="stylesheet" href="fonts.css">
 <link rel="stylesheet" href="js/vendor/leaflet.css">
 <link rel="stylesheet" href="js/vendor/MarkerCluster.css">
 <link rel="stylesheet" href="styles.css">
@@ -181,6 +183,12 @@
     <a class="cfg__feedback"
        href="mailto:soporte.salati@gmail.com?subject=Feedback%20App%20Salati"
        data-i18n="cfg.feedback">Sugerencias o reporte de errores</a>
+
+    <!-- Navegación interna: sin target="_blank" ni interceptación de
+         Capacitor, porque es una página de la propia app y debe abrirse
+         dentro, con el botón de volver funcionando. -->
+    <a class="cfg__legal" id="btn-privacy" href="./privacidad.html"
+       data-i18n="cfg.privacy">Política de Privacidad</a>
   </div>
 </dialog>
 

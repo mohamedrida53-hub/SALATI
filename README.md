@@ -84,6 +84,36 @@ Hay **dos** capas de caché, y hacen cosas distintas:
 Comprobado con la red caída: la app arranca, pinta los horarios guardados y avisa con un toast
 («Sin conexión: mostrando los horarios guardados de hoy»).
 
+## Compilación para Android
+
+`.github/workflows/build-apk.yml` compila en cada push a `main` y publica dos artefactos:
+
+| Artefacto | Para qué |
+|---|---|
+| `salati-apk-debug` | APK firmado con la clave de depuración: **instalable** para probar |
+| `salati-aab-release` | App Bundle, el formato que exige Google Play |
+
+El `versionCode` sale de `github.run_number`. Play rechaza cualquier subida cuyo versionCode no
+sea mayor que el anterior, y llevarlo a mano es la forma más fácil de bloquearse una release.
+
+### Firma
+
+`scripts/apply-native.mjs` inyecta en `app/build.gradle` una configuración de firma que lee
+**variables de entorno**. Sin secretos configurados el AAB sale sin firmar; en cuanto existan,
+el mismo código lo firma sin tocar nada. Los cuatro secretos de GitHub:
+
+| Secreto | Contenido |
+|---|---|
+| `SALATI_KEYSTORE_BASE64` | El `.jks` codificado en base64 |
+| `SALATI_KEYSTORE_PASSWORD` | Contraseña del almacén |
+| `SALATI_KEY_ALIAS` | Alias de la clave |
+| `SALATI_KEY_PASSWORD` | Contraseña de la clave |
+
+**El keystore no se puede perder ni cambiar**: Google Play ata la identidad de la app a esa
+clave para siempre. Guarda una copia fuera de GitHub.
+
+---
+
 **El archivo tiene que estar en la raíz.** Un service worker sólo puede controlar su propia carpeta
 y las de debajo: desde `js/` no puede gobernar `/` y el registro falla con `SecurityError`, con lo
 que la app deja de funcionar sin conexión sin dar ningún aviso visible. Las rutas relativas de

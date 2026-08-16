@@ -530,6 +530,24 @@ button, select, input { font: inherit; color: inherit; }
 
 .cfg__feedback:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: 2px; }
 
+/* Enlace legal: el más discreto de todos, pero con área táctil completa. */
+.cfg__legal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  margin-top: 2px;
+  padding: 8px;
+  color: var(--ink-faint);
+  font-size: .76rem;
+  text-align: center;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  border-radius: 8px;
+}
+
+.cfg__legal:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: 2px; }
+
 /* ---------------- Autocompletado de ciudades ---------------- */
 
 .field--search { position: relative; }
@@ -1866,6 +1884,126 @@ body::after {
   overflow-wrap: anywhere;   /* corta URLs o palabras sin espacios */
 }
 
+/* ---------------- Página legal (privacidad) ---------------- */
+
+/* Página independiente: no hay barra inferior que esquivar. */
+.legal-page { padding-bottom: 0; }
+.legal-page .topbar { justify-content: space-between; }
+/* Cambio de idioma de la política. Ocupa el hueco simétrico al botón de
+   volver, para que el logo quede centrado de verdad en la cabecera. */
+.legal__lang {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 60px;
+  min-height: 44px;
+  flex: none;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--ink-soft);
+  font-size: .78rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.legal__lang:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: 2px; }
+
+/* Lo contrario de un aviso: aquí se destaca algo a favor del usuario. */
+.legal__nota-buena {
+  margin: 0 0 18px;
+  padding: 14px 16px;
+  border: 1px solid rgb(var(--feast-glow) / 40%);
+  border-left: 3px solid var(--feast);
+  border-radius: var(--r-sm);
+  background: rgb(var(--feast-glow) / 10%);
+  font-size: .88rem;
+}
+
+/* Medida de lectura corta: un texto legal a todo el ancho de un monitor es
+   ilegible. 68 caracteres es el rango cómodo para leer de corrido. */
+.legal {
+  max-width: 68ch;
+  color: var(--ink-read);
+  font-size: .94rem;
+  line-height: 1.7;
+}
+
+.legal__h1 {
+  margin: 8px 0 6px;
+  font-family: var(--f-display);
+  font-size: clamp(1.7rem, 1.4rem + 1.4vw, 2.3rem);
+  font-weight: 400;
+  line-height: 1.15;
+  color: var(--ink);
+}
+
+.legal__meta {
+  margin: 0 0 22px;
+  color: var(--ink-faint);
+  font-size: .82rem;
+  line-height: 1.6;
+}
+
+/* Resumen de una frase: lo primero que lee cualquiera, y a menudo lo único */
+.legal__callout {
+  margin: 0 0 28px;
+  padding: 16px 18px;
+  border: 1px solid var(--accent-edge);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--r-sm);
+  background: var(--accent-wash);
+}
+
+.legal__callout p { margin: 0; color: var(--ink); }
+
+.legal h2 {
+  margin: 32px 0 10px;
+  font-family: var(--f-display);
+  font-size: 1.22rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--accent-bright);
+}
+
+.legal p { margin: 0 0 14px; }
+.legal ul { margin: 0 0 16px; padding-inline-start: 22px; }
+.legal li { margin-bottom: 8px; }
+.legal a { color: var(--accent-bright); text-decoration: underline; text-underline-offset: 3px; }
+.legal strong { color: var(--ink); font-weight: 600; }
+
+.legal code {
+  padding: 2px 6px;
+  border-radius: 5px;
+  background: var(--surface-2);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .86em;
+}
+
+/* La tabla de terceros se desplaza dentro de su caja: a 320 px no cabe de
+   ninguna manera y sin esto rompería el ancho de toda la página. */
+.legal__table-wrap {
+  margin: 0 0 18px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+}
+
+.legal__table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+.legal__table th, .legal__table td { padding: 11px 13px; text-align: start; vertical-align: top; }
+.legal__table thead th { background: var(--surface-2); color: var(--ink); font-weight: 600; white-space: nowrap; }
+.legal__table tbody tr { border-top: 1px solid var(--line); }
+.legal__table td:first-child { white-space: nowrap; }
+
+.legal__back { margin: 34px 0 0; text-align: center; }
+
+@media (min-width: 768px) {
+  /* Sin barra lateral: es una página suelta, no una pestaña de la app. */
+  .legal-page { display: block; }
+  .legal { margin-inline: auto; padding-block: 32px 56px; }
+}
+
 /* ---------------- Escritorio ---------------- */
 
 /* =========================================================
@@ -2084,6 +2222,7 @@ body::after {
   .support__btn:hover { background: color-mix(in srgb, var(--accent) 24%, transparent); border-color: var(--accent-bright); }
   .support__btn--gaza:hover { background: rgb(var(--feast-glow) / 24%); border-color: var(--feast-soft); }
   .cfg__feedback:hover { color: var(--accent-bright); background: var(--surface); }
+  .cfg__legal:hover { color: var(--accent-bright); }
   .lang__option:hover { background: var(--surface-2); color: var(--ink); }
   .btn:hover { background: var(--accent-bright); }
   .btn--ghost:hover { background: var(--accent-wash); border-color: var(--accent-edge); }
