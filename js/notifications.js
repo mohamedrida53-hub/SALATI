@@ -2,6 +2,7 @@ import { PRAYERS, STORAGE_KEYS, ADHAN_URL } from './config.js';
 import { cleanTime, timeToSeconds, secondsOfDayInZone, load, save, toast } from './utils.js';
 import { t, prayerName, getLang } from './i18n.js';
 import { writeFlag } from './prefs-db.js';
+import { prayerAlertOn } from './prayer-alerts.js';
 import { isIOS, isStandalone } from './platform.js';
 import {
   nativeAvailable, requestNativePermission, checkNativePermission,
@@ -254,6 +255,9 @@ export function scheduleAdhan({ timings, timezone, label } = {}) {
 
   for (const prayer of PRAYERS) {
     if (prayer.info) continue;
+    // Segundo filtro: el interruptor general ya ha pasado, ahora la campana
+    // individual de este rezo. Si está silenciado, ni se encola.
+    if (!prayerAlertOn(prayer.key)) continue;
     const sec = timeToSeconds(timings[prayer.key]);
     if (!Number.isFinite(sec) || sec <= nowSec) continue;
     pending.push({ prayer, sec, clock: cleanTime(timings[prayer.key]) });
@@ -263,11 +267,17 @@ export function scheduleAdhan({ timings, timezone, label } = {}) {
   return pending.length;
 }
 
-/** Cuántos rezos quedan hoy. Sólo para informar al usuario en el toast. */
+/**
+ * Cuántos avisos quedan hoy. Sólo para informar al usuario en el toast.
+ *
+ * Aplica exactamente los mismos filtros que la programación real, campanas
+ * incluidas. Si contara los rezos silenciados, el mensaje prometería avisos
+ * que no van a llegar, que es peor que no decir nada.
+ */
 function contarPendientes(timings, timezone) {
   const nowSec = secondsOfDayInZone(timezone);
   return PRAYERS.filter((p) => {
-    if (p.info) return false;
+    if (p.info || !prayerAlertOn(p.key)) return false;
     const sec = timeToSeconds(timings[p.key]);
     return Number.isFinite(sec) && sec > nowSec;
   }).length;
@@ -290,6 +300,12 @@ function check() {
 }
 
 async function fire(prayer, clock, label) {
+  /* Red de seguridad. `pending` se construye al programar, así que un rezo
+     silenciado después no debería estar aquí; pero si por lo que sea la
+     reprogramación no llegó a correr, esto evita que suene algo que el
+     usuario había apagado, que es el fallo más molesto de todos. */
+  if (!prayerAlertOn(prayer.key)) return;
+
   const stamp = `${new Date().toDateString()}|${prayer.key}`;
   if (lastFired === stamp) return;
   lastFired = stamp;

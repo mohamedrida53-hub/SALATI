@@ -835,7 +835,10 @@ button, select, input { font: inherit; color: inherit; }
 
 .time {
   display: grid;
-  grid-template-columns: 34px 1fr auto;
+  /* La cuarta columna es la campana de avisos. Ancho fijo y no `auto` para
+     que la hora quede alineada en todas las filas, incluida la del amanecer,
+     que no tiene campana sino un hueco vacío. */
+  grid-template-columns: 34px 1fr auto 34px;
   align-items: center;
   gap: 12px;
   padding: 13px 16px;
@@ -852,7 +855,16 @@ button, select, input { font: inherit; color: inherit; }
 .time--info .time__name { font-weight: 400; }
 .time--info svg { color: var(--ink-faint); }
 
-.time--past { opacity: .42; }
+/* Antes era `opacity: .42` sobre toda la fila. Se cambia a color porque la
+   opacidad del padre apagaba también la campana, y un botón al 42 % sobre el
+   fondo oscuro no llega al contraste mínimo: el usuario no distinguía si el
+   rezo estaba silenciado ni veía bien lo que iba a pulsar. La opacidad de un
+   padre no se puede «deshacer» en el hijo, así que había que quitarla de ahí.
+   `> svg` apunta sólo al icono del rezo: el de la campana va dentro del botón. */
+.time--past { color: var(--ink-soft); }
+.time--past > svg { opacity: .5; }
+.time--past .time__name,
+.time--past .time__clock { color: var(--ink-soft); font-weight: 500; }
 
 .time--next {
   background: var(--accent-wash);
@@ -869,6 +881,58 @@ button, select, input { font: inherit; color: inherit; }
   text-transform: uppercase;
   color: var(--accent-bright);
 }
+
+/* ---- Campana de avisos, una por rezo ---- */
+
+.time__bell {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--accent-bright);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: color .15s ease, background-color .15s ease;
+}
+
+/* El botón mide 34 px para no engordar la fila, pero el área pulsable se
+   estira a 44 con un pseudoelemento invisible: es el mínimo cómodo con el
+   pulgar y lo que recomiendan tanto Apple como Material. No mueve el diseño. */
+.time__bell::after {
+  content: '';
+  position: absolute;
+  inset: -5px;
+}
+
+/* Selector con la fila delante a propósito: `.time svg` (22 px, color de
+   acento) tiene la misma especificidad que `.time__bell svg`, y sin esto el
+   resultado dependería del orden de las reglas dentro del archivo. */
+.time .time__bell svg { width: 20px; height: 20px; color: inherit; }
+
+/* Silenciado. El color apagado acompaña al cambio de icono, no lo sustituye:
+   la campana tachada es lo que hace legible el estado sin depender del color. */
+.time__bell--off { color: var(--ink-faint); }
+
+@media (hover: hover) and (pointer: fine) {
+  .time__bell:hover { background: var(--accent-wash); }
+  .time__bell--off:hover { color: var(--ink-soft); }
+}
+
+.time__bell:active { transform: scale(.9); }
+.time__bell:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .time__bell { transition: none; }
+  .time__bell:active { transform: none; }
+}
+
+/* Hueco de la fila del amanecer: mantiene las horas alineadas. */
+.time__bell-slot { width: 34px; }
 
 /* ---------------- 1 · Ajustes ---------------- */
 

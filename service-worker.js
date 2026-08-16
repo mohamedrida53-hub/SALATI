@@ -12,7 +12,7 @@
    así que desde `js/` era imposible que gobernara `/` y el registro fallaba
    con SecurityError: la app nunca llegaba a funcionar sin conexión.
    Las rutas relativas de SHELL_FILES se resuelven contra ESTA ubicación. */
-const VERSION = 'v3.4.0';
+const VERSION = 'v3.5.0';
 const SHELL = `SALATI-shell-${VERSION}`;
 const DATA = `SALATI-data-${VERSION}`;
 const TILES = `SALATI-tiles-${VERSION}`;
@@ -47,6 +47,7 @@ const SHELL_FILES = [
   './js/mosques.js',
   './js/notifications.js',
   './js/prayer.js',
+  './js/prayer-alerts.js',
   './js/qibla.js',
   './js/quran.js',
   './js/store.js',
@@ -249,6 +250,16 @@ self.addEventListener('push', (event) => {
     const avisosOn = await leerFlag('notify', false);
     const adhanOn = await leerFlag('adhan', false);
     if (!avisosOn) return;   // el usuario los tiene apagados: no se muestra
+
+    /* Campana individual del rezo. El servidor de push aún no existe (falta la
+       clave VAPID), pero si algún día envía `prayer`, un rezo silenciado no
+       debe colarse por esta vía saltándose la preferencia del usuario.
+       Sin `prayer` en el mensaje no se filtra nada: sólo se descarta lo que
+       consta explícitamente como silenciado. */
+    if (datos.prayer) {
+      const campanas = await leerFlag('prayerAlerts', null);
+      if (campanas && campanas[datos.prayer] === false) return;
+    }
 
     const titulo = datos.title || 'SALATI';
     await self.registration.showNotification(titulo, {

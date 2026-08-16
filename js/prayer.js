@@ -4,6 +4,7 @@ import {
   secondsOfDayInZone, formatCountdown, formatWeekday, formatGregorianShort, formatHijri,
 } from './utils.js';
 import { t, prayerName, prayerSub } from './i18n.js';
+import { prayerAlertOn, togglePrayerAlert } from './prayer-alerts.js';
 
 const ARC_RADIUS = 88;
 const ARC_LENGTH = 2 * Math.PI * ARC_RADIUS;
@@ -13,7 +14,7 @@ let current = null;
 let timer = null;
 let lastKey = null;
 let lastNowSec = null;
-let hooks = { onRetry: null, onDayChange: null };
+let hooks = { onRetry: null, onDayChange: null, onAlertChange: null };
 
 export function initPrayer(callbacks = {}) {
   hooks = { ...hooks, ...callbacks };
@@ -32,9 +33,51 @@ export function initPrayer(callbacks = {}) {
   dom.arc.style.strokeDasharray = String(ARC_LENGTH);
   dom.arc.style.strokeDashoffset = String(ARC_LENGTH);
 
+  /* Delegación en la lista y no un listener por campana: `renderList` sustituye
+     todas las filas de golpe cada vez que cambia el próximo rezo, y con
+     listeners individuales habría que volver a engancharlos en cada repintado. */
+  dom.list.addEventListener('click', onBellClick);
+
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden) tick();
   });
+}
+
+/* ---------------- Campana por rezo ---------------- */
+
+function onBellClick(event) {
+  const boton = event.target.closest('.time__bell');
+  if (!boton || !dom.list.contains(boton)) return;
+
+  const clave = boton.dataset.prayer;
+  if (!clave) return;
+
+  const activo = togglePrayerAlert(clave);
+  paintBell(boton, clave, activo);
+
+  // Mismo pulso háptico que el tasbih y la qibla, por coherencia.
+  try { navigator.vibrate?.(15); } catch { /* el navegador no lo permite */ }
+
+  /* Reprogramar es obligatorio, no cosmético: las alarmas del sistema ya
+     están puestas y silenciar la campana no las retira por sí solo. */
+  hooks.onAlertChange?.(clave, activo);
+}
+
+/**
+ * Pinta el estado de una campana.
+ *
+ * Se actualiza el botón en el sitio en vez de repintar la lista entera porque
+ * `renderList` sólo corre cuando cambia el próximo rezo: llamarlo aquí sería
+ * reconstruir seis filas para cambiar un icono, y además movería el foco del
+ * teclado fuera del botón que el usuario acaba de pulsar.
+ */
+function paintBell(boton, clave, activo) {
+  const name = prayerName(clave);
+  boton.classList.toggle('time__bell--off', !activo);
+  boton.setAttribute('aria-pressed', String(activo));
+  boton.setAttribute('aria-label', t('prayer.bellAria', { name }));
+  boton.setAttribute('title', t(activo ? 'prayer.bellMute' : 'prayer.bellUnmute', { name }));
+  boton.replaceChildren(icon(activo ? 'icon-bell' : 'icon-bell-off'));
 }
 
 /** Punto de entrada: recibe el estado y decide qué pintar. */
@@ -208,8 +251,18 @@ function renderList(timings, nextKey, nowSec) {
         el('div', { class: 'time__ar', text: `${p.ar} · ${prayerSub(p.key)}` }),
       ]),
       el('div', { class: 'time__clock', text: cleanTime(timings[p.key]) }),
+      /* El amanecer no es un rezo y nunca ha avisado, así que no lleva
+         campana. Aun así ocupa la columna con un hueco vacío: si no, su hora
+         se desplazaría a la derecha y quedaría desalineada del resto. */
+      p.info ? el('span', { class: 'time__bell-slot', 'aria-hidden': 'true' }) : buildBell(p.key),
     ]);
   });
 
   dom.list.replaceChildren(...rows);
+}
+
+function buildBell(clave) {
+  const boton = el('button', { class: 'time__bell', type: 'button', dataset: { prayer: clave } });
+  paintBell(boton, clave, prayerAlertOn(clave));
+  return boton;
 }

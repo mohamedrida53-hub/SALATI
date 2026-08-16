@@ -1,6 +1,7 @@
 import { PRAYERS } from './config.js';
 import { cleanTime, timeToSeconds, secondsOfDayInZone } from './utils.js';
 import { t, prayerName, getLang } from './i18n.js';
+import { prayerAlertOn } from './prayer-alerts.js';
 
 /* =========================================================
    Notificaciones locales nativas (Capacitor / Android).
@@ -126,8 +127,14 @@ export async function scheduleNativeAdhan({ timings, timezone, label, conAdhan }
   const nowSec = secondsOfDayInZone(timezone);
   const avisos = [];
 
+  /* `forEach` con índice y no un `filter` previo: el id de cada aviso sale de
+     la posición en PRAYERS, así que tiene que seguir siendo la misma aunque se
+     salten rezos. Si el id cambiara según cuántos estén silenciados,
+     `cancelNativeAdhan` dejaría alarmas huérfanas en el sistema. */
   PRAYERS.forEach((prayer, indice) => {
     if (prayer.info) return;                       // el amanecer no es un rezo
+    // La campana individual del usuario: silenciado es no programar la alarma.
+    if (!prayerAlertOn(prayer.key)) return;
     const sec = timeToSeconds(timings[prayer.key]);
     if (!Number.isFinite(sec) || sec <= nowSec) return;
 

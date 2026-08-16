@@ -8,7 +8,8 @@ import { initQuran, ensureQuranLoaded, refreshQuranTranslation } from './quran.j
 import { initTasbih, setTasbihActive, refreshTasbih } from './tasbih.js';
 import { initMosques, renderMosques, refreshMosquesText } from './mosques.js';
 import { initCalendar, renderCalendar } from './calendar.js';
-import { initI18n, onLangChange, applyStatic, t } from './i18n.js';
+import { initI18n, onLangChange, applyStatic, t, prayerName } from './i18n.js';
+import { anyPrayerAlertOn } from './prayer-alerts.js';
 import { track, trackScreen } from './analytics.js';
 import { needsManualInstall, isIOSSafari } from './platform.js';
 import { initTheme, getTheme, setTheme, THEMES } from './theme.js';
@@ -50,6 +51,7 @@ initPrayer({
   onDayChange: () => {
     if (state.place) loadTimes(state.place);
   },
+  onAlertChange: onPrayerAlertChange,
 });
 
 initQibla({ onNeedLocation: openLocationDialog });
@@ -356,6 +358,32 @@ function buildThemePicker() {
   }));
 }
 
+/**
+ * El usuario ha tocado la campana de un rezo concreto.
+ *
+ * Reprogramar no es opcional: las alarmas del día ya están puestas (en el APK,
+ * en el propio sistema operativo), y cambiar la preferencia no las retira.
+ * Sin este `armAdhan()` el rezo silenciado seguiría sonando hoy.
+ */
+function onPrayerAlertChange(clave, activo) {
+  armAdhan();
+
+  // Con los dos interruptores generales apagados la campana no cambia nada
+  // todavía. Conviene decirlo o el usuario creerá que ya está todo listo.
+  if (!adhanEnabled() && !notificationsEnabled()) {
+    toast(t('state.alertsOff'));
+    return;
+  }
+
+  if (!anyPrayerAlertOn()) {
+    toast(t('prayer.allMuted'));
+    return;
+  }
+
+  const name = prayerName(clave);
+  toast(t(activo ? 'prayer.bellOnMsg' : 'prayer.bellOffMsg', { name }));
+}
+
 /** Reprograma los avisos y confirma en un toast, ya que las filas no llevan texto. */
 function announceAlerts() {
   const armed = armAdhan();
@@ -366,6 +394,14 @@ function announceAlerts() {
 
   if (!on.length) {
     toast(t('state.alertsOff'));
+    return;
+  }
+
+  /* Los interruptores generales están encendidos pero las cinco campanas
+     apagadas: no va a sonar nada. Confirmar «avisos activados» aquí sería
+     mentir, y el usuario lo descubriría al no oír el adhan. */
+  if (!anyPrayerAlertOn()) {
+    toast(t('prayer.allMuted'));
     return;
   }
   // Se repite aquí lo de «con la app abierta» a propósito: es el momento en

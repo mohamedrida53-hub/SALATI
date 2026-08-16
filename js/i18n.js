@@ -355,6 +355,21 @@ const STRINGS = {
   'prayer.testBtn': { ca: 'Escoltar', es: 'Escuchar', en: 'Play', ar: 'استمع' },
   'prayer.installTitle': { ca: 'Instal·la SALATI', es: 'Instalar SALATI', en: 'Install SALATI', ar: 'تثبيت صلاتي' },
   'prayer.installBtn': { ca: 'Instal·lar', es: 'Instalar', en: 'Install', ar: 'تثبيت' },
+  /* Campana por rezo. La etiqueta accesible describe el CONTROL y el estado
+     lo lleva `aria-pressed`; el tooltip describe la ACCIÓN. Poner la acción en
+     el aria-label haría que el lector de pantalla dijera «silenciar Fajr,
+     pulsado», que se entiende justo al revés de lo que pasa. */
+  'prayer.bellAria':   { ca: 'Avisos de {name}', es: 'Avisos de {name}', en: '{name} alerts', ar: 'تنبيهات {name}' },
+  'prayer.bellMute':   { ca: 'Silencia {name}', es: 'Silenciar {name}', en: 'Mute {name}', ar: 'كتم {name}' },
+  'prayer.bellUnmute': { ca: 'Activa els avisos de {name}', es: 'Activar los avisos de {name}', en: 'Unmute {name}', ar: 'تفعيل تنبيهات {name}' },
+  'prayer.bellOnMsg':  { ca: 'Avisos de {name} activats', es: 'Avisos de {name} activados', en: '{name} alerts on', ar: 'تم تفعيل تنبيهات {name}' },
+  'prayer.bellOffMsg': { ca: '{name} silenciat', es: '{name} silenciado', en: '{name} muted', ar: 'تم كتم {name}' },
+  'prayer.allMuted': {
+    ca: 'Has silenciat els cinc resos: no sonarà cap avís.',
+    es: 'Has silenciado los cinco rezos: no sonará ningún aviso.',
+    en: 'All five prayers are muted: no alerts will fire.',
+    ar: 'جميع الصلوات الخمس مكتومة: لن يصلك أي تنبيه.',
+  },
   'prayer.metaMethod': { ca: 'Mètode: {name}.', es: 'Método: {name}.', en: 'Method: {name}.', ar: 'الطريقة: {name}.' },
   'prayer.metaZone': { ca: 'Hores a {zone}.', es: 'Horas en {zone}.', en: 'Times in {zone}.', ar: 'التوقيت في {zone}.' },
 

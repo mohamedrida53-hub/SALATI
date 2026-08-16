@@ -72,6 +72,10 @@ export const STORAGE_KEYS = {
   chapters: 'salati.chapters',
   notify: 'salati.notify',   // aviso visual
   adhan: 'salati.adhan',     // sonido del adhan, independiente del anterior
+  /* Qué rezos avisan y cuáles están silenciados, uno a uno. Es un filtro que
+     se aplica DESPUÉS de los dos interruptores generales de arriba: si el
+     general está apagado, da igual lo que diga esto. Ver js/prayer-alerts.js. */
+  prayerAlerts: 'salati.prayerAlerts',
   tasbih: 'salati.tasbih',
   today: 'salati.today',
   lang: 'salati.lang',
