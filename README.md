@@ -239,3 +239,5 @@ etiquetas, no por `innerHTML` a pelo.
 - Ajuste manual del adhan por rezo (avisar sólo de Fajr y Maghrib, por ejemplo).
 - Envoltorio con Capacitor si el adhan con la app cerrada se vuelve imprescindible. Es la única vía
   que lo consigue de verdad; Web Push no, porque el sonido lo elige el sistema (ver arriba).
+  
+  Actualización: Preparando versión oficial para Google Play Store.
