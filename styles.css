@@ -1789,14 +1789,29 @@ body::after {
   left: 50%;
   bottom: calc(var(--tabbar-h) + 18px + var(--sa-bottom));
   z-index: 40;
+
+  /* `width: max-content` es lo que arregla el aviso apretujado.
+     Un elemento `fixed` con `left: 50%` y sin `right` calcula su ancho por
+     ajuste al contenido, y el espacio disponible para ese cálculo es sólo el
+     que va del centro al borde derecho: media pantalla. En un móvil de 375 px
+     el aviso salía de 188 px y el texto se partía en TRES líneas, sin que el
+     `max-width` de 420 llegara a intervenir jamás. Con `max-content` el ancho
+     se toma del texto en una línea y entonces `max-width` sí acota de verdad. */
+  width: max-content;
   max-width: min(420px, calc(100vw - 32px));
+
   margin: 0;
-  padding: 11px 16px;
+  padding: 13px 18px;
   border: 1px solid var(--line);
-  border-radius: 999px;
+  /* Rectángulo redondeado y no píldora: con radio 999 el propio redondeo se
+     comía las esquinas del texto en cuanto había más de una línea. */
+  border-radius: var(--r-md);
   background: var(--surface-2);
   color: var(--ink);
   font-size: .86rem;
+  line-height: 1.45;
+  text-align: center;
+  text-wrap: balance;   /* reparte las líneas en vez de dejar una huérfana */
   translate: -50% 12px;
   opacity: 0;
   pointer-events: none;
@@ -1929,13 +1944,31 @@ body::after {
 
 .mosques__summary { margin: 14px 0 8px; color: var(--ink-soft); font-size: .85rem; }
 
-.mosques__list { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+/* `minmax(0, 1fr)` y no `1fr` a secas: `1fr` equivale a `minmax(auto, 1fr)`,
+   y ese `auto` impide que la columna se encoja por debajo de su contenido.
+   Es la mitad del arreglo del desbordamiento; la otra mitad está en `.mosque`. */
+.mosques__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+}
 
 .mosque {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  /* AQUÍ ESTABA EL DESBORDAMIENTO. Los elementos de una rejilla nacen con
+     `min-width: auto`, que les prohíbe encogerse por debajo de su contenido.
+     Con un nombre largo de OpenStreetMap la tarjeta se estiraba a 706 px
+     dentro de una lista de 343: el nombre se salía y la distancia en km
+     quedaba fuera de la pantalla. El `min-width: 0` que ya había en
+     `.mosque__body` no servía de nada, porque quien se desbordaba era la
+     tarjeta entera, no su hijo. */
+  min-width: 0;
   padding: 12px 14px;
   border: 1px solid var(--line);
   border-radius: var(--r-sm);
@@ -1945,9 +1978,10 @@ body::after {
 
 .mosque:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: 2px; }
 
-/* min-width: 0 es lo que permite que un hijo flex se encoja por debajo de su
-   contenido; sin esto los nombres largos de OSM estiraban la fila. */
-.mosque__body { min-width: 0; }
+/* `flex: 1` para que el cuerpo ocupe el hueco que deja la distancia, y
+   `min-width: 0` para que pueda encogerse por debajo de su contenido, que es
+   lo que activa los puntos suspensivos del nombre. */
+.mosque__body { flex: 1; min-width: 0; }
 .mosque__name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mosque__meta { color: var(--ink-faint); font-size: .8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mosque__km { flex: none; color: var(--accent-bright); font-weight: 600; font-variant-numeric: tabular-nums; }
