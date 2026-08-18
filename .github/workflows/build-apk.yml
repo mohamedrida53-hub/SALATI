@@ -12,7 +12,7 @@ jobs:
     # Actions sin abrir los registros, así que de un vistazo se sabe si GitHub
     # está ejecutando esta versión del archivo o una anterior que se quedó
     # subida. Súbela cada vez que cambies este workflow.
-    name: APK de prueba + AAB para Play Store (rev. 3 · Capacitor 8)
+    name: APK de prueba + AAB para Play Store (rev. 4 · paquete com.salatii.app)
     runs-on: ubuntu-latest
 
     env:
@@ -21,6 +21,16 @@ jobs:
       # garantiza que siempre suba, sin llevar la cuenta a mano.
       SALATI_VERSION_CODE: ${{ github.run_number }}
       SALATI_VERSION_NAME: 1.0.${{ github.run_number }}
+
+      # El nombre del paquete que exige la ficha de Google Play. OJO CON LA
+      # DOBLE «i»: es «salatii», no «salati».
+      #
+      # Se declara aquí para poder comprobar que el proyecto generado coincide.
+      # Un paquete NO se puede cambiar nunca una vez publicado, así que un
+      # desajuste silencioso sería irreversible: habría que abrir una ficha
+      # nueva y perder a todos los usuarios. La fuente de verdad sigue siendo
+      # `appId` en capacitor.config.json; esto sólo lo verifica.
+      SALATI_APP_ID: com.salatii.app
 
     steps:
       - name: Descargar el repositorio
@@ -112,6 +122,38 @@ jobs:
       - name: Sincronizar Capacitor
         run: npx cap sync android
 
+      # El paquete es lo único de todo el build que no admite marcha atrás:
+      # Play lo reserva de por vida en cuanto se publica. Se comprueba contra
+      # SALATI_APP_ID antes de gastar minutos compilando.
+      - name: Verificar el nombre del paquete
+        run: |
+          set -euo pipefail
+          echo "Esperado: $SALATI_APP_ID"
+
+          fallos=0
+          for clave in applicationId namespace; do
+            valor=$(grep -oP "$clave\s*=?\s*[\"']\K[^\"']+" android/app/build.gradle | head -1 || true)
+            if [ "$valor" = "$SALATI_APP_ID" ]; then
+              echo "  ok   $clave = $valor"
+            else
+              echo "::error::$clave es '$valor' y deberia ser '$SALATI_APP_ID'. Revisa appId en capacitor.config.json."
+              fallos=1
+            fi
+          done
+
+          # Restos del paquete antiguo. `com.salati.app` (una sola i) provoco el
+          # rechazo de Play por conflicto de autoridades de proveedor de
+          # contenido: androidx-startup deriva la suya del applicationId y tiene
+          # que ser unica en toda la tienda.
+          if grep -rIl 'com\.salati\.app' android/ >/dev/null 2>&1; then
+            echo "::error::quedan referencias al paquete antiguo com.salati.app:"
+            grep -rIl 'com\.salati\.app' android/ || true
+            fallos=1
+          fi
+
+          [ "$fallos" -eq 0 ] || exit 1
+          echo "Paquete correcto en todo el proyecto generado."
+
       # Deja constancia en el registro de que la firma y el versionado se
       # inyectaron de verdad. Si esto no aparece, `bundleRelease` saldría con
       # los valores de la plantilla de Capacitor y Play lo rechazaría.
@@ -171,6 +213,30 @@ jobs:
       - name: Compilar el APK de prueba
         working-directory: android
         run: ./gradlew assembleDebug --no-daemon --stacktrace
+
+      # Comprobación de lo que Play rechazó literalmente. Las autoridades de
+      # los proveedores de contenido no están en nuestro AndroidManifest: las
+      # aportan las librerías (androidx-startup, el FileProvider de Capacitor)
+      # usando el marcador ${applicationId}, y sólo aparecen resueltas en el
+      # manifiesto FUSIONADO, que no existe hasta después de compilar.
+      - name: Verificar las autoridades del manifiesto fusionado
+        run: |
+          set -euo pipefail
+          MANIFIESTO=$(find android/app/build/intermediates -name 'AndroidManifest.xml' -path '*merged_manifest*' -print -quit)
+          if [ -z "$MANIFIESTO" ]; then
+            echo "No se ha encontrado el manifiesto fusionado; se omite la comprobación."
+            exit 0
+          fi
+          echo "Manifiesto: $MANIFIESTO"
+
+          echo "--- autoridades declaradas ---"
+          grep -oP 'android:authorities="\K[^"]+' "$MANIFIESTO" || echo "(ninguna)"
+
+          if grep -q 'android:authorities="[^"]*com\.salati\.app' "$MANIFIESTO"; then
+            echo "::error::hay autoridades con el paquete antiguo com.salati.app; Play volveria a rechazarlo."
+            exit 1
+          fi
+          echo "Ninguna autoridad usa el paquete antiguo."
 
       - name: Reunir el APK
         run: |
@@ -241,7 +307,7 @@ jobs:
           {
             echo "### Compilación de SALATI"
             echo ""
-            echo "Workflow \`build-apk.yml\` rev. 3 — Capacitor 8, APK de prueba + AAB."
+            echo "Workflow \`build-apk.yml\` rev. 4 — paquete com.salatii.app, APK de prueba + AAB."
             echo ""
             echo "| Dato | Valor |"
             echo "|---|---|"
