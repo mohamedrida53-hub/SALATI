@@ -212,3 +212,35 @@ el resto del envío, o el revisor detectará la contradicción:
   en `js/prayer-alerts.js`.
 - Que se usa la ubicación para calcular los horarios → debe coincidir con lo
   declarado en Seguridad de los Datos y con la política de privacidad.
+
+---
+
+## 7 · Nombre del paquete: com.salatii.app
+
+**Con doble «i».** Se define en un único sitio, `appId` de `capacitor.config.json`,
+y desde ahí Capacitor lo propaga al `applicationId`, al `namespace`, al paquete
+Java y a las autoridades del manifiesto cuando regenera `android/`.
+
+Google Play rechazó la primera subida con dos errores que en realidad eran uno:
+
+1. El paquete debía ser `com.salatii.app`.
+2. Conflicto de autoridades de proveedor de contenido con
+   `com.salati.app.androidx-startup`.
+
+El segundo se explica solo: AndroidX Startup deriva la autoridad de su
+`InitializationProvider` del `applicationId`, con la plantilla
+`${applicationId}.androidx-startup`. Esa cadena tiene que ser única en toda la
+tienda, así que al corregir el paquete el conflicto desapareció por sí mismo.
+
+**Este valor no se puede volver a cambiar.** Play reserva el nombre del paquete
+de por vida en cuanto se publica una versión: cambiarlo obligaría a abrir una
+ficha nueva y empezar de cero con los usuarios. Por eso el workflow lo verifica
+en dos momentos:
+
+| Comprobación | Qué mira |
+|---|---|
+| «Verificar el nombre del paquete» | `applicationId` y `namespace` del `build.gradle` generado, y que no queden restos del paquete antiguo |
+| «Verificar las autoridades del manifiesto fusionado» | Las autoridades reales tras la fusión, que es lo que Play inspecciona |
+
+La segunda sólo puede correr después de compilar: las autoridades no están en
+nuestro manifiesto, las aportan las librerías y sólo se resuelven al fusionarlo.
