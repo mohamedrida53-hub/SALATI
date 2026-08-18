@@ -1,6 +1,6 @@
 {
   "name": "salati",
-  "version": "1.0.0",
+  "version": "1.0.18",
   "description": "Horarios de oración, brújula de la Qibla, mezquitas cercanas, calendario hijri y Corán.",
   "private": true,
   "type": "module",
