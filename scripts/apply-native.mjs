@@ -110,31 +110,63 @@ async function parchearGradle() {
             }`,
   );
 
-  // versionCode y versionName desde el entorno, con reserva razonable.
+  /* versionCode y versionName desde el entorno, con reserva razonable.
+
+     El separador se captura y se reutiliza porque Capacitor 8 migró el
+     build.gradle a sintaxis de asignación (`versionCode = 1`) mientras que
+     versiones anteriores usaban llamada a método (`versionCode 1`). Con
+     `\s+` a secas la expresión dejaba de encajar en Capacitor 8 y el parche
+     no se aplicaba, generando un AAB con versionCode 1 que Play rechaza. */
   gradle = gradle.replace(
-    /versionCode\s+\d+/,
-    'versionCode Integer.parseInt(System.getenv("SALATI_VERSION_CODE") ?: "1")',
+    /versionCode(\s*=\s*|\s+)\d+/,
+    (_, sep) => `versionCode${sep}Integer.parseInt(System.getenv("SALATI_VERSION_CODE") ?: "1")`,
   );
   gradle = gradle.replace(
-    /versionName\s+"[^"]*"/,
-    'versionName System.getenv("SALATI_VERSION_NAME") ?: "1.0.0"',
+    /versionName(\s*=\s*|\s+)"[^"]*"/,
+    (_, sep) => `versionName${sep}System.getenv("SALATI_VERSION_NAME") ?: "1.0.0"`,
   );
+
+  /* Comprobación explícita antes de escribir. Una expresión regular que no
+     encaja no lanza ningún error: se queda tal cual y el fallo aparecería
+     mucho más tarde, como un rechazo de Play sin explicación. Mejor tumbar
+     aquí la compilación, donde el motivo es evidente. */
+  const faltan = [
+    ['bloque de firma', 'salatiSigning'],
+    ['versionCode dinámico', 'SALATI_VERSION_CODE'],
+    ['versionName dinámico', 'SALATI_VERSION_NAME'],
+  ].filter(([, aguja]) => !gradle.includes(aguja)).map(([nombre]) => nombre);
+
+  if (faltan.length) {
+    console.error(`No se ha podido parchear app/build.gradle: falta ${faltan.join(', ')}.`);
+    console.error('Probablemente Capacitor ha cambiado la plantilla. Revisa parchearGradle().');
+    process.exit(1);
+  }
 
   await writeFile(ruta, gradle, 'utf8');
   console.log('  · build.gradle: firma por entorno y versionado dinámico');
 }
 
 /**
- * Tema nativo con la barra de navegación y la de estado en oscuro.
+ * Tema nativo: fondo oscuro desde el primer fotograma.
  *
- * Ésta es la solución de fondo a la franja blanca de abajo. Un plugin de
- * JavaScript también puede pintarla, pero corre DESPUÉS de que cargue el
- * WebView: durante ese instante el usuario ve el destello blanco. El tema
- * de Android se aplica desde el primer fotograma, antes incluso de que
- * exista la vista web, así que no hay parpadeo posible.
+ * OJO CON LO QUE SIGUE SIRVIENDO Y LO QUE NO, que cambió con Android 15:
  *
- * `windowLightNavigationBar=false` es lo que pone los iconos de los gestos
- * en blanco; sin eso quedarían negros sobre negro e invisibles.
+ *   · `android:windowBackground` / `android:background` → SIGUEN valiendo, y
+ *     son lo que evita el destello blanco al abrir. Se aplican antes incluso
+ *     de que exista el WebView, cosa que ningún plugin de JS puede hacer.
+ *
+ *   · `android:statusBarColor` y `android:navigationBarColor` → el sistema
+ *     los IGNORA a partir de Android 15 cuando se apunta a targetSdk 35 o
+ *     superior, porque el modo «edge to edge» pasó a ser obligatorio y las
+ *     barras son siempre transparentes. Se dejan porque la app admite desde
+ *     Android 7 (minSdk 24) y en Android 7–14 sí se respetan.
+ *
+ * Existió un escape temporal, `windowOptOutEdgeToEdgeEnforcement`, pero
+ * Android 16 lo eliminó: no sirve para targetSdk 36 y no se usa aquí.
+ *
+ * El color de los ICONOS del sistema ya no se decide en este XML sino en
+ * caliente desde js/theme.js con SystemBars, porque la app tiene modo claro
+ * y oscuro y el tema nativo es fijo.
  */
 async function escribirTema() {
   const valores = join(MAIN, 'res', 'values');

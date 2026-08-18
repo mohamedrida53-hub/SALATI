@@ -1,0 +1,129 @@
+SALATI — Avisos de software de terceros
+=======================================
+
+Este archivo acompaña a la distribución de SALATI (aplicación web y
+aplicación de Android) y reproduce los avisos de copyright y las licencias
+del software de terceros incluido en ella, tal y como esas licencias exigen.
+
+Última revisión: 17 de agosto de 2026
+
+
+-------------------------------------------------------------------------
+1. Leaflet 1.9.4
+-------------------------------------------------------------------------
+Archivos: js/vendor/leaflet.js, js/vendor/leaflet.css
+Web:      https://leafletjs.com
+Licencia: BSD 2-Clause "Simplified" License
+
+Copyright (c) 2010-2023, Volodymyr Agafonkin
+Copyright (c) 2010-2011, CloudMade
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice,
+   this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+POSSIBILITY OF SUCH DAMAGE.
+
+
+-------------------------------------------------------------------------
+2. Leaflet.markercluster
+-------------------------------------------------------------------------
+Archivos: js/vendor/leaflet.markercluster.js, js/vendor/MarkerCluster.css
+Web:      https://github.com/Leaflet/Leaflet.markercluster
+Licencia: MIT
+
+Copyright 2012 David Leaver
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+
+-------------------------------------------------------------------------
+3. Grabación del adhan
+-------------------------------------------------------------------------
+Archivo:  audio/adhan.mp3
+Obra:     «The Adhan - Muslim Call to Prayer»
+Autor:    Atcovi
+Origen:   Wikimedia Commons, subida el 23 de diciembre de 2020
+          https://commons.wikimedia.org/wiki/File:The_Adhan_-_Muslim_Call_to_Prayer_-_Aaqib_Azeez.mp3
+Licencia: Creative Commons Reconocimiento-CompartirIgual 4.0 Internacional
+          (CC BY-SA 4.0) — https://creativecommons.org/licenses/by-sa/4.0/
+SHA-256:  0FAA59E2028BBB2F60A670B53EC89FFCF628F3C195B43FB41D9BDBC99000C1B3
+
+Obra utilizada sin modificaciones. La licencia CC BY-SA 4.0 exige reconocer
+la autoría y enlazar la licencia, cosa que hace este aviso.
+
+Nota sobre CompartirIgual: la cláusula afecta a las obras DERIVADAS de esta
+grabación, no al programa que la acompaña. Incluir un archivo sin modificar
+dentro de una aplicación constituye una colección, no una adaptación, así que
+no obliga a relicenciar SALATI. Si algún día se recorta o se reprocesa el
+audio, el archivo resultante sí tendría que distribuirse bajo CC BY-SA 4.0.
+
+La llamada a la oración en sí es tradicional y no está sujeta a derechos de
+autor; lo que ampara esta licencia es esta interpretación concreta.
+
+
+-------------------------------------------------------------------------
+4. Tipografías Amiri y Cairo
+-------------------------------------------------------------------------
+Archivos: assets/fonts/*.woff2
+Licencia: SIL Open Font License 1.1
+
+El texto completo de la licencia y los avisos de copyright de cada familia
+están en assets/fonts/LICENCIA.txt, que se distribuye junto a las propias
+tipografías.
+
+
+-------------------------------------------------------------------------
+5. Datos y teselas de OpenStreetMap
+-------------------------------------------------------------------------
+Uso:      mapa de mezquitas (teselas, Nominatim y Overpass API)
+Licencia: Open Database License (ODbL) 1.0 para los datos
+          https://www.openstreetmap.org/copyright
+
+Los datos cartográficos son © colaboradores de OpenStreetMap. La atribución
+se muestra de forma permanente dentro del propio mapa de la aplicación, tal
+y como exige la ODbL. Los datos no se redistribuyen: se consultan en línea.
+
+
+-------------------------------------------------------------------------
+6. Capacitor y sus complementos
+-------------------------------------------------------------------------
+Uso:      empaquetado de la aplicación de Android
+Licencia: MIT (Ionic / Drifty Co.)
+
+Se incorporan durante la compilación como dependencias de npm. Sus avisos de
+licencia viajan dentro de cada paquete, en node_modules, y se conservan en el
+artefacto compilado.

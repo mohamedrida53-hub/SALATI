@@ -1,48 +1,47 @@
 /* =========================================================
-   Envoltorio de analítica — Umami (sin cookies).
+   Analítica — DESACTIVADA a propósito.
 
-   Toda la app llama a `track()` y nunca al proveedor directamente. Esa
-   indirección acaba de demostrar para qué sirve: cambiar de Google Analytics
-   a Umami sólo ha tocado este archivo y la etiqueta <script> del HTML; ni una
-   sola llamada del resto de la app ha cambiado.
+   SALATI no mide nada: ni en la web ni en la aplicación de Android. No hay
+   proveedor, no hay script externo, no sale ni una petición del dispositivo
+   por este concepto. Es una decisión de producto, no un olvido: la privacidad
+   es el pilar de la app y las páginas legales lo afirman por escrito.
 
-   La otra razón es la resiliencia: si el usuario tiene un bloqueador, va sin
-   conexión o el script aún no ha llegado, `window.umami` no existe. Llamarlo
-   lanzaría un ReferenceError que reventaría la función desde la que se llama
-   — por ejemplo la que instala la PWA. Aquí se comprueba antes.
+   ¿Y por qué sigue existiendo este archivo? Porque siete puntos de app.js
+   llaman a `track()` — instalación, cambio de tema, apertura de sección,
+   enlaces externos. Borrarlo obligaría a tocar los siete y a repetir la
+   comprobación en cada uno. Dejándolo aquí, la decisión vive en UN solo sitio.
 
-   Umami no usa cookies ni identifica a nadie, así que no hace falta pedir
-   consentimiento y la app puede seguir prometiendo privacidad de verdad.
+   Si algún día quisieras medir algo, esto es lo único que hay que cambiar:
+   implementar `track()` y añadir la etiqueta del proveedor en index.html.
+   Y entonces habría que actualizar, a la vez y sin excepción:
+
+     · la sección 7 de privacidad.html y privacy.html
+     · la tabla de terceros de la sección 6 de ambas
+     · el formulario de Seguridad de los Datos de Play Console
+     · la declaración de permisos, que afirma que no hay seguimiento
+
+   La regla de scripts/auditar-www.mjs que prohíbe scripts externos saltaría
+   en la compilación para recordártelo.
    ========================================================= */
 
-/** ¿Está el script de Umami cargado y utilizable? */
+/** No hay proveedor de analítica. Siempre false. */
 export function analyticsReady() {
-  return typeof window.umami?.track === 'function';
+  return false;
 }
 
 /**
- * Envía un evento. Nunca lanza: cualquier fallo se traga a propósito,
- * porque una métrica jamás debe romper una funcionalidad.
+ * Punto de entrada único de la medición. Hoy no hace nada y nunca lanza.
  *
- * @param {string} name  nombre del evento
- * @param {object} data  datos adicionales (opcional)
- * @returns {boolean}    true si se pudo enviar
+ * Se mantiene la firma `(name, data)` para que los puntos de llamada no
+ * tengan que cambiar si algún día se reactiva.
+ *
+ * @returns {boolean} siempre false: no se ha enviado nada
  */
-export function track(name, data = null) {
-  if (!analyticsReady()) return false;
-  try {
-    if (data && Object.keys(data).length) window.umami.track(name, data);
-    else window.umami.track(name);
-    return true;
-  } catch {
-    return false;   // bloqueador que define umami pero lo rompe por dentro
-  }
+export function track() {
+  return false;
 }
 
-/**
- * Sección abierta dentro de la app. Umami cuenta una sola página en una SPA,
- * así que sin esto no se sabría qué pestañas se usan de verdad.
- */
-export function trackScreen(name) {
-  return track('screen-view', { screen: name });
+/** Sección abierta dentro de la app. Igualmente inerte. */
+export function trackScreen() {
+  return false;
 }

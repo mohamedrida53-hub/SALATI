@@ -29,17 +29,28 @@
 <link rel="manifest" href="./manifest.json">
 
 <!-- ============ Vista previa al compartir (Open Graph / Twitter) ============
-     IMPORTANTE: og:url y og:image tienen que ser URLs ABSOLUTAS. Los robots de
-     WhatsApp, Telegram, Facebook y X no resuelven rutas relativas, así que con
-     "./icons/…" la tarjeta saldría sin imagen. Sustituye tu-dominio.com por el
-     dominio real en las tres etiquetas marcadas antes de publicar. -->
+
+     PARA MEJORARLO CUANDO SEPAS TU DIRECCIÓN PÚBLICA: abre esta página ya
+     publicada, copia la dirección de la barra del navegador y descomenta las
+     tres etiquetas del final de este bloque, poniéndola en su sitio. Nada más.
+
+     Por qué están comentadas y no rellenadas con un dominio de ejemplo: aquí
+     había uno de relleno que resulta ser un dominio REAL, registrado por otra
+     persona. Eso hacía dos destrozos: la imagen de la tarjeta se pedía a un
+     sitio ajeno, y el `canonical` le decía a Google que el original de esta
+     página estaba allí. No tener la etiqueta es mucho mejor que tenerla mal.
+
+     Lo que sí funciona sin saber el dominio son el título, la descripción y el
+     nombre del sitio, que es la mayor parte de la tarjeta. La imagen va en ruta
+     relativa: los robots de WhatsApp, Telegram, Facebook y X suelen resolverla
+     contra la dirección de la página, y si alguno no lo hace, la tarjeta sale
+     sin imagen — exactamente lo que pasaba antes. -->
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="SALATI">
 <meta property="og:locale" content="es_ES">
 <meta property="og:title" content="Salati — Tu aplicación islámica sin filtros ni anuncios">
 <meta property="og:description" content="Tiempos de rezo exactos, brújula Qibla, calendario Hégira y más. Diseñada para ser rápida, limpia y respetuosa con tu privacidad.">
-<meta property="og:url" content="https://tu-dominio.com/">
-<meta property="og:image" content="https://tu-dominio.com/icons/og-image.png">
+<meta property="og:image" content="./icons/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:type" content="image/png">
@@ -48,24 +59,23 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Salati — Tu aplicación islámica sin filtros ni anuncios">
 <meta name="twitter:description" content="Tiempos de rezo exactos, brújula Qibla, calendario Hégira y más. Diseñada para ser rápida, limpia y respetuosa con tu privacidad.">
-<meta name="twitter:image" content="https://tu-dominio.com/icons/og-image.png">
+<meta name="twitter:image" content="./icons/og-image.png">
 <meta name="twitter:image:alt" content="Logotipo de SALATI: luna creciente dorada con mezquita y Corán abierto.">
 
-<link rel="canonical" href="https://tu-dominio.com/">
+<!-- ▼▼▼ DESCOMENTA ESTAS TRES Y CAMBIA LA DIRECCIÓN POR LA TUYA ▼▼▼
+<meta property="og:url" content="https://TU-DIRECCION-AQUI/">
+<meta name="twitter:image" content="https://TU-DIRECCION-AQUI/icons/og-image.png">
+<link rel="canonical" href="https://TU-DIRECCION-AQUI/">
+     ▲▲▲ (la de og:image de arriba cámbiala también a absoluta) ▲▲▲ -->
 
-<!-- ============ Analítica sin cookies (Umami) ============
-     ▼▼▼ SUSTITUYE TU-WEBSITE-ID-AQUI POR EL ID DE TU PANEL DE UMAMI ▼▼▼
+<!-- ============ Sin analítica ============
+     SALATI no mide nada, ni en la web ni en la aplicación de Android: aquí no
+     hay ningún script de estadísticas y no se contacta con ningún proveedor.
 
-     Umami no usa cookies ni almacena datos personales: no hace falta banner
-     de consentimiento y la promesa de privacidad de la app se mantiene.
-     Si te alojas tú mismo, cambia también el `src` por el de tu servidor.
-
-     `defer` evita que bloquee el arranque, y js/analytics.js comprueba que
-     `umami` exista antes de usarlo, así que un bloqueador no rompe nada. -->
-<script defer
-        src="https://cloud.umami.is/script.js"
-        data-website-id="TU-WEBSITE-ID-AQUI"></script>
-<!-- ▲▲▲ FIN ANALÍTICA ▲▲▲ -->
+     `js/analytics.js` sigue existiendo como envoltorio vacío para no tener que
+     tocar los siete puntos de la app que lo llaman. Si algún día se quisiera
+     medir algo, se cambia ESE archivo y se añade aquí la etiqueta; ahora mismo
+     no envía nada a ninguna parte. -->
 <link rel="icon" href="./favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">

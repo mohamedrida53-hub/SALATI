@@ -12,6 +12,10 @@
       "smallIcon": "ic_stat_salati",
       "iconColor": "#C9A227",
       "sound": "adhan.mp3"
+    },
+    "SystemBars": {
+      "insetsHandling": "css",
+      "style": "DARK"
     }
   }
 }

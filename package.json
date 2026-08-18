@@ -10,15 +10,18 @@
     "android:prepare": "npm run build && npx cap add android && npm run native:apply && npx cap sync android",
     "android:sync": "npm run build && npm run native:apply && npx cap sync android"
   },
+  "engines": {
+    "node": ">=22"
+  },
   "dependencies": {
-    "@capgo/capacitor-navigation-bar": "^6.0.0",
-    "@capacitor/android": "^6.2.0",
-    "@capacitor/browser": "^6.0.0",
-    "@capacitor/core": "^6.2.0",
-    "@capacitor/geolocation": "^6.1.0",
-    "@capacitor/local-notifications": "^6.1.0"
+    "@capacitor/android": "^8.0.0",
+    "@capacitor/app-launcher": "^8.0.0",
+    "@capacitor/browser": "^8.0.0",
+    "@capacitor/core": "^8.0.0",
+    "@capacitor/geolocation": "^8.0.0",
+    "@capacitor/local-notifications": "^8.0.0"
   },
   "devDependencies": {
-    "@capacitor/cli": "^6.2.0"
+    "@capacitor/cli": "^8.0.0"
   }
 }

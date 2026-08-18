@@ -60,29 +60,37 @@ export function apply() {
   const color = BAR_COLOR[resolvedTheme()];
   const meta = document.querySelector('meta[name="theme-color"]');
   if (meta) meta.setAttribute('content', color);
-  pintarBarraNativa(color);
+  pintarBarraNativa();
 }
 
 /**
- * Pinta la barra de gestos de Android desde JavaScript.
+ * Ajusta los ICONOS de las barras del sistema al tema de la app.
  *
- * El tema nativo (scripts/apply-native.mjs) ya la deja oscura desde el
- * primer fotograma, que es lo que evita el destello blanco al abrir. Esto es
- * la capa de encima: hace falta porque el tema es fijo y la app tiene modo
- * claro, así que al cambiarlo la barra debe seguirle.
+ * Antes esto pintaba la barra de gestos de un color con un plugin de la
+ * comunidad. **En Android 15 eso dejó de funcionar y no tiene arreglo**: al
+ * apuntar a targetSdk 35 o superior el sistema impone el modo «edge to edge»,
+ * las barras son siempre transparentes y tanto `setNavigationBarColor` como
+ * los atributos `android:navigationBarColor` y `android:statusBarColor` del
+ * tema se ignoran. Google lo hizo obligatorio, no es opcional.
  *
- * El plugin es de la comunidad: NO existe un `@capacitor/navigation-bar`
- * oficial. Si no está instalado, no pasa nada y se queda el tema nativo.
+ * Lo que sí se puede decidir es si los iconos del sistema (reloj, batería,
+ * flechas de gestos) se dibujan claros u oscuros, y eso es justo lo que hace
+ * falta: con la app en claro tienen que ser oscuros para verse, y al revés.
+ * De eso se encarga SystemBars, que en Capacitor 8 viene dentro del propio
+ * `@capacitor/core`, sin plugin de terceros.
+ *
+ * El fondo que se ve DETRÁS de las barras ahora lo pinta la propia web: el
+ * `body` llega hasta los bordes y la cabecera y la barra de pestañas reservan
+ * el hueco con `env(safe-area-inset-*)`, que ya estaba en styles.css.
+ *
+ * `Dark` significa «contenido para fondo oscuro», es decir iconos claros.
  */
-function pintarBarraNativa(color) {
-  const NB = globalThis.Capacitor?.Plugins?.NavigationBar;
-  if (!NB?.setNavigationBarColor && !NB?.setColor) return;
+function pintarBarraNativa() {
+  const SB = globalThis.Capacitor?.Plugins?.SystemBars;
+  if (!SB?.setStyle) return;   // navegador, o Capacitor anterior a la 8
   try {
-    const oscuro = resolvedTheme() === 'dark';
-    // Distintas versiones del plugin exponen un nombre u otro.
-    const fn = NB.setNavigationBarColor ?? NB.setColor;
-    fn.call(NB, { color, darkButtons: !oscuro });
-  } catch { /* la barra se queda como la dejó el tema nativo */ }
+    SB.setStyle({ style: resolvedTheme() === 'dark' ? 'DARK' : 'LIGHT' });
+  } catch { /* se queda el estilo inicial de capacitor.config.json */ }
 }
 
 export function initTheme() {

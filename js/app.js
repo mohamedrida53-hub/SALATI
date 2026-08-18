@@ -318,18 +318,40 @@ function wireExternalLink(selector, evento) {
   enlace.addEventListener('click', async (event) => {
     track(evento);
 
-    const Browser = globalThis.Capacitor?.isNativePlatform?.()
-      ? globalThis.Capacitor?.Plugins?.Browser
-      : null;
-    if (!Browser?.open) return;   // en web, que el ancla haga su trabajo
+    if (globalThis.Capacitor?.isNativePlatform?.() !== true) return;   // en web, que el ancla haga su trabajo
 
+    const plugins = globalThis.Capacitor?.Plugins ?? {};
     event.preventDefault();
+
+    /* Se sale al NAVEGADOR DEL SISTEMA, no a una pestaña incrustada.
+       Importa para los botones de donación: la política de pagos de Google
+       admite estos enlaces porque el pago ocurre FUERA de la aplicación, y
+       una Custom Tab difumina esa frontera. AppLauncher lanza un intent
+       ACTION_VIEW, así que además abre la app de Ko-fi o de PayPal si el
+       usuario la tiene instalada, que es mejor experiencia.
+
+       Se degrada en cascada a propósito, porque estos botones financian el
+       proyecto y quedarse sin ellos en el APK sería peor que abrirlos de una
+       forma menos ideal: AppLauncher → Browser incrustado → ancla normal. */
     try {
-      await Browser.open({ url: enlace.href, presentationStyle: 'popover' });
+      if (plugins.AppLauncher?.openUrl) {
+        await plugins.AppLauncher.openUrl({ url: enlace.href });
+        return;
+      }
     } catch (err) {
-      console.error('[SALATI] No se ha podido abrir el enlace:', err);
-      window.open(enlace.href, '_blank', 'noopener');   // reserva
+      console.error('[SALATI] AppLauncher no ha podido abrir el enlace:', err);
     }
+
+    try {
+      if (plugins.Browser?.open) {
+        await plugins.Browser.open({ url: enlace.href, presentationStyle: 'popover' });
+        return;
+      }
+    } catch (err) {
+      console.error('[SALATI] Browser no ha podido abrir el enlace:', err);
+    }
+
+    window.open(enlace.href, '_blank', 'noopener');   // última reserva
   });
 }
 

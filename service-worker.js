@@ -12,7 +12,11 @@
    así que desde `js/` era imposible que gobernara `/` y el registro fallaba
    con SecurityError: la app nunca llegaba a funcionar sin conexión.
    Las rutas relativas de SHELL_FILES se resuelven contra ESTA ubicación. */
-const VERSION = 'v3.5.0';
+/* v3.6.0 sube de versión sobre todo por el adhan: el archivo de audio cambió
+   de grabación y las instalaciones existentes lo tienen guardado en la caché
+   SHELL. Sin cambiar la versión seguirían sonando con el archivo anterior,
+   que es justo el que había que dejar de distribuir. */
+const VERSION = 'v3.7.0';
 const SHELL = `SALATI-shell-${VERSION}`;
 const DATA = `SALATI-data-${VERSION}`;
 const TILES = `SALATI-tiles-${VERSION}`;

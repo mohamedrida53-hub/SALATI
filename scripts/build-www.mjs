@@ -34,8 +34,26 @@ const INCLUIR = [
   'manifest.json',
   'favicon.svg',
   'js',
-  'icons',
   'audio',
+  /* Obligatorio, no opcional: Leaflet (BSD-2) y Leaflet.markercluster (MIT)
+     exigen que su aviso de copyright acompañe a las redistribuciones en
+     forma binaria, y meterlos dentro de un APK es exactamente eso. */
+  'LICENCIAS.txt',
+];
+
+/* La carpeta `icons/` NO se copia entera a propósito.
+   Además de los iconos de la app guarda las 15 capturas de pantalla del
+   README y la imagen de Open Graph: 1,9 MB que la app no referencia en
+   ningún sitio y que suponían casi un tercio del peso del paquete.
+   Aquí van sólo los archivos que index.html, manifest.json y las páginas
+   legales piden de verdad. */
+const ICONOS = [
+  'icon-192.png',        // manifest + icono de las notificaciones
+  'icon-512.png',        // manifest
+  'maskable-512.png',    // manifest, icono adaptativo
+  'apple-touch-icon.png',
+  'logo-salati.png',     // cabecera de index.html y de las páginas legales
+  'logo-mark.png',
 ];
 
 async function main() {
@@ -53,8 +71,32 @@ async function main() {
     copiados += 1;
   }
 
+  await copiarIconos();
+
+  /* Aquí había un `quitarAnalitica()` que recortaba el script de Umami del
+     index.html empaquetado. Ya no hace falta: SALATI dejó de usar analítica
+     también en la web, así que no hay nada que recortar. Quien vigila que no
+     se cuele ningún script externo es ahora scripts/auditar-www.mjs, que
+     además comprueba el resultado en disco en lugar de fiarse de este script. */
+
   const total = await pesar(DESTINO);
-  console.log(`www/ listo: ${copiados} entradas, ${(total / 1024 / 1024).toFixed(2)} MB`);
+  console.log(`www/ listo: ${copiados + 1} entradas, ${(total / 1024 / 1024).toFixed(2)} MB`);
+}
+
+/** Copia sólo los iconos que la app usa, uno a uno. */
+async function copiarIconos() {
+  const destino = join(DESTINO, 'icons');
+  await mkdir(destino, { recursive: true });
+
+  for (const nombre of ICONOS) {
+    const origen = join(RAIZ, 'icons', nombre);
+    if (!existsSync(origen)) {
+      console.warn(`  · aviso: falta icons/${nombre}`);
+      continue;
+    }
+    await cp(origen, join(destino, nombre));
+  }
+  console.log(`  · icons/: ${ICONOS.length} archivos (capturas del README excluidas)`);
 }
 
 async function pesar(dir) {
