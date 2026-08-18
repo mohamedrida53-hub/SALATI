@@ -5,6 +5,11 @@ on:
     branches: [main]
   # Permite lanzarlo a mano desde la pestaña Actions sin hacer un push.
   workflow_dispatch:
+    inputs:
+      version_code:
+        description: 'versionCode manual (vacío = automático). Úsalo si Play dice que ese número ya se ha utilizado.'
+        required: false
+        type: string
 
 jobs:
   build:
@@ -12,15 +17,22 @@ jobs:
     # Actions sin abrir los registros, así que de un vistazo se sabe si GitHub
     # está ejecutando esta versión del archivo o una anterior que se quedó
     # subida. Súbela cada vez que cambies este workflow.
-    name: APK de prueba + AAB para Play Store (rev. 4 · paquete com.salatii.app)
+    name: APK de prueba + AAB para Play Store (rev. 5 · versionCode a prueba de relanzamientos)
     runs-on: ubuntu-latest
 
     env:
-      # Google Play rechaza cualquier subida cuyo versionCode no sea MAYOR
-      # que el de la anterior. Atarlo al contador de ejecuciones de Actions
-      # garantiza que siempre suba, sin llevar la cuenta a mano.
-      SALATI_VERSION_CODE: ${{ github.run_number }}
-      SALATI_VERSION_NAME: 1.0.${{ github.run_number }}
+      # Suelo del contador de versiones.
+      #
+      # El versionCode ya NO es `github.run_number` a secas, y el motivo es un
+      # detalle que costó un rechazo de Play: **volver a ejecutar un run no
+      # incrementa `run_number`**, sólo `run_attempt`. Al relanzar el run 16 se
+      # generó otra vez el versionCode 16, que la consola ya había consumido.
+      #
+      # Con esta base el número resultante queda muy por encima de cualquiera
+      # ya gastado, y `run_attempt` entra en la cuenta para que dos intentos
+      # del mismo run nunca produzcan el mismo código. Si algún día hiciera
+      # falta forzar uno concreto, está el campo manual de workflow_dispatch.
+      SALATI_VERSION_BASE: '100'
 
       # El nombre del paquete que exige la ficha de Google Play. OJO CON LA
       # DOBLE «i»: es «salatii», no «salati».
@@ -35,6 +47,68 @@ jobs:
     steps:
       - name: Descargar el repositorio
         uses: actions/checkout@v4
+
+      # Se decide aquí, en un solo sitio, y se exporta al resto del job.
+      # Google Play rechaza cualquier subida cuyo versionCode no sea
+      # ESTRICTAMENTE MAYOR que el de la anterior, y un número consumido no se
+      # libera jamás, ni aunque borres el borrador de la consola.
+      - name: Decidir el versionCode
+        # Los valores de GitHub se inyectan por `env` y no interpolando
+        # `${{ }}` dentro del script: así un valor inesperado se trata como
+        # dato y nunca puede convertirse en comandos del shell.
+        env:
+          MANUAL: ${{ inputs.version_code }}
+          NUMERO: ${{ github.run_number }}
+          INTENTO: ${{ github.run_attempt }}
+        run: |
+          set -euo pipefail
+
+          if [ -n "${MANUAL:-}" ]; then
+            case "$MANUAL" in
+              ''|*[!0-9]*)
+                echo "::error::El versionCode manual '$MANUAL' no es un numero entero positivo."
+                exit 1 ;;
+            esac
+            CODIGO="$MANUAL"
+            ORIGEN="manual (introducido al lanzar el workflow)"
+          else
+            # run_attempt entra en la cuenta para que re-ejecutar un run no
+            # repita el numero: el intento 1 da +1, el 2 da +2, etc.
+            CODIGO=$(( SALATI_VERSION_BASE + NUMERO * 4 + INTENTO - 1 ))
+            ORIGEN="automatico (base $SALATI_VERSION_BASE + run $NUMERO x4 + intento $INTENTO)"
+          fi
+
+          # Play admite hasta 2100000000. Muy lejos, pero mejor comprobarlo.
+          if [ "$CODIGO" -lt 1 ] || [ "$CODIGO" -gt 2100000000 ]; then
+            echo "::error::versionCode $CODIGO fuera del rango que admite Google Play."
+            exit 1
+          fi
+
+
+          # versionCode es INTERNO: el usuario no lo ve nunca y su única regla
+          # es no repetirse jamás. Puede dar saltos sin que importe.
+          #
+          # versionName es lo que SÍ aparece en la ficha de Play y en los
+          # ajustes del móvil, así que tiene que leerse bien. Se ata al número
+          # de ejecución, que se mantiene pequeño: 1.0.17, no 1.0.168.
+          #
+          # No necesitan coincidir, y de hecho no deben: dos intentos del mismo
+          # run comparten versionName y llevan versionCode distinto, que es
+          # exactamente lo que Play espera.
+          NOMBRE="1.0.$NUMERO"
+
+          echo "SALATI_VERSION_CODE=$CODIGO" >> "$GITHUB_ENV"
+          echo "SALATI_VERSION_NAME=$NOMBRE" >> "$GITHUB_ENV"
+
+          echo "versionCode: $CODIGO   (interno, nunca se repite)"
+          echo "versionName: $NOMBRE   (visible en la ficha)"
+          echo "origen:      $ORIGEN"
+
+      - name: Comprobar que el versionCode se ha exportado
+        run: |
+          set -euo pipefail
+          test -n "${SALATI_VERSION_CODE:-}" || { echo "::error::el versionCode no se ha exportado"; exit 1; }
+          echo "En uso: versionCode=$SALATI_VERSION_CODE  versionName=$SALATI_VERSION_NAME"
 
       - name: Preparar Node.js
         uses: actions/setup-node@v4
@@ -307,7 +381,7 @@ jobs:
           {
             echo "### Compilación de SALATI"
             echo ""
-            echo "Workflow \`build-apk.yml\` rev. 4 — paquete com.salatii.app, APK de prueba + AAB."
+            echo "Workflow \`build-apk.yml\` rev. 5 — versionCode robusto, APK de prueba + AAB."
             echo ""
             echo "| Dato | Valor |"
             echo "|---|---|"
