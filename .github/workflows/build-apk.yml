@@ -17,7 +17,7 @@ jobs:
     # Actions sin abrir los registros, así que de un vistazo se sabe si GitHub
     # está ejecutando esta versión del archivo o una anterior que se quedó
     # subida. Súbela cada vez que cambies este workflow.
-    name: APK de prueba + AAB para Play Store (rev. 5 · versionCode a prueba de relanzamientos)
+    name: APK de prueba + AAB para Play Store (rev. 6 · versionName 1.0.18)
     runs-on: ubuntu-latest
 
     env:
@@ -89,13 +89,26 @@ jobs:
           # es no repetirse jamás. Puede dar saltos sin que importe.
           #
           # versionName es lo que SÍ aparece en la ficha de Play y en los
-          # ajustes del móvil, así que tiene que leerse bien. Se ata al número
-          # de ejecución, que se mantiene pequeño: 1.0.17, no 1.0.168.
+          # ajustes del móvil, así que sale de `version` en package.json: es una
+          # decisión de producto, no un efecto secundario de cuántas veces haya
+          # corrido el CI. Antes se ataba al número de ejecución y eso hacía
+          # imposible fijar una versión concreta.
           #
-          # No necesitan coincidir, y de hecho no deben: dos intentos del mismo
-          # run comparten versionName y llevan versionCode distinto, que es
+          # Los dos números no coinciden ni deben: dos intentos del mismo run
+          # comparten versionName y llevan versionCode distinto, que es
           # exactamente lo que Play espera.
-          NOMBRE="1.0.$NUMERO"
+          #
+          # Se lee con grep y no con node porque este paso corre ANTES de
+          # preparar Node.js, y no conviene depender de la versión que el
+          # runner traiga de fábrica.
+          NOMBRE=$(grep -oP '"version"\s*:\s*"\K[^"]+' package.json | head -1)
+
+          case "$NOMBRE" in
+            [0-9]*.[0-9]*.[0-9]*) ;;
+            *)
+              echo "::error::La version '$NOMBRE' de package.json no tiene forma X.Y.Z."
+              exit 1 ;;
+          esac
 
           echo "SALATI_VERSION_CODE=$CODIGO" >> "$GITHUB_ENV"
           echo "SALATI_VERSION_NAME=$NOMBRE" >> "$GITHUB_ENV"
@@ -381,7 +394,7 @@ jobs:
           {
             echo "### Compilación de SALATI"
             echo ""
-            echo "Workflow \`build-apk.yml\` rev. 5 — versionCode robusto, APK de prueba + AAB."
+            echo "Workflow \`build-apk.yml\` rev. 6 — versionName desde package.json, APK de prueba + AAB."
             echo ""
             echo "| Dato | Valor |"
             echo "|---|---|"
