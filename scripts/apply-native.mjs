@@ -42,8 +42,19 @@ const PERMISOS = [
 ];
 
 async function main() {
+  /* Este script NO genera la plataforma: sólo reinyecta lo nuestro encima.
+     Si la carpeta no está, el fallo real ocurrió antes, en `cap add android`,
+     y el mensaje tiene que apuntar hacia allí en vez de sugerir un comando
+     que en CI ya se ejecuta automáticamente. */
   if (!existsSync(ANDROID)) {
-    console.error('No existe android/. Ejecuta antes: npx cap add android');
+    console.error('No existe la carpeta android/, así que no hay nada que personalizar.');
+    console.error('');
+    console.error('Esto NO es un fallo de este script: la plataforma se genera antes,');
+    console.error('en el paso «Crear el proyecto Android» (npx cap add android).');
+    console.error('Revisa ese paso y el de «Comprobar el entorno de Capacitor»:');
+    console.error('el motivo real estará ahí.');
+    console.error('');
+    console.error('En local, el equivalente es:  npm run android:prepare');
     process.exit(1);
   }
 
