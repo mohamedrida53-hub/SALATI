@@ -12,7 +12,7 @@ jobs:
     # Actions sin abrir los registros, así que de un vistazo se sabe si GitHub
     # está ejecutando esta versión del archivo o una anterior que se quedó
     # subida. Súbela cada vez que cambies este workflow.
-    name: APK de prueba + AAB para Play Store (rev. 2)
+    name: APK de prueba + AAB para Play Store (rev. 3 · Capacitor 8)
     runs-on: ubuntu-latest
 
     env:
@@ -29,7 +29,8 @@ jobs:
       - name: Preparar Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          # Capacitor 8 exige Node 22 o superior; con la 20 el CLI ni arranca.
+          node-version: '22'
           # Sin cache: 'npm' a propósito. Esa opción exige package-lock.json y
           # aún no existe, porque no hay entorno local para generarlo.
 
@@ -40,19 +41,68 @@ jobs:
       - name: Preparar la carpeta www
         run: node scripts/build-www.mjs
 
-      - name: Preparar Java 17
+      # Auditoría independiente de lo que se va a empaquetar de verdad.
+      # Comprueba el resultado en disco, no que el paso anterior dijera haber
+      # hecho su trabajo. Ver los motivos de cada regla en el propio script.
+      - name: Auditar el contenido de www
+        run: node scripts/auditar-www.mjs
+
+      # Capacitor 8 trae AGP 8.13 y Gradle 8.14.3, que necesitan JDK 21.
+      # Con el 17 la compilación falla al resolver el plugin de Android.
+      - name: Preparar Java 21
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: '21'
 
       # El runner de Ubuntu ya trae el SDK de Android. Esta acción sólo
       # garantiza que las licencias estén aceptadas y el PATH configurado.
       - name: Preparar el SDK de Android
         uses: android-actions/setup-android@v3
 
+      # Radiografía del entorno ANTES de generar nada. Si `cap add` falla, lo
+      # primero que hay que saber es con qué herramientas y qué configuración
+      # estaba trabajando, en vez de deducirlo.
+      - name: Comprobar el entorno de Capacitor
+        run: |
+          set -euo pipefail
+          echo "node   $(node --version)"
+          echo "npm    $(npm --version)"
+          echo "cap    $(npx --no-install cap --version)"
+          echo "--- paquetes de Capacitor instalados ---"
+          npm ls --depth=0 2>&1 | grep -i capacitor || echo "NINGUNO ENCONTRADO"
+          echo "--- @capacitor/android en node_modules ---"
+          test -d node_modules/@capacitor/android \
+            && echo "presente" \
+            || { echo "::error::@capacitor/android no se ha instalado; sin el, cap add android no puede funcionar."; exit 1; }
+          echo "--- webDir ---"
+          test -d www \
+            && echo "www/ con $(find www -type f | wc -l) archivos" \
+            || { echo "::error::no existe www/, que es el webDir declarado en capacitor.config.json"; exit 1; }
+          echo "--- capacitor.config.json ---"
+          cat capacitor.config.json
+
+      # SIN `|| echo`. Enmascarar el fallo aqui es justo lo que hizo que el
+      # error apareciera dos pasos mas tarde, en apply-native.mjs, y sin pista
+      # alguna sobre su origen. Si `cap add` falla, este paso tiene que morir.
       - name: Crear el proyecto Android
-        run: npx cap add android || echo "android/ ya existía, se continúa"
+        run: |
+          set -euo pipefail
+          if [ -d android ]; then
+            echo "android/ ya existia; se reutiliza."
+          else
+            npx --no-install cap add android
+          fi
+
+          # No basta con que el comando termine bien: hay que confirmar que la
+          # plataforma esta realmente ahi, que es lo que espera el paso siguiente.
+          if [ ! -d android/app/src/main ]; then
+            echo "::error::cap add android termino sin error pero no ha generado android/app/src/main."
+            echo "--- contenido de android/ ---"
+            ls -laR android 2>/dev/null | head -60 || echo "(la carpeta no existe)"
+            exit 1
+          fi
+          echo "Proyecto Android generado correctamente."
 
       # Reinyecta adhan.mp3, permisos, iconos, tema y la config de firma.
       # Imprescindible: cap add regenera la carpeta desde una plantilla limpia.
@@ -74,6 +124,18 @@ jobs:
               echo "::error::apply-native.mjs no ha parcheado app/build.gradle."
               exit 1
             }
+
+          # Google Play rechaza cualquier subida por debajo de API 36 desde el
+          # 31 de agosto de 2026. Es el motivo de estar en Capacitor 8, así que
+          # se comprueba aquí en vez de descubrirlo al subir el bundle.
+          echo "--- SDK objetivo ---"
+          cat android/variables.gradle
+          OBJETIVO=$(grep -oP 'targetSdkVersion\s*=\s*\K\d+' android/variables.gradle)
+          echo "targetSdkVersion detectado: $OBJETIVO"
+          if [ "$OBJETIVO" -lt 36 ]; then
+            echo "::error::targetSdk $OBJETIVO. Play exige 36 o superior; revisa la versión de Capacitor."
+            exit 1
+          fi
 
       # ---- Firma ----
       # El keystore viaja como secreto en base64 y se materializa aquí, fuera
@@ -179,7 +241,7 @@ jobs:
           {
             echo "### Compilación de SALATI"
             echo ""
-            echo "Workflow \`build-apk.yml\` rev. 2 — APK de prueba + AAB."
+            echo "Workflow \`build-apk.yml\` rev. 3 — Capacitor 8, APK de prueba + AAB."
             echo ""
             echo "| Dato | Valor |"
             echo "|---|---|"
